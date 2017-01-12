@@ -1,7 +1,7 @@
+open Core.Std
+open BatIO
+open BatIO.BigEndian
 open Fmt_error
-
-module ByteIO = BatIO.BigEndian
-module Array = Core.Std.Array
 
 type member_ref =
   { cls        : string;
@@ -48,32 +48,25 @@ exception Element_not_found
 exception Invalid_type
 
 let parse input = function
-  | 1  -> let len = ByteIO.read_ui16 input in Utf8 (BatIO.nread input len)
-  | 3  -> Integer (ByteIO.read_real_i32 input)
-  | 4  -> Float (ByteIO.read_float input)
-  | 5  -> Long (ByteIO.read_i64 input)
-  | 6  -> Double (ByteIO.read_double input)
-  | 7  -> Class (ByteIO.read_ui16 input)
-  | 8  -> String (ByteIO.read_ui16 input)
-  | 9  -> Fieldref (ByteIO.read_ui16 input, ByteIO.read_ui16 input)
-  | 10 -> Methodref (ByteIO.read_ui16 input, ByteIO.read_ui16 input)
-  | 11 -> InterfaceMethodref (ByteIO.read_ui16 input, ByteIO.read_ui16 input)
-  | 12 -> NameAndType (ByteIO.read_ui16 input, ByteIO.read_ui16 input)
-  | 15 -> MethodHandle (BatIO.read_byte input, ByteIO.read_ui16 input)
-  | 16 -> MethodType (ByteIO.read_ui16 input)
-  | 18 -> InvokeDynamic (ByteIO.read_ui16 input, ByteIO.read_ui16 input)
+  | 1  -> let len = read_ui16 input in Utf8 (nread input len)
+  | 3  -> Integer (read_real_i32 input)
+  | 4  -> Float (read_float input)
+  | 5  -> Long (read_i64 input)
+  | 6  -> Double (read_double input)
+  | 7  -> Class (read_ui16 input)
+  | 8  -> String (read_ui16 input)
+  | 9  -> Fieldref (read_ui16 input, read_ui16 input)
+  | 10 -> Methodref (read_ui16 input, read_ui16 input)
+  | 11 -> InterfaceMethodref (read_ui16 input, read_ui16 input)
+  | 12 -> NameAndType (read_ui16 input, read_ui16 input)
+  | 15 -> MethodHandle (read_byte input, read_ui16 input)
+  | 16 -> MethodType (read_ui16 input)
+  | 18 -> InvokeDynamic (read_ui16 input, read_ui16 input)
   | _  -> raise (Class_format_error "Invalid Constant Pool Flag")
 
-
-let init size = Array.create ~len:size Empty
-
 let create input =
-  let pool = init (ByteIO.read_ui16 input) in
-  for i = 1 to Array.length pool - 1 do
-    let tag = BatIO.read_byte input in
-    pool.(i) <- parse input tag
-  done;
-  pool
+  let size = read_ui16 input in
+  Array.init size ~f:(fun _ -> let tag = read_byte input in parse input tag)
 
 let get pool index =
   if index < Array.length pool then

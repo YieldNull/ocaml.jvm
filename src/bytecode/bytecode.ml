@@ -1,8 +1,8 @@
 open Core.Std
+open BatIO
+open BatIO.BigEndian
 open Fmt_error
 
-module Array  = Core.Std.Array
-module ByteIO = BatIO.BigEndian
 module ConsPool = Cons_pool
 
 type access_flag =
