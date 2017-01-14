@@ -47,7 +47,6 @@ module LineNumberTable = struct
       )
 end
 
-
 module LocalVariableTable = struct
   type local_variable =
     { start_pc : int;
@@ -73,7 +72,6 @@ module LocalVariableTable = struct
       )
 end
 
-
 module InnerClasses = struct
   type inner_class =
     { inner_class_index : int;
@@ -98,13 +96,12 @@ module InnerClasses = struct
 end
 
 module Synthetic = struct
-  type t = ()
+  type t = unit
   let parse _ len = assert_equal len 0
 end
 
-
 module Deprecated = struct
-  type t = ()
+  type t = unit
   let parse _ len = assert_equal len 0
 end
 
@@ -445,58 +442,86 @@ module StackMapTable = struct
 
   type t = stack_map_frame list
 
-  let parse_vtype input =
-    match read_byte input with
-    | 0 -> Top, 1
-    | 1 -> Integer, 1
-    | 2 -> Float, 1
-    | 3 -> Double, 1
-    | 4 -> Long, 1
-    | 5 -> Null, 1
-    | 6 -> UninitializedThis, 1
-    | 7 -> Object (read_ui16 input), 1 + 2
-    | 8 -> Uninitialized (read_ui16 input), 1 + 2
-    | _ -> raise (Class_format_error "Invalid verification_type")
-
-  let parse_vtype_list input count =
-    let assoc = Array.init count ~f:(fun _ -> parse_vtype input) in
-    let vlist = Array.map assoc ~f:(fun (vt, _) -> vt) in
-    let len = Array.fold_right assoc ~init:0 ~f:(fun (_, l) acc -> acc + l) in
-    vlist, len
-
-  let parse_frame input =
-    match read_byte input with
-    | ft when ft >= 0 && ft <= 63 -> SameFrame, 1
-    | ft when ft >= 64 && ft <= 127 -> let stack, len = parse_vtype input in
-      SameLocals1StackItemFrame { stack }, 1 + len
-    | ft when ft = 247 -> let stack, len = parse_vtype input in
-      SameLocals1StackItemFrameExtended
-                            { offset_delta = read_ui16 input;
-                              stack
-                            }, 3 + len
-    | ft when ft >= 248 && ft <= 250 -> ChopFrame {offset_delta = read_ui16 input}, 3
-    | ft when ft = 251 -> SameFrameExtended {offset_delta = read_ui16 input}, 3
-    | ft when ft >= 252 && ft <= 254 ->
-      let offset_delta = read_ui16 input in
-      let count = ft - 251 in
-      let locals, real_len = parse_vtype_list input count in
-      AppendFrame { offset_delta; locals }, 3 + real_len
-    | ft when ft = 255 ->
-      let offset_delta = read_ui16 input in
-      let locals_count = read_ui16 input in
-      let locals, local_len = parse_vtype_list input locals_count in
-      let stacks_count = read_ui16 input in
-      let stacks, stacks_len = parse_vtype_list input stacks_count in
-      FullFrame { offset_delta; locals; stacks}, 3 + 2 + local_len + 2 + stacks_len
-    | _ -> raise (Class_format_error "Invalid frame type")
-
   let parse input len =
+    let parse_vtype input =
+      match read_byte input with
+      | 0 -> Top, 1
+      | 1 -> Integer, 1
+      | 2 -> Float, 1
+      | 3 -> Double, 1
+      | 4 -> Long, 1
+      | 5 -> Null, 1
+      | 6 -> UninitializedThis, 1
+      | 7 -> Object (read_ui16 input), 1 + 2
+      | 8 -> Uninitialized (read_ui16 input), 1 + 2
+      | _ -> raise (Class_format_error "Invalid verification_type")
+    in
+    let parse_vtype_list input count =
+      let assoc = Array.init count ~f:(fun _ -> parse_vtype input) in
+      let vlist = Array.map assoc ~f:(fun (vt, _) -> vt) in
+      let len = Array.fold_right assoc ~init:0 ~f:(fun (_, l) acc -> acc + l) in
+      vlist, len
+    in
+    let parse_frame input =
+      match read_byte input with
+      | ft when ft >= 0 && ft <= 63 -> SameFrame, 1
+      | ft when ft >= 64 && ft <= 127 -> let stack, len = parse_vtype input in
+        SameLocals1StackItemFrame { stack }, 1 + len
+      | ft when ft = 247 -> let stack, len = parse_vtype input in
+        SameLocals1StackItemFrameExtended
+          { offset_delta = read_ui16 input;
+            stack
+          }, 3 + len
+      | ft when ft >= 248 && ft <= 250 -> ChopFrame {offset_delta = read_ui16 input}, 3
+      | ft when ft = 251 -> SameFrameExtended {offset_delta = read_ui16 input}, 3
+      | ft when ft >= 252 && ft <= 254 ->
+        let offset_delta = read_ui16 input in
+        let count = ft - 251 in
+        let locals, real_len = parse_vtype_list input count in
+        AppendFrame { offset_delta; locals }, 3 + real_len
+      | ft when ft = 255 ->
+        let offset_delta = read_ui16 input in
+        let locals_count = read_ui16 input in
+        let locals, local_len = parse_vtype_list input locals_count in
+        let stacks_count = read_ui16 input in
+        let stacks, stacks_len = parse_vtype_list input stacks_count in
+        FullFrame { offset_delta; locals; stacks}, 3 + 2 + local_len + 2 + stacks_len
+      | _ -> raise (Class_format_error "Invalid frame type")
+    in
     let count = read_ui16 input in
     let assoc = List.init count ~f:(fun _ -> parse_frame input) in
     let frames = List.map assoc ~f:(fun (f, _) -> f) in
     let real_len = List.fold_left assoc ~init:0 ~f:(fun acc (_, l) -> acc + l) in
     assert_equal len (real_len + 2);
     frames
+end
+
+module AttrCode = struct
+  type t =
+    | LineNumberTable        of LineNumberTable.t
+    | LocalVariableTable     of LocalVariableTable.t
+    | LocalVariableTypeTable of LocalVariableTypeTable.t
+    | StackMapTable          of StackMapTable.t
+    | RuntimeVisibleTypeAnnotations   of RuntimeVisibleTypeAnnotations.t
+    | RuntimeInvisibleTypeAnnotations of RuntimeInvisibleTypeAnnotations.t
+    | Unknown
+
+  let parse input pool =
+    let attr = ConsPool.get_utf8 pool (read_ui16 input) in
+    let len  = read_i32 input in
+    let attr = match attr with
+      | "LineNumberTable" -> LineNumberTable (LineNumberTable.parse input len)
+      | "LocalVariableTable" ->
+        LocalVariableTable (LocalVariableTable.parse input len)
+      | "LocalVariableTypeTable" ->
+        LocalVariableTypeTable (LocalVariableTypeTable.parse input len)
+      | "StackMapTable" -> StackMapTable (StackMapTable.parse input len)
+      | "RuntimeVisibleTypeAnnotations" ->
+        RuntimeVisibleTypeAnnotations (RuntimeVisibleTypeAnnotations.parse input len)
+      | "RuntimeInvisibleTypeAnnotations" ->
+        RuntimeInvisibleTypeAnnotations (RuntimeInvisibleTypeAnnotations.parse input len)
+      | _ -> let _ = List.init len ~f:(fun _ -> read_byte input) in Unknown
+    in attr, len
 end
 
 module Code = struct
@@ -507,22 +532,21 @@ module Code = struct
       catch_type : int;
     }
 
-  type attribute =
-    | LineNumberTable        of LineNumberTable.t
-    | LocalVariableTable     of LocalVariableTable.t
-    | LocalVariableTypeTable of LocalVariableTypeTable.t
-    | StackMapTable          of StackMapTable.t
-    | RuntimeVisibleTypeAnnotations   of RuntimeVisibleTypeAnnotations.t
-    | RuntimeInvisibleTypeAnnotations of RuntimeInvisibleTypeAnnotations.t
-
   type t = { max_stack : int;
              max_locals : int;
              code : int list;
              exn_table : code_exn list;
-             attributes : attribute list;
+             attributes : AttrCode.t list;
            }
 
-  let parse input len =
+  let parse input ~pool ~len =
+    let parse_attr_list input ~pool ~count =
+      let assoc = List.init count ~f:(fun _ -> AttrCode.parse input pool) in
+      let attrs = List.filter_map assoc ~f:(fun (a, _) ->
+          if a = AttrCode.Unknown then None else Some a ) in
+      let len = List.fold_left assoc ~init:0 ~f:(fun acc (_, l) -> acc + l) in
+      attrs, len
+    in
     let max_stack = read_ui16 input in
     let max_locals = read_ui16 input in
     let code_len = read_i32 input in
@@ -540,6 +564,123 @@ module Code = struct
           { start_pc;end_pc; handler_pc; catch_type }
         ) in
       let attr_count = read_ui16 input in
-      let attributes = parse input ~pool:pool ~count:attr_count in
+      let attributes, attr_len = parse_attr_list input ~pool:pool ~count:attr_count in
+      assert_equal len (2 + 2 + 4 + code_len * 1 + 2 + exn_len * 8 + 2 + attr_len);
       { max_stack; max_locals; code; exn_table; attributes}
+end
+
+module AttrClass = struct
+  type t =
+    | SourceFile              of SourceFile.t
+    | InnerClasses            of InnerClasses.t
+    | EnclosingMethod         of EnclosingMethod.t
+    | SourceDebugExtension    of SourceDebugExtension.t
+    | BootstrapMethods        of BootstrapMethods.t
+    | Synthetic               of Synthetic.t
+    | Deprecated              of Deprecated.t
+    | Signature               of Signature.t
+    | RuntimeVisibleAnnotations     of RuntimeVisibleAnnotations.t
+    | RuntimeInvisibleAnnotations   of RuntimeInvisibleAnnotations.t
+    | RuntimeVisibleTypeAnnotations of RuntimeVisibleTypeAnnotations.t
+    | RuntimeInvisibleTypeAnnotations  of RuntimeInvisibleTypeAnnotations.t
+    | Unknown
+
+  let parse input pool =
+    let attr = ConsPool.get_utf8 pool (read_ui16 input) in
+    let len  = read_i32 input in
+    let attr = match attr with
+      | "SourceFile" -> SourceFile (SourceFile.parse input len)
+      | "InnerClasses" -> InnerClasses (InnerClasses.parse input len)
+      | "EnclosingMethod" -> EnclosingMethod (EnclosingMethod.parse input len)
+      | "SourceDebugExtension" -> SourceDebugExtension (SourceDebugExtension.parse input len)
+      | "BootstrapMethods" -> BootstrapMethods (BootstrapMethods.parse input len)
+      | "Synthetic" -> Synthetic (Synthetic.parse input len)
+      | "Deprecated" -> Deprecated (Deprecated.parse input len)
+      | "Signature" -> Signature (Signature.parse input len)
+      | "RuntimeVisibleAnnotations" ->
+        RuntimeVisibleAnnotations (RuntimeVisibleAnnotations.parse input len)
+      | "RuntimeInvisibleAnnotations" ->
+        RuntimeInvisibleAnnotations (RuntimeInvisibleAnnotations.parse input len)
+      | "RuntimeVisibleTypeAnnotations" ->
+        RuntimeVisibleTypeAnnotations (RuntimeVisibleTypeAnnotations.parse input len)
+      | "RuntimeInvisibleTypeAnnotations" ->
+        RuntimeInvisibleTypeAnnotations (RuntimeInvisibleTypeAnnotations.parse input len)
+      | _ -> let _ = List.init len ~f:(fun _ -> read_byte input) in Unknown
+    in attr, len
+end
+
+module AttrMethod = struct
+  type t =
+    | Code of Code.t
+    | Exceptions of Exceptions.t
+    | RuntimeVisibleParameterAnnotations of RuntimeVisibleParameterAnnotations.t
+    | RuntimeInvisibleParameterAnnotations of RuntimeInvisibleParameterAnnotations.t
+    | AnnotationDefault of AnnotationDefault.t
+    | MethodParameters of MethodParameters.t
+    | Synthetic of Synthetic.t
+    | Deprecated of Deprecated.t
+    | Signature of Signature.t
+    | RuntimeVisibleAnnotations of RuntimeVisibleAnnotations.t
+    | RuntimeInvisibleAnnotations of RuntimeInvisibleAnnotations.t
+    | RuntimeVisibleTypeAnnotations of RuntimeVisibleTypeAnnotations.t
+    | RuntimeInvisibleTypeAnnotations of RuntimeInvisibleTypeAnnotations.t
+    | Unknown
+
+  let parse input pool =
+    let attr = ConsPool.get_utf8 pool (read_ui16 input) in
+    let len  = read_i32 input in
+    let attr = match attr with
+      | "Code" -> Code (Code.parse input ~len:len ~pool:pool)
+      | "Exceptions" -> Exceptions (Exceptions.parse input len)
+      | "RuntimeVisibleParameterAnnotations" ->
+        RuntimeVisibleParameterAnnotations (RuntimeVisibleParameterAnnotations.parse input len)
+      | "RuntimeInvisibleParameterAnnotations" ->
+        RuntimeInvisibleParameterAnnotations (RuntimeInvisibleParameterAnnotations.parse input len)
+      | "AnnotationDefault" -> AnnotationDefault (AnnotationDefault.parse input len)
+      | "MethodParameters" -> MethodParameters (MethodParameters.parse input len)
+      | "Synthetic" -> Synthetic (Synthetic.parse input len)
+      | "Deprecated" -> Deprecated (Deprecated.parse input len)
+      | "Signature" -> Signature (Signature.parse input len)
+      | "RuntimeVisibleAnnotations" ->
+        RuntimeVisibleAnnotations (RuntimeVisibleAnnotations.parse input len)
+      | "RuntimeInvisibleAnnotations" ->
+        RuntimeInvisibleAnnotations (RuntimeInvisibleAnnotations.parse input len)
+      | "RuntimeVisibleTypeAnnotations" ->
+        RuntimeVisibleTypeAnnotations (RuntimeVisibleTypeAnnotations.parse input len)
+      | "RuntimeInvisibleTypeAnnotations" ->
+        RuntimeInvisibleTypeAnnotations (RuntimeInvisibleTypeAnnotations.parse input len)
+      | _ -> let _ = List.init len ~f:(fun _ -> read_byte input) in Unknown
+    in attr, len
+end
+
+module AttrField = struct
+  type t =
+    | ConstantValue of ConstantValue.t
+    | Synthetic of Synthetic.t
+    | Deprecated of Deprecated.t
+    | Signature of Signature.t
+    | RuntimeVisibleAnnotations of RuntimeVisibleAnnotations.t
+    | RuntimeInvisibleAnnotations of RuntimeInvisibleAnnotations.t
+    | RuntimeVisibleTypeAnnotations of RuntimeVisibleTypeAnnotations.t
+    | RuntimeInvisibleTypeAnnotations of RuntimeInvisibleTypeAnnotations.t
+    | Unknown
+
+  let parse input pool =
+    let attr = ConsPool.get_utf8 pool (read_ui16 input) in
+    let len  = read_i32 input in
+    let attr = match attr with
+      | "ConstantValue" -> ConstantValue (ConstantValue.parse input len)
+      | "Synthetic" -> Synthetic (Synthetic.parse input len)
+      | "Deprecated" -> Deprecated (Deprecated.parse input len)
+      | "Signature" -> Signature (Signature.parse input len)
+      | "RuntimeVisibleAnnotations" ->
+        RuntimeVisibleAnnotations (RuntimeVisibleAnnotations.parse input len)
+      | "RuntimeInvisibleAnnotations" ->
+        RuntimeInvisibleAnnotations (RuntimeInvisibleAnnotations.parse input len)
+      | "RuntimeVisibleTypeAnnotations" ->
+        RuntimeVisibleTypeAnnotations (RuntimeVisibleTypeAnnotations.parse input len)
+      | "RuntimeInvisibleTypeAnnotations" ->
+        RuntimeInvisibleTypeAnnotations (RuntimeInvisibleTypeAnnotations.parse input len)
+      | _ -> let _ = List.init len ~f:(fun _ -> read_byte input) in Unknown
+    in attr, len
 end
