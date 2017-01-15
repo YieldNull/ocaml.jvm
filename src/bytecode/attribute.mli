@@ -1,8 +1,3 @@
-open Core.Std
-open BatIO
-open BatIO.BigEndian
-open Fmt_error
-
 val assert_equal : int -> int -> unit
 
 module ConstantValue : sig
@@ -313,7 +308,7 @@ module AttrClass : sig
     | RuntimeInvisibleTypeAnnotations  of RuntimeInvisibleTypeAnnotations.t
     | Unknown
 
-  val parse : BatInnerIO.input -> Cons_pool.t -> t * int
+  val parse : BatInnerIO.input -> Cons_pool.t -> t
 end
 
 module AttrMethod : sig
@@ -333,7 +328,7 @@ module AttrMethod : sig
     | RuntimeInvisibleTypeAnnotations of RuntimeInvisibleTypeAnnotations.t
     | Unknown
 
-  val parse : BatInnerIO.input -> Cons_pool.t -> t * int
+  val parse : BatInnerIO.input -> Cons_pool.t -> t
 end
 
 module AttrField : sig
@@ -348,5 +343,5 @@ module AttrField : sig
     | RuntimeInvisibleTypeAnnotations of RuntimeInvisibleTypeAnnotations.t
     | Unknown
 
-  val parse : BatInnerIO.input -> Cons_pool.t -> t * int
+  val parse : BatInnerIO.input -> Cons_pool.t -> t
 end

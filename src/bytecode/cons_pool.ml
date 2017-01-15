@@ -62,15 +62,29 @@ let parse input = function
   | 15 -> MethodHandle (read_byte input, read_ui16 input)
   | 16 -> MethodType (read_ui16 input)
   | 18 -> InvokeDynamic (read_ui16 input, read_ui16 input)
-  | _  -> raise (Class_format_error "Invalid Constant Pool Flag")
+  | i  -> raise (Class_format_error ("Invalid Constant Pool Flag " ^ string_of_int i))
 
 let create input =
   let size = read_ui16 input in
-  Array.init size ~f:(fun _ -> let tag = read_byte input in parse input tag)
+  let is_8_bytes = ref false in
+  Array.init (size - 1) ~f:(fun _ ->
+      if !is_8_bytes then begin
+        is_8_bytes := false;
+        Utf8 ""
+      end
+      else begin
+        let tag = read_byte input in
+        let entry = parse input tag in
+        match entry with
+        | Long _ | Double _ -> is_8_bytes := true; entry
+        | _ -> entry
+      end
+  )
 
 let get pool index =
-  if index < Array.length pool then
-    pool.(index)
+  let i = index - 1 in
+  if i < Array.length pool then
+    pool.(i)
   else
     raise Element_not_found
 

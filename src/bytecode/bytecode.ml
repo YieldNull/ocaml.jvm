@@ -5,65 +5,143 @@ open Fmt_error
 
 module ConsPool = Cons_pool
 
-type access_flag =
-  | Public | Private   | Protected | Static
-  | Final  | Super     | Volatile  | Transient
-  | Native | Interface | Abstract  | Strict
-  | Synthetic | Annotation | Enum
+module AccessFlag = struct
+  type t =
+    | Public | Private   | Protected | Static
+    | Final  | Super     | Volatile  | Transient
+    | Native | Interface | Abstract  | Strict
+    | Synthetic | Annotation | Enum
 
-type attribute_info =
-  { name_index : int;
-    length     : int;
-  }
+  let parse flags =
+    let int_to_access_flag = function
+      | 0x0001 -> Some Public
+      | 0x0002 -> Some Private
+      | 0x0004 -> Some Protected
+      | 0x0008 -> Some Static
+      | 0x0010 -> Some Final
+      | 0x0020 -> Some Super
+      | 0x0040 -> Some Volatile
+      | 0x0080 -> Some Transient
+      | 0x0100 -> Some Native
+      | 0x0200 -> Some Interface
+      | 0x0400 -> Some Abstract
+      | 0x0800 -> Some Strict
+      | 0x1000 -> Some Synthetic
+      | 0x2000 -> Some Annotation
+      | 0x4000 -> Some Enum
+      | _ -> None
+    in
+    let base = 0x4000 in
+    List.filter_map (List.init 15 ~f:(fun i ->
+        let flag = flags land (base lsr i) in
+        int_to_access_flag flag
+      )) ~f:(fun x -> x)
+end
 
-type member_info =
-  { name          : string;
-    access_flags  : access_flag list;
-    descriptor    : int;
-    attributes    : attribute_info list;
-  }
+module Field = struct
+  type t =
+    { name_index          : int;
+      access_flags        : int;
+      descriptor_index    : int;
+      attributes          : Attribute.AttrField.t list;
+    }
+
+  let parse input pool =
+    let access_flags = read_ui16 input in
+    let name_index = read_ui16 input in
+    let descriptor_index = read_ui16 input in
+    let attributes = List.init (read_ui16 input) ~f:(fun _ ->
+        Attribute.AttrField.parse input pool) in
+    { name_index; access_flags; descriptor_index; attributes}
+end
+
+module Method = struct
+  type t =
+    { name_index          : int;
+      access_flags        : int;
+      descriptor_index    : int;
+      attributes          : Attribute.AttrMethod.t list;
+    }
+
+  let parse input pool =
+    let access_flags = read_ui16 input in
+    let name_index = read_ui16 input in
+    let descriptor_index = read_ui16 input in
+    let attributes = List.init (read_ui16 input) ~f:(fun _ ->
+        Attribute.AttrMethod.parse input pool) in
+    { name_index; access_flags; descriptor_index; attributes}
+end
 
 type class_file =
   { minor_version : int;
     major_version : int;
     constant_pool : ConsPool.t;
-    access_flags  : access_flag list;
-    this_class    : string;
-    super_class   : string option;
-    interfaces    : string list;
-    fileds        : member_info list;
-    methods       : member_info list;
-    attributes    : attribute_info list;
+    access_flags  : AccessFlag.t list;
+    this_class    : int;
+    super_class   : int;
+    interfaces    : int list;
+    fields        : Field.t list;
+    methods       : Method.t list;
+    attributes    : Attribute.AttrClass.t list;
   }
 
-let int_to_access_flag = function
-  | 0x0001 -> Public
-  | 0x0002 -> Private
-  | 0x0004 -> Protected
-  | 0x0008 -> Static
-  | 0x0010 -> Final
-  | 0x0020 -> Super
-  | 0x0040 -> Volatile
-  | 0x0080 -> Transient
-  | 0x0100 -> Native
-  | 0x0200 -> Interface
-  | 0x0400 -> Abstract
-  | 0x0800 -> Strict
-  | 0x1000 -> Synthetic
-  | 0x2000 -> Annotation
-  | 0x4000 -> Enum
-  | _ -> raise (Class_format_error "Invalid access_flag")
-
 let parse path =
+  let check_magic input =
+    if not (read_ui16 input = 0xCAFE && read_ui16 input = 0xBABE) then
+      raise (Class_format_error "Invalid magic")
+  in
+  let check_end input =
+    try
+      let _ = read input in
+      raise (Class_format_error "Invalid file ending")
+    with
+    | No_more_input -> ()
+  in
   let input = BatFile.open_in path in
-  let magic = BatIO.BigEndian.read_real_i32 input in
-  let minor_version = BatIO.BigEndian.read_i16 input in
-  let major_version = BatIO.BigEndian.read_i16 input in
+  check_magic input;
+  let minor_version = read_i16 input in
+  let major_version = read_i16 input in
   let pool = ConsPool.create input in
-  printf "%lx\n" magic;
-  printf "%d\n" minor_version;
-  printf "%d\n" major_version;
-  printf "%d\n" (Array.length pool);
-  match ConsPool.get pool 11 with
-  | ConsPool.Utf8 str -> printf "%s\n" str
-  | _ -> assert false
+  let access_flags = AccessFlag.parse (read_ui16 input) in
+  let this_class = read_ui16 input in
+  let super_class = read_ui16 input in
+  let interfaces = List.init (read_ui16 input) ~f:(fun _ -> read_ui16 input) in
+  let fields = List.init (read_ui16 input) ~f:(fun _ -> Field.parse input pool) in
+  let methods = List.init (read_ui16 input) ~f:(fun _ -> Method.parse input pool) in
+  let attributes = List.init (read_ui16 input) ~f:(fun _ ->
+      Attribute.AttrClass.parse input pool) in
+  check_end input;
+  { minor_version; major_version; constant_pool = pool;
+    access_flags; this_class; super_class;
+    interfaces; fields; methods ; attributes
+  }
+
+let () =
+  let dir = Sys.argv.(1) in
+  let files = Sys.readdir dir in
+  Array.iter files ~f:(fun name ->
+      let file = dir ^ "/" ^ name in
+      if Sys.is_file file = `Yes && Filename.check_suffix file ".class" then
+        let class_file = parse file in
+        List.iter class_file.methods ~f:(fun m ->
+            List.iter (AccessFlag.parse m.access_flags) ~f:(fun flag ->
+            let str = match flag with
+              | AccessFlag.Public -> "Public"
+              | AccessFlag.Private -> "Private"
+              | AccessFlag.Protected -> "Protected"
+              | AccessFlag.Static -> "Static"
+              | AccessFlag.Final -> "Final"
+              | AccessFlag.Super -> "Super"
+              | AccessFlag.Volatile -> "Volatile"
+              | AccessFlag.Transient -> "Transient"
+              | AccessFlag.Native -> "Native"
+              | AccessFlag.Interface -> "Interface"
+              | AccessFlag.Abstract -> "Abstract"
+              | AccessFlag.Strict -> "Strict"
+              | AccessFlag.Synthetic -> "Synthetic"
+              | AccessFlag.Annotation -> "Annotation"
+              | AccessFlag.Enum -> "Enum"
+            in printf "%s\n      %s\n" (ConsPool.get_utf8 class_file.constant_pool m.name_index) str
+          )
+          )
+    )

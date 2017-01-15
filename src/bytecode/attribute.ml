@@ -5,8 +5,9 @@ open Fmt_error
 
 module ConsPool = Cons_pool
 
-let assert_equal v1 v2 =
-  if v1 <> v2 then raise (Class_format_error "Invalid attribute length")
+let assert_equal len real_len =
+  if len <> real_len then raise
+      (Class_format_error (sprintf "Invalid attribute length. Expected:%d Real:%d" len real_len))
 
 module ConstantValue = struct
   type t = int
@@ -60,7 +61,7 @@ module LocalVariableTable = struct
 
   let parse input len =
     let count = read_ui16 input in
-    let real_len = 2 + count * 5 in
+    let real_len = 2 + count * 10 in
     assert_equal len real_len;
     List.init count ~f:(fun _ ->
         { start_pc = read_ui16 input;
@@ -84,7 +85,7 @@ module InnerClasses = struct
 
   let parse input len =
     let count = read_ui16 input in
-    let real_len = 2 + count * 4 in
+    let real_len = 2 + count * 8 in
     assert_equal len real_len;
     List.init count ~f:(fun _ ->
         { inner_class_index = read_ui16 input;
@@ -141,7 +142,7 @@ module LocalVariableTypeTable = struct
 
   let parse input len =
     let count = read_ui16 input in
-    let real_len = 2 + count * 5 in
+    let real_len = 2 + count * 10 in
     assert_equal len real_len;
     List.init count ~f:(fun _ ->
         { start_pc = read_ui16 input;
@@ -521,7 +522,7 @@ module AttrCode = struct
       | "RuntimeInvisibleTypeAnnotations" ->
         RuntimeInvisibleTypeAnnotations (RuntimeInvisibleTypeAnnotations.parse input len)
       | _ -> let _ = List.init len ~f:(fun _ -> read_byte input) in Unknown
-    in attr, len
+    in attr, len + 2 + 4
 end
 
 module Code = struct
@@ -588,7 +589,7 @@ module AttrClass = struct
   let parse input pool =
     let attr = ConsPool.get_utf8 pool (read_ui16 input) in
     let len  = read_i32 input in
-    let attr = match attr with
+    match attr with
       | "SourceFile" -> SourceFile (SourceFile.parse input len)
       | "InnerClasses" -> InnerClasses (InnerClasses.parse input len)
       | "EnclosingMethod" -> EnclosingMethod (EnclosingMethod.parse input len)
@@ -606,7 +607,6 @@ module AttrClass = struct
       | "RuntimeInvisibleTypeAnnotations" ->
         RuntimeInvisibleTypeAnnotations (RuntimeInvisibleTypeAnnotations.parse input len)
       | _ -> let _ = List.init len ~f:(fun _ -> read_byte input) in Unknown
-    in attr, len
 end
 
 module AttrMethod = struct
@@ -629,7 +629,7 @@ module AttrMethod = struct
   let parse input pool =
     let attr = ConsPool.get_utf8 pool (read_ui16 input) in
     let len  = read_i32 input in
-    let attr = match attr with
+    match attr with
       | "Code" -> Code (Code.parse input ~len:len ~pool:pool)
       | "Exceptions" -> Exceptions (Exceptions.parse input len)
       | "RuntimeVisibleParameterAnnotations" ->
@@ -650,7 +650,6 @@ module AttrMethod = struct
       | "RuntimeInvisibleTypeAnnotations" ->
         RuntimeInvisibleTypeAnnotations (RuntimeInvisibleTypeAnnotations.parse input len)
       | _ -> let _ = List.init len ~f:(fun _ -> read_byte input) in Unknown
-    in attr, len
 end
 
 module AttrField = struct
@@ -668,7 +667,7 @@ module AttrField = struct
   let parse input pool =
     let attr = ConsPool.get_utf8 pool (read_ui16 input) in
     let len  = read_i32 input in
-    let attr = match attr with
+    match attr with
       | "ConstantValue" -> ConstantValue (ConstantValue.parse input len)
       | "Synthetic" -> Synthetic (Synthetic.parse input len)
       | "Deprecated" -> Deprecated (Deprecated.parse input len)
@@ -682,5 +681,4 @@ module AttrField = struct
       | "RuntimeInvisibleTypeAnnotations" ->
         RuntimeInvisibleTypeAnnotations (RuntimeInvisibleTypeAnnotations.parse input len)
       | _ -> let _ = List.init len ~f:(fun _ -> read_byte input) in Unknown
-    in attr, len
 end
