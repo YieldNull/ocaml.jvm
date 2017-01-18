@@ -85,7 +85,7 @@ type class_file =
     attributes    : Attribute.AttrClass.t list;
   }
 
-let parse path =
+let parse input =
   let check_magic input =
     if not (read_ui16 input = 0xCAFE && read_ui16 input = 0xBABE) then
       raise (Class_format_error "Invalid magic")
@@ -97,7 +97,6 @@ let parse path =
     with
     | No_more_input -> ()
   in
-  let input = BatFile.open_in path in
   check_magic input;
   let minor_version = read_i16 input in
   let major_version = read_i16 input in
@@ -115,33 +114,3 @@ let parse path =
     access_flags; this_class; super_class;
     interfaces; fields; methods ; attributes
   }
-
-let () =
-  let dir = Sys.argv.(1) in
-  let files = Sys.readdir dir in
-  Array.iter files ~f:(fun name ->
-      let file = dir ^ "/" ^ name in
-      if Sys.is_file file = `Yes && Filename.check_suffix file ".class" then
-        let class_file = parse file in
-        List.iter class_file.methods ~f:(fun m ->
-            List.iter (AccessFlag.parse m.access_flags) ~f:(fun flag ->
-            let str = match flag with
-              | AccessFlag.Public -> "Public"
-              | AccessFlag.Private -> "Private"
-              | AccessFlag.Protected -> "Protected"
-              | AccessFlag.Static -> "Static"
-              | AccessFlag.Final -> "Final"
-              | AccessFlag.Super -> "Super"
-              | AccessFlag.Volatile -> "Volatile"
-              | AccessFlag.Transient -> "Transient"
-              | AccessFlag.Native -> "Native"
-              | AccessFlag.Interface -> "Interface"
-              | AccessFlag.Abstract -> "Abstract"
-              | AccessFlag.Strict -> "Strict"
-              | AccessFlag.Synthetic -> "Synthetic"
-              | AccessFlag.Annotation -> "Annotation"
-              | AccessFlag.Enum -> "Enum"
-            in printf "%s\n      %s\n" (ConsPool.get_utf8 class_file.constant_pool m.name_index) str
-          )
-          )
-    )

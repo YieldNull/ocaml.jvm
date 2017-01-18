@@ -1,1 +1,1 @@
-corebuild -package batteries -I src/ -r $*
+corebuild -r -pkgs batteries,zip -Is src,src/bytecode,src/classloader $*

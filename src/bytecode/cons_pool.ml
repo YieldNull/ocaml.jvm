@@ -40,7 +40,7 @@ type elt =
   | MethodHandle        of int * int (* reference_kind, reference_index *)
   | MethodType          of int (* descriptor_index *)
   | InvokeDynamic       of int * int (* bootstrap_method_attr_index, name_and_type_index *)
-  | Empty
+  | Byte8Placeholder
 
 type t = elt array
 
@@ -70,7 +70,7 @@ let create input =
   Array.init (size - 1) ~f:(fun _ ->
       if !is_8_bytes then begin
         is_8_bytes := false;
-        Utf8 ""
+        Byte8Placeholder
       end
       else begin
         let tag = read_byte input in
