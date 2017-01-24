@@ -1,0 +1,3 @@
+exception Class_format_error of string
+exception IllegalAccessError
+exception Class_not_found

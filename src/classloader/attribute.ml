@@ -1,13 +1,16 @@
+open VMError
 open Core.Std
 open BatIO
 open BatIO.BigEndian
-open Fmt_error
-
-module ConsPool = Cons_pool
 
 let assert_equal len real_len =
   if len <> real_len then raise
       (Class_format_error (sprintf "Invalid attribute length. Expected:%d Real:%d" len real_len))
+
+let assoc_fold assoc =
+  let entries = List.map assoc ~f:(fun (entry, _) -> entry) in
+  let len = List.fold_left assoc ~init:0 ~f:(fun acc (_, len) -> acc + len) in
+  entries, len
 
 module ConstantValue = struct
   type t = int
@@ -187,8 +190,7 @@ module Annotation = struct
           element_value      = ele_value;
         }, len + 2
       ) in
-    let element_value_pairs = List.map assoc ~f:(fun (pair, _) -> pair) in
-    let len = List.fold_left assoc ~init:0 ~f:(fun acc (_, l) -> acc + l) in
+    let element_value_pairs, len = assoc_fold assoc in
     element_value_pairs, len + 2
   and parse_element_value input =
     let tag = read input in
@@ -203,9 +205,8 @@ module Annotation = struct
       | '@' -> let anno, len = parse input in AnnotationValue anno, len
       | '[' -> let assoc = List.init (read_ui16 input)
                    ~f:(fun _ -> parse_element_value input) in
-        let len = List.fold_left assoc ~init:0 ~f:(fun acc (_, l) -> acc + l + 2) in
-        let values = List.map assoc ~f:(fun (v,_) -> v) in
-        ArrayValue values, len
+        let values, len = assoc_fold assoc in
+        ArrayValue values, len + 2
       | _ -> raise (Class_format_error "Invalid element value tag") in
     value, len + 1
 end
@@ -300,13 +301,12 @@ module RuntimeVisibleAnnotations = struct
   let parse_annotations input=
     let count = read_ui16 input in
     let assoc = List.init count ~f:(fun _ -> Annotation.parse input) in
-    let annotations = List.map assoc ~f:(fun (anno, _) -> anno) in
-    let len = List.fold_left assoc ~init:0 ~f:(fun acc (_, l) -> acc + l) in
-    annotations, len
+    let annotations, len = assoc_fold assoc in
+    annotations, len + 2
 
   let parse input len =
     let annotations, real_len = parse_annotations input in
-    assert_equal len (real_len + 2);
+    assert_equal len real_len;
     annotations
 end
 
@@ -321,8 +321,7 @@ module RuntimeVisibleParameterAnnotations = struct
     let count = read_byte input in
     let assoc = List.init count ~f:(fun _ ->
         RuntimeVisibleAnnotations.parse_annotations input ) in
-    let annotations_list = List.map assoc ~f:(fun (annos, _) -> annos) in
-    let real_len = List.fold_left assoc ~init:0 ~f:(fun acc (_, l) -> acc + l) in
+    let annotations_list, real_len = assoc_fold assoc in
     assert_equal len (real_len + 1);
     annotations_list
 end
@@ -337,8 +336,7 @@ module RuntimeVisibleTypeAnnotations = struct
   let parse input len =
     let count = read_ui16 input in
     let assoc = List.init count ~f:(fun _ -> TypeAnnotation.parse input) in
-    let annotations = List.map assoc ~f:(fun (anno, _) -> anno) in
-    let real_len = List.fold_left assoc ~init:0 ~f:(fun acc (_, l) -> acc + l) in
+    let annotations, real_len = assoc_fold assoc in
     assert_equal len (real_len + 2);
     annotations
 end
@@ -373,8 +371,7 @@ module BootstrapMethods = struct
             ~f:(fun _ -> read_ui16 input) in
         { bootstrap_method_ref; bootstrap_arguments }, 2 + 2 + arg_count * 2
       ) in
-    let methods = List.map assoc ~f:(fun (m, _) -> m) in
-    let real_len = List.fold_left assoc ~init:0 ~f:(fun acc (_, l) -> acc + l) in
+    let methods, real_len = assoc_fold assoc in
     assert_equal len (real_len + 2);
     methods
 end
@@ -468,9 +465,10 @@ module StackMapTable = struct
       | ft when ft >= 0 && ft <= 63 -> SameFrame, 1
       | ft when ft >= 64 && ft <= 127 -> let stack, len = parse_vtype input in
         SameLocals1StackItemFrame { stack }, 1 + len
-      | ft when ft = 247 -> let stack, len = parse_vtype input in
+      | ft when ft = 247 -> let offset_delta = read_ui16 input in
+        let stack, len = parse_vtype input in
         SameLocals1StackItemFrameExtended
-          { offset_delta = read_ui16 input;
+          { offset_delta;
             stack
           }, 3 + len
       | ft when ft >= 248 && ft <= 250 -> ChopFrame {offset_delta = read_ui16 input}, 3
@@ -491,8 +489,7 @@ module StackMapTable = struct
     in
     let count = read_ui16 input in
     let assoc = List.init count ~f:(fun _ -> parse_frame input) in
-    let frames = List.map assoc ~f:(fun (f, _) -> f) in
-    let real_len = List.fold_left assoc ~init:0 ~f:(fun acc (_, l) -> acc + l) in
+    let frames, real_len = assoc_fold assoc in
     assert_equal len (real_len + 2);
     frames
 end
@@ -508,7 +505,7 @@ module AttrCode = struct
     | Unknown
 
   let parse input pool =
-    let attr = ConsPool.get_utf8 pool (read_ui16 input) in
+    let attr = Poolbc.get_utf8 pool (read_ui16 input) in
     let len  = read_i32 input in
     let attr = match attr with
       | "LineNumberTable" -> LineNumberTable (LineNumberTable.parse input len)
@@ -587,26 +584,26 @@ module AttrClass = struct
     | Unknown
 
   let parse input pool =
-    let attr = ConsPool.get_utf8 pool (read_ui16 input) in
+    let attr = Poolbc.get_utf8 pool (read_ui16 input) in
     let len  = read_i32 input in
     match attr with
-      | "SourceFile" -> SourceFile (SourceFile.parse input len)
-      | "InnerClasses" -> InnerClasses (InnerClasses.parse input len)
-      | "EnclosingMethod" -> EnclosingMethod (EnclosingMethod.parse input len)
-      | "SourceDebugExtension" -> SourceDebugExtension (SourceDebugExtension.parse input len)
-      | "BootstrapMethods" -> BootstrapMethods (BootstrapMethods.parse input len)
-      | "Synthetic" -> Synthetic (Synthetic.parse input len)
-      | "Deprecated" -> Deprecated (Deprecated.parse input len)
-      | "Signature" -> Signature (Signature.parse input len)
-      | "RuntimeVisibleAnnotations" ->
-        RuntimeVisibleAnnotations (RuntimeVisibleAnnotations.parse input len)
-      | "RuntimeInvisibleAnnotations" ->
-        RuntimeInvisibleAnnotations (RuntimeInvisibleAnnotations.parse input len)
-      | "RuntimeVisibleTypeAnnotations" ->
-        RuntimeVisibleTypeAnnotations (RuntimeVisibleTypeAnnotations.parse input len)
-      | "RuntimeInvisibleTypeAnnotations" ->
-        RuntimeInvisibleTypeAnnotations (RuntimeInvisibleTypeAnnotations.parse input len)
-      | _ -> let _ = List.init len ~f:(fun _ -> read_byte input) in Unknown
+    | "SourceFile" -> SourceFile (SourceFile.parse input len)
+    | "InnerClasses" -> InnerClasses (InnerClasses.parse input len)
+    | "EnclosingMethod" -> EnclosingMethod (EnclosingMethod.parse input len)
+    | "SourceDebugExtension" -> SourceDebugExtension (SourceDebugExtension.parse input len)
+    | "BootstrapMethods" -> BootstrapMethods (BootstrapMethods.parse input len)
+    | "Synthetic" -> Synthetic (Synthetic.parse input len)
+    | "Deprecated" -> Deprecated (Deprecated.parse input len)
+    | "Signature" -> Signature (Signature.parse input len)
+    | "RuntimeVisibleAnnotations" ->
+      RuntimeVisibleAnnotations (RuntimeVisibleAnnotations.parse input len)
+    | "RuntimeInvisibleAnnotations" ->
+      RuntimeInvisibleAnnotations (RuntimeInvisibleAnnotations.parse input len)
+    | "RuntimeVisibleTypeAnnotations" ->
+      RuntimeVisibleTypeAnnotations (RuntimeVisibleTypeAnnotations.parse input len)
+    | "RuntimeInvisibleTypeAnnotations" ->
+      RuntimeInvisibleTypeAnnotations (RuntimeInvisibleTypeAnnotations.parse input len)
+    | _ -> let _ = List.init len ~f:(fun _ -> read_byte input) in Unknown
 end
 
 module AttrMethod = struct
@@ -627,29 +624,29 @@ module AttrMethod = struct
     | Unknown
 
   let parse input pool =
-    let attr = ConsPool.get_utf8 pool (read_ui16 input) in
+    let attr = Poolbc.get_utf8 pool (read_ui16 input) in
     let len  = read_i32 input in
     match attr with
-      | "Code" -> Code (Code.parse input ~len:len ~pool:pool)
-      | "Exceptions" -> Exceptions (Exceptions.parse input len)
-      | "RuntimeVisibleParameterAnnotations" ->
-        RuntimeVisibleParameterAnnotations (RuntimeVisibleParameterAnnotations.parse input len)
-      | "RuntimeInvisibleParameterAnnotations" ->
-        RuntimeInvisibleParameterAnnotations (RuntimeInvisibleParameterAnnotations.parse input len)
-      | "AnnotationDefault" -> AnnotationDefault (AnnotationDefault.parse input len)
-      | "MethodParameters" -> MethodParameters (MethodParameters.parse input len)
-      | "Synthetic" -> Synthetic (Synthetic.parse input len)
-      | "Deprecated" -> Deprecated (Deprecated.parse input len)
-      | "Signature" -> Signature (Signature.parse input len)
-      | "RuntimeVisibleAnnotations" ->
-        RuntimeVisibleAnnotations (RuntimeVisibleAnnotations.parse input len)
-      | "RuntimeInvisibleAnnotations" ->
-        RuntimeInvisibleAnnotations (RuntimeInvisibleAnnotations.parse input len)
-      | "RuntimeVisibleTypeAnnotations" ->
-        RuntimeVisibleTypeAnnotations (RuntimeVisibleTypeAnnotations.parse input len)
-      | "RuntimeInvisibleTypeAnnotations" ->
-        RuntimeInvisibleTypeAnnotations (RuntimeInvisibleTypeAnnotations.parse input len)
-      | _ -> let _ = List.init len ~f:(fun _ -> read_byte input) in Unknown
+    | "Code" -> Code (Code.parse input ~len:len ~pool:pool)
+    | "Exceptions" -> Exceptions (Exceptions.parse input len)
+    | "RuntimeVisibleParameterAnnotations" ->
+      RuntimeVisibleParameterAnnotations (RuntimeVisibleParameterAnnotations.parse input len)
+    | "RuntimeInvisibleParameterAnnotations" ->
+      RuntimeInvisibleParameterAnnotations (RuntimeInvisibleParameterAnnotations.parse input len)
+    | "AnnotationDefault" -> AnnotationDefault (AnnotationDefault.parse input len)
+    | "MethodParameters" -> MethodParameters (MethodParameters.parse input len)
+    | "Synthetic" -> Synthetic (Synthetic.parse input len)
+    | "Deprecated" -> Deprecated (Deprecated.parse input len)
+    | "Signature" -> Signature (Signature.parse input len)
+    | "RuntimeVisibleAnnotations" ->
+      RuntimeVisibleAnnotations (RuntimeVisibleAnnotations.parse input len)
+    | "RuntimeInvisibleAnnotations" ->
+      RuntimeInvisibleAnnotations (RuntimeInvisibleAnnotations.parse input len)
+    | "RuntimeVisibleTypeAnnotations" ->
+      RuntimeVisibleTypeAnnotations (RuntimeVisibleTypeAnnotations.parse input len)
+    | "RuntimeInvisibleTypeAnnotations" ->
+      RuntimeInvisibleTypeAnnotations (RuntimeInvisibleTypeAnnotations.parse input len)
+    | _ -> let _ = List.init len ~f:(fun _ -> read_byte input) in Unknown
 end
 
 module AttrField = struct
@@ -665,20 +662,20 @@ module AttrField = struct
     | Unknown
 
   let parse input pool =
-    let attr = ConsPool.get_utf8 pool (read_ui16 input) in
+    let attr = Poolbc.get_utf8 pool (read_ui16 input) in
     let len  = read_i32 input in
     match attr with
-      | "ConstantValue" -> ConstantValue (ConstantValue.parse input len)
-      | "Synthetic" -> Synthetic (Synthetic.parse input len)
-      | "Deprecated" -> Deprecated (Deprecated.parse input len)
-      | "Signature" -> Signature (Signature.parse input len)
-      | "RuntimeVisibleAnnotations" ->
-        RuntimeVisibleAnnotations (RuntimeVisibleAnnotations.parse input len)
-      | "RuntimeInvisibleAnnotations" ->
-        RuntimeInvisibleAnnotations (RuntimeInvisibleAnnotations.parse input len)
-      | "RuntimeVisibleTypeAnnotations" ->
-        RuntimeVisibleTypeAnnotations (RuntimeVisibleTypeAnnotations.parse input len)
-      | "RuntimeInvisibleTypeAnnotations" ->
-        RuntimeInvisibleTypeAnnotations (RuntimeInvisibleTypeAnnotations.parse input len)
-      | _ -> let _ = List.init len ~f:(fun _ -> read_byte input) in Unknown
+    | "ConstantValue" -> ConstantValue (ConstantValue.parse input len)
+    | "Synthetic" -> Synthetic (Synthetic.parse input len)
+    | "Deprecated" -> Deprecated (Deprecated.parse input len)
+    | "Signature" -> Signature (Signature.parse input len)
+    | "RuntimeVisibleAnnotations" ->
+      RuntimeVisibleAnnotations (RuntimeVisibleAnnotations.parse input len)
+    | "RuntimeInvisibleAnnotations" ->
+      RuntimeInvisibleAnnotations (RuntimeInvisibleAnnotations.parse input len)
+    | "RuntimeVisibleTypeAnnotations" ->
+      RuntimeVisibleTypeAnnotations (RuntimeVisibleTypeAnnotations.parse input len)
+    | "RuntimeInvisibleTypeAnnotations" ->
+      RuntimeInvisibleTypeAnnotations (RuntimeInvisibleTypeAnnotations.parse input len)
+    | _ -> let _ = List.init len ~f:(fun _ -> read_byte input) in Unknown
 end

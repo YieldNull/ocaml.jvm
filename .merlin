@@ -1,4 +1,4 @@
 B +threads
 B _build/**
-PKG core batteries zip
-S src/**
+PKG core batteries zip yojson fileutils
+src/** tool/**

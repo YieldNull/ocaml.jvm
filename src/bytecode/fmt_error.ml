@@ -1,1 +1,0 @@
-exception Class_format_error of string

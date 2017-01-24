@@ -1,29 +1,7 @@
+open VMError
 open Core.Std
 open BatIO
 open BatIO.BigEndian
-open Fmt_error
-
-type member_ref =
-  { cls        : string;
-    name       : string;
-    descriptor : string;
-  }
-
-type method_handle =
-  { ref_kind  : int;
-    ref_index : int;
-  }
-
-type name_and_type =
-  { name : string;
-    descriptor : string;
-  }
-
-type invoke_dynamic =
-  { attr_index : int;
-    name: string;
-    descriptor: string;
-  }
 
 type elt =
   | Utf8                of string
@@ -43,9 +21,6 @@ type elt =
   | Byte8Placeholder
 
 type t = elt array
-
-exception Element_not_found
-exception Invalid_type
 
 let parse input = function
   | 1  -> let len = read_ui16 input in Utf8 (nread input len)
@@ -79,86 +54,78 @@ let create input =
         | Long _ | Double _ -> is_8_bytes := true; entry
         | _ -> entry
       end
-  )
+    )
+
+let raise_index_error index =
+  raise (Class_format_error (sprintf "Invalid constant pool index %d" index))
 
 let get pool index =
   let i = index - 1 in
   if i < Array.length pool then
     pool.(i)
   else
-    raise Element_not_found
+    raise_index_error index
 
 let get_utf8 pool index =
   match get pool index with
   | Utf8 str -> str
-  | _ -> raise Invalid_type
+  | _ -> raise_index_error index
 
 let get_integer pool index =
   match get pool index with
   | Integer i -> i
-  | _ -> raise Invalid_type
+  | _ -> raise_index_error index
 
 let get_float pool index =
   match get pool index with
   | Float f -> f
-  | _ -> raise Invalid_type
+  | _ -> raise_index_error index
 
 let get_long pool index =
   match get pool index with
   | Long l -> l
-  | _ -> raise Invalid_type
+  | _ -> raise_index_error index
 
 let get_double pool index =
   match get pool index with
   | Double d -> d
-  | _ -> raise Invalid_type
+  | _ -> raise_index_error index
 
 let get_class pool index =
   match get pool index with
   | Class index -> get_utf8 pool index
-  | _ -> raise Invalid_type
+  | _ -> raise_index_error index
 
 let get_string pool index =
   match get pool index with
   | String index -> get_utf8 pool index
-  | _ -> raise Invalid_type
+  | _ -> raise_index_error index
 
 let get_name_and_type pool index =
   match get pool index with
-  | NameAndType (name_index, descriptor_index) ->
-    let name = get_utf8 pool name_index in
-    let descriptor = get_utf8 pool descriptor_index in
-    { name; descriptor }
-  | _ -> raise Invalid_type
+  | NameAndType (name_index, descriptor_index) -> name_index, descriptor_index
+  | _ -> raise_index_error index
 
 let get_memberref pool index =
   match get pool index with
   | Fieldref (class_index, name_and_type_index)
   | Methodref (class_index, name_and_type_index)
   | InterfaceMethodref (class_index, name_and_type_index) ->
-    let nt= get_name_and_type pool name_and_type_index in
-    { cls = get_class pool class_index;
-      name = nt.name;
-      descriptor = nt.descriptor;
-    }
-  | _ -> raise Invalid_type
+    class_index, name_and_type_index
+  | _ -> raise_index_error index
 
 let get_method_handle pool index =
   match get pool index with
-  | MethodHandle (ref_kind, ref_index)-> { ref_kind; ref_index }
-  | _ -> raise Invalid_type
+  | MethodHandle (ref_kind, ref_index)-> ref_kind, ref_index
+  | _ -> raise_index_error index
 
 let get_method_type pool index =
   match get pool index with
   | MethodType index -> get_utf8 pool index
-  | _ -> raise Invalid_type
+  | _ -> raise_index_error index
 
 let get_invoke_dynamic pool index =
   match get pool index with
   | InvokeDynamic (bootstrap_method_attr_index, name_and_type_index) ->
-    let nt = get_name_and_type pool name_and_type_index in
-    { attr_index = bootstrap_method_attr_index;
-      name = nt.name;
-      descriptor = nt.descriptor;
-    }
-  | _ -> raise Invalid_type
+    bootstrap_method_attr_index, name_and_type_index
+  | _ -> raise_index_error index

@@ -2,3 +2,4 @@ _build
 *.native
 *.byte
 .DS_Store
+lib

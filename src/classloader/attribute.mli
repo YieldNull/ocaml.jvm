@@ -271,7 +271,7 @@ module AttrCode : sig
     | RuntimeInvisibleTypeAnnotations of RuntimeInvisibleTypeAnnotations.t
     | Unknown
 
-  val parse : BatInnerIO.input -> Cons_pool.t -> t * int
+  val parse : BatInnerIO.input -> Poolbc.t -> t * int
 end
 
 module Code : sig
@@ -289,7 +289,7 @@ module Code : sig
              attributes : AttrCode.t list;
            }
 
-  val parse : BatInnerIO.input -> pool:Cons_pool.t -> len:int -> t
+  val parse : BatInnerIO.input -> pool:Poolbc.t -> len:int -> t
 end
 
 module AttrClass : sig
@@ -308,7 +308,7 @@ module AttrClass : sig
     | RuntimeInvisibleTypeAnnotations  of RuntimeInvisibleTypeAnnotations.t
     | Unknown
 
-  val parse : BatInnerIO.input -> Cons_pool.t -> t
+  val parse : BatInnerIO.input -> Poolbc.t -> t
 end
 
 module AttrMethod : sig
@@ -328,7 +328,7 @@ module AttrMethod : sig
     | RuntimeInvisibleTypeAnnotations of RuntimeInvisibleTypeAnnotations.t
     | Unknown
 
-  val parse : BatInnerIO.input -> Cons_pool.t -> t
+  val parse : BatInnerIO.input -> Poolbc.t -> t
 end
 
 module AttrField : sig
@@ -343,5 +343,5 @@ module AttrField : sig
     | RuntimeInvisibleTypeAnnotations of RuntimeInvisibleTypeAnnotations.t
     | Unknown
 
-  val parse : BatInnerIO.input -> Cons_pool.t -> t
+  val parse : BatInnerIO.input -> Poolbc.t -> t
 end

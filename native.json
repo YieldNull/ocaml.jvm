@@ -1,0 +1,1589 @@
+{
+  "sun": {
+    "awt": {
+      "DebugSettings.class": [
+        "setCTracingOn:(ZLjava/lang/String;I)V",
+        "setCTracingOn:(ZLjava/lang/String;)V", "setCTracingOn:(Z)V"
+      ],
+      "DefaultMouseInfoPeer.class": [
+        "isWindowUnderMouse:(Ljava/awt/Window;)Z",
+        "fillPointWithCoords:(Ljava/awt/Point;)I"
+      ],
+      "FcFontManager.class": [ "getFontPathNative:(ZZ)Ljava/lang/String;" ],
+      "FontDescriptor.class": [ "initIDs:()V" ],
+      "PlatformFont.class": [ "initIDs:()V" ],
+      "SunToolkit.class": [ "closeSplashScreen:()V" ],
+      "UNIXToolkit.class": [
+        "gtkCheckVersionImpl:(III)Z", "nativeSync:()V",
+        "load_stock_icon:(ILjava/lang/String;IILjava/lang/String;)Z",
+        "load_gtk_icon:(Ljava/lang/String;)Z", "unload_gtk:()Z",
+        "load_gtk:()Z", "check_gtk:()Z"
+      ],
+      "X11": {
+        "GtkFileDialogPeer.class": [
+          "setBounds:(IIIII)V", "toFront:()V", "quit:()V",
+          "run:(Ljava/lang/String;ILjava/lang/String;Ljava/lang/String;Ljava/io/FilenameFilter;ZII)V",
+          "initIDs:()V"
+        ],
+        "XDesktopPeer.class": [ "init:()Z", "gnome_url_show:([B)Z" ],
+        "XFontPeer.class": [ "initIDs:()V" ],
+        "XInputMethod.class": [
+          "adjustStatusWindow:(J)V", "setXICFocusNative:(JZZ)V",
+          "createXICNative:(J)Z", "openXIMNative:(J)Z"
+        ],
+        "XRobotPeer.class": [
+          "getRGBPixelsImpl:(Lsun/awt/X11GraphicsConfig;IIII[I)V",
+          "keyReleaseImpl:(I)V", "keyPressImpl:(I)V", "mouseWheelImpl:(I)V",
+          "mouseReleaseImpl:(I)V", "mousePressImpl:(I)V",
+          "mouseMoveImpl:(Lsun/awt/X11GraphicsConfig;II)V", "setup:(I[I)V"
+        ],
+        "XToolkit.class": [
+          "wakeup_poll:()V", "getNumberOfButtonsImpl:()I",
+          "getDefaultScreenData:()J", "getDefaultXColormap:()J",
+          "awt_toolkit_init:()V",
+          "getEnv:(Ljava/lang/String;)Ljava/lang/String;",
+          "nativeLoadSystemColors:([I)V", "awt_output_flush:()V",
+          "waitForEvents:(J)V", "initIDs:()V",
+          "getTrayIconDisplayTimeout:()J"
+        ],
+        "XWindow.class": [
+          "getKeySymForAWTKeyCode:(I)I", "getAWTKeyCodeForKeySym:(I)I",
+          "haveCurrentX11InputMethodInstance:()Z",
+          "x11inputMethodLookupString:(J[J)Z", "initIDs:()V",
+          "getWindowBounds:(JJJJJ)V", "getTopWindow:(JJ)J",
+          "getWMInsets:(JJJJJJ)V",
+          "getNativeColor:(Ljava/awt/Color;Ljava/awt/GraphicsConfiguration;)I"
+        ],
+        "XWindowPeer.class": [
+          "getJvmPID:()I", "getLocalHostname:()Ljava/lang/String;"
+        ],
+        "XlibWrapper.class": [
+          "PrintXErrorEvent:(JJ)V", "SetZOrder:(JJJ)V",
+          "SetBitmapShape:(JJII[I)V",
+          "SetRectangularShape:(JJIIIILsun/java2d/pipe/Region;)V",
+          "XShapeQueryExtension:(JJJ)Z",
+          "XTextPropertyToStringList:([BJ)[Ljava/lang/String;",
+          "ExitSecondaryLoop:()V", "XNextSecondaryLoopEvent:(JJ)Z",
+          "XSynchronize:(JZ)I", "XChangeActivePointerGrab:(JIJJ)V",
+          "XRefreshKeyboardMapping:(J)V", "XFreeModifiermap:(J)V",
+          "XGetModifierMapping:(J)J", "XConvertCase:(JJJ)V",
+          "XkbSetDetectableAutoRepeat:(JZ)V", "XkbTranslateKeyCode:(JIJJJ)Z",
+          "XkbFreeKeyboard:(JJZ)V", "XkbGetUpdatedMap:(JJJ)J",
+          "XkbGetMap:(JJJ)J", "XkbLibraryVersion:(JJ)Z",
+          "XkbQueryExtension:(JJJJJJ)Z", "XkbSelectEventDetails:(JJJJJ)V",
+          "XkbSelectEvents:(JJJJ)V", "XkbKeycodeToKeysym:(JIII)J",
+          "XkbGetEffectiveGroup:(J)I", "XKeysymToKeycode:(JJ)I",
+          "XKeycodeToKeysym:(JII)J", "XQueryKeymap:(JJ)V",
+          "XdbeSwapBuffers:(JJI)I", "XdbeEndIdiom:(J)I",
+          "XdbeBeginIdiom:(J)I", "XdbeDeallocateBackBufferName:(JJ)I",
+          "XdbeAllocateBackBufferName:(JJI)J", "IsKeypadKey:(J)Z",
+          "XQueryExtension:(JLjava/lang/String;JJJ)Z",
+          "XdbeQueryExtension:(JJJ)I", "XGetIconSizes:(JJJJ)I",
+          "XClearWindow:(JJ)V", "XSetWindowBackgroundPixmap:(JJJ)V",
+          "XFreeGC:(JJ)V", "XCreateGC:(JJJJ)J", "XPutImage:(JJJJIIIIII)V",
+          "XDestroyImage:(J)V", "XCreateImage:(JJIIIJIIII)J",
+          "XCreatePixmap:(JJIII)J", "XMaxRequestSize:(J)J",
+          "XGetAtomName:(JJ)Ljava/lang/String;", "XGetSelectionOwner:(JJ)J",
+          "XSetSelectionOwner:(JJJJ)V", "XConvertSelection:(JJJJJJ)V",
+          "XReparentWindow:(JJJII)V", "XGetVisualInfo:(JJJJ)J",
+          "XQueryTree:(JJJJJJ)I", "XPutBackEvent:(JJ)V",
+          "XSendEvent:(JJZJJ)I", "XAllocSizeHints:()J",
+          "XSetMinMaxHints:(JJIIIIJ)V", "XSetWMNormalHints:(JJJ)V",
+          "XGetWMNormalHints:(JJJJ)I", "XGetGeometry:(JJJJJJJJJ)I",
+          "XGetWindowAttributes:(JJJ)I", "XChangeWindowAttributes:(JJJJ)V",
+          "CallErrorHandler:(JJJ)I", "XSetErrorHandler:(J)V",
+          "SetToolkitErrorHandler:()J", "XAllocColor:(JJJ)Z",
+          "XQueryBestCursor:(JJIIJJ)Z", "XCreatePixmapCursor:(JJJJJII)J",
+          "XFreePixmap:(JJ)V", "XCreateBitmapFromData:(JJJII)J",
+          "XCreateFontCursor:(JI)I", "XBell:(JI)V", "IsKanaKeyboard:(J)Z",
+          "IsSunKeyboard:(J)Z", "IsXsunKPBehavior:(J)Z",
+          "VendorRelease:(J)I", "ServerVendor:(J)Ljava/lang/String;",
+          "XIconifyWindow:(JJJ)I", "XScreenNumberOfScreen:(J)J",
+          "getScreenOfWindow:(JJ)J",
+          "XGetDefault:(JLjava/lang/String;Ljava/lang/String;)Ljava/lang/String;",
+          "XGetPointerMapping:(JJI)I", "XAllocWMHints:()J",
+          "XGetWMHints:(JJJ)V", "XSetWMHints:(JJJ)V",
+          "XSetTransientFor:(JJJ)V", "XDeleteProperty:(JJJ)V",
+          "XChangePropertyS:(JJJJIILjava/lang/String;)V",
+          "XChangePropertyImpl:(JJJJIIJI)V",
+          "XGetWindowProperty:(JJJJJJJJJJJJ)I",
+          "InternAtom:(JLjava/lang/String;I)J",
+          "GetProperty:(JJJ)Ljava/lang/String;",
+          "SetProperty:(JJJLjava/lang/String;)V",
+          "XInternAtoms:(J[Ljava/lang/String;ZJ)I", "XEventsQueued:(JI)I",
+          "XSetWindowBackground:(JJJ)V", "XFreeCursor:(JJ)V",
+          "XQueryPointer:(JJJJJJJJJ)Z", "XMoveWindow:(JJII)V",
+          "XResizeWindow:(JJII)V", "XMoveResizeWindow:(JJIIII)V",
+          "XSync:(JI)V", "XFlush:(J)V", "XPeekEvent:(JJ)V",
+          "XTranslateCoordinates:(JJJJJJJJ)I",
+          "XSetLocaleModifiers:(Ljava/lang/String;)Ljava/lang/String;",
+          "XSupportsLocale:()Z", "XFilterEvent:(JJ)Z",
+          "XWindowEvent:(JJJJ)V", "XMaskEvent:(JJJ)V", "XNextEvent:(JJ)V",
+          "XSelectInput:(JJJ)V", "XUnmapWindow:(JJ)V", "XGetInputFocus:(J)J",
+          "XSetInputFocus2:(JJJ)V", "XSetInputFocus:(JJ)V",
+          "XConfigureWindow:(JJJJ)V", "XRestackWindows:(JJI)V",
+          "XLowerWindow:(JJ)V", "XRaiseWindow:(JJ)V", "XMapRaised:(JJ)V",
+          "XMapWindow:(JJ)V", "XUngrabServer:(J)V", "XGrabServer:(J)V",
+          "XUngrabKeyboard:(JJ)V", "XGrabKeyboard:(JJIIIJ)I",
+          "XUngrabPointer:(JJ)V", "XGrabPointer:(JJIIIIJJJ)I",
+          "XDestroyWindow:(JJ)V", "XCreateWindow:(JJIIIIIIJJJJ)J",
+          "ScreenCount:(J)I", "RootWindow:(JJ)J", "DisplayHeightMM:(JJ)J",
+          "DisplayHeight:(JJ)J", "DisplayWidthMM:(JJ)J",
+          "DisplayWidth:(JJ)J", "DoesBackingStore:(J)I",
+          "ScreenOfDisplay:(JJ)J", "DefaultScreen:(J)J",
+          "XSetCloseDownMode:(JI)V", "XDisplayString:(J)J",
+          "XCloseDisplay:(J)V", "XOpenDisplay:(J)J", "getStringBytes:(J)[B",
+          "copyLongArray:(JLjava/lang/Object;I)V",
+          "copyIntArray:(JLjava/lang/Object;I)V",
+          "getAddress:(Ljava/lang/Object;)J", "memcpy:(JJJ)V", "XFree:(J)V"
+        ]
+      },
+      "X11GraphicsConfig.class": [
+        "isTranslucencyCapable:(J)Z", "destroyBackBuffer:(J)V",
+        "swapBuffers:(JI)V", "createBackBuffer:(JI)J", "dispose:(J)V",
+        "pGetBounds:(I)Ljava/awt/Rectangle;", "initIDs:()V",
+        "getYResolution:(I)D", "getXResolution:(I)D",
+        "makeColorModel:()Ljava/awt/image/ColorModel;", "init:(II)V",
+        "getNumColors:()I"
+      ],
+      "X11GraphicsDevice.class": [
+        "resetNativeData:(I)V", "configDisplayMode:(IIII)V",
+        "enumDisplayModes:(ILjava/util/ArrayList;)V",
+        "getCurrentDisplayMode:(I)Ljava/awt/DisplayMode;",
+        "initXrandrExtension:()Z", "exitFullScreenExclusive:(J)V",
+        "enterFullScreenExclusive:(J)V", "getDoubleBufferVisuals:(I)V",
+        "isDBESupported:()Z", "getConfigColormap:(II)I",
+        "getConfigDepth:(II)I", "getConfigVisualId:(II)I",
+        "getNumConfigs:(I)I", "getDisplay:()J", "initIDs:()V"
+      ],
+      "X11GraphicsEnvironment.class": [
+        "getXineramaCenterPoint:()Ljava/awt/Point;", "pRunningXinerama:()Z",
+        "getDefaultScreenNum:()I", "getNumScreens:()I", "initDisplay:(Z)V",
+        "getDisplayString:()Ljava/lang/String;", "checkShmExt:()I",
+        "initXRender:(ZZ)Z", "initGLX:()Z"
+      ],
+      "X11InputMethod.class": [
+        "turnoffStatusWindow:()V", "isCompositionEnabledNative:()Z",
+        "setCompositionEnabledNative:(Z)Z", "disposeXIC:()V",
+        "resetXIC:()Ljava/lang/String;", "initIDs:()V"
+      ],
+      "image": {
+        "BufImgSurfaceData.class": [
+          "freeNativeICMData:(J)V",
+          "initRaster:(Ljava/lang/Object;IIIIIILjava/awt/image/IndexColorModel;)V",
+          "initIDs:(Ljava/lang/Class;Ljava/lang/Class;)V"
+        ],
+        "ByteComponentRaster.class": [ "initIDs:()V" ],
+        "BytePackedRaster.class": [ "initIDs:()V" ],
+        "DataBufferNative.class": [
+          "setElem:(IIILsun/java2d/SurfaceData;)V",
+          "getElem:(IILsun/java2d/SurfaceData;)I"
+        ],
+        "GifImageDecoder.class": [
+          "parseImage:(IIIIZI[B[BLjava/awt/image/IndexColorModel;)Z",
+          "initIDs:()V"
+        ],
+        "ImageRepresentation.class": [
+          "setDiffICM:(IIII[IIILjava/awt/image/IndexColorModel;[BIILsun/awt/image/ByteComponentRaster;I)Z",
+          "setICMpixels:(IIII[I[BIILsun/awt/image/IntegerComponentRaster;)Z",
+          "initIDs:()V"
+        ],
+        "ImagingLib.class": [
+          "lookupByteRaster:(Ljava/awt/image/Raster;Ljava/awt/image/Raster;[[B)I",
+          "lookupByteBI:(Ljava/awt/image/BufferedImage;Ljava/awt/image/BufferedImage;[[B)I",
+          "convolveRaster:(Ljava/awt/image/Raster;Ljava/awt/image/Raster;Ljava/awt/image/Kernel;I)I",
+          "convolveBI:(Ljava/awt/image/BufferedImage;Ljava/awt/image/BufferedImage;Ljava/awt/image/Kernel;I)I",
+          "transformRaster:(Ljava/awt/image/Raster;Ljava/awt/image/Raster;[DI)I",
+          "transformBI:(Ljava/awt/image/BufferedImage;Ljava/awt/image/BufferedImage;[DI)I",
+          "init:()Z"
+        ],
+        "IntegerComponentRaster.class": [ "initIDs:()V" ],
+        "JPEGImageDecoder.class": [
+          "readImage:(Ljava/io/InputStream;[B)V",
+          "initIDs:(Ljava/lang/Class;)V"
+        ],
+        "ShortComponentRaster.class": [ "initIDs:()V" ],
+        "codec": {
+          "JPEGImageDecoderImpl.class": [
+            "readJPEGStream:(Ljava/io/InputStream;Lcom/sun/image/codec/jpeg/JPEGDecodeParam;Z)Lcom/sun/image/codec/jpeg/JPEGDecodeParam;",
+            "initDecoder:(Ljava/lang/Class;)V"
+          ],
+          "JPEGImageEncoderImpl.class": [
+            "writeJPEGStream:(Lcom/sun/image/codec/jpeg/JPEGEncodeParam;Ljava/awt/image/ColorModel;Ljava/io/OutputStream;Ljava/lang/Object;II)V",
+            "initEncoder:(Ljava/lang/Class;)V"
+          ]
+        }
+      }
+    },
+    "dc": {
+      "pr": {
+        "PathDasher.class": [
+          "cInitialize:(Lsun/dc/path/PathConsumer;)V", "cClassFinalize:()V",
+          "cClassInitialize:()V", "getCPathConsumer:()J", "endPath:()V",
+          "closedSubpath:()V", "appendCubic:(FFFFFF)V",
+          "appendQuadratic:(FFFF)V", "appendLine:(FF)V",
+          "beginSubpath:(FF)V", "beginPath:()V", "reset:()V",
+          "setOutputConsumer:(Lsun/dc/path/PathConsumer;)V",
+          "setOutputT6:([F)V", "setDashT4:([F)V", "setDash:([FF)V",
+          "dispose:()V"
+        ],
+        "PathFiller.class": [
+          "cInitialize:()V", "cClassFinalize:()V", "cClassInitialize:()V",
+          "reset:()V", "nextTile:()V", "writeAlpha16:([CIII)V",
+          "writeAlpha8:([BIII)V", "getTileState:()I",
+          "setOutputArea:(FFII)V", "getAlphaBox:([I)V",
+          "getCPathConsumer:()J", "endPath:()V", "closedSubpath:()V",
+          "appendCubic:(FFFFFF)V", "appendQuadratic:(FFFF)V",
+          "appendLine:(FF)V", "beginSubpath:(FF)V", "beginPath:()V",
+          "setFillMode:(I)V", "dispose:()V"
+        ],
+        "PathStroker.class": [
+          "cInitialize2D:(Lsun/awt/geom/PathConsumer2D;)V",
+          "cInitialize:(Lsun/dc/path/PathConsumer;)V", "cClassFinalize:()V",
+          "cClassInitialize:()V", "getCPathConsumer:()J", "endPath:()V",
+          "closedSubpath:()V", "appendCubic:(FFFFFF)V",
+          "appendQuadratic:(FFFF)V", "appendLine:(FF)V",
+          "beginSubpath:(FF)V", "beginPath:()V", "reset:()V",
+          "setOutputConsumer:(Lsun/dc/path/PathConsumer;)V",
+          "setOutputT6:([F)V", "setCorners:(IF)V", "setCaps:(I)V",
+          "setPenFitting:(FI)V", "setPenT4:([F)V", "setPenDiameter:(F)V",
+          "dispose:()V"
+        ]
+      }
+    },
+    "font": {
+      "FileFontStrike.class": [
+        "_getGlyphImageFromWindows:(Ljava/lang/String;IIIZ)J",
+        "initNative:()Z"
+      ],
+      "FontConfigManager.class": [
+        "getFontConfigAASettings:(Ljava/lang/String;Ljava/lang/String;)I",
+        "getFontConfig:(Ljava/lang/String;Lsun/font/FontConfigManager$FontConfigInfo;[Lsun/font/FontConfigManager$FcCompFont;Z)V",
+        "getFontConfigVersion:()I"
+      ],
+      "FreetypeFontScaler.class": [
+        "createScalerContextNative:(J[DIIFF)J", "getUnitsPerEMNative:(J)J",
+        "getMissingGlyphCodeNative:(J)I", "getNumGlyphsNative:(J)I",
+        "getGlyphCodeNative:(Lsun/font/Font2D;JC)I",
+        "disposeNativeScaler:(Lsun/font/Font2D;J)V",
+        "getLayoutTableCacheNative:(J)J",
+        "getGlyphPointNative:(Lsun/font/Font2D;JJII)Ljava/awt/geom/Point2D$Float;",
+        "getGlyphVectorOutlineNative:(Lsun/font/Font2D;JJ[IIFF)Ljava/awt/geom/GeneralPath;",
+        "getGlyphOutlineNative:(Lsun/font/Font2D;JJIFF)Ljava/awt/geom/GeneralPath;",
+        "getGlyphOutlineBoundsNative:(Lsun/font/Font2D;JJI)Ljava/awt/geom/Rectangle2D$Float;",
+        "getGlyphImageNative:(Lsun/font/Font2D;JJI)J",
+        "getGlyphMetricsNative:(Lsun/font/Font2D;JJILjava/awt/geom/Point2D$Float;)V",
+        "getGlyphAdvanceNative:(Lsun/font/Font2D;JJI)F",
+        "getFontMetricsNative:(Lsun/font/Font2D;JJ)Lsun/font/StrikeMetrics;",
+        "initNativeScaler:(Lsun/font/Font2D;IIZI)J",
+        "initIDs:(Ljava/lang/Class;)V"
+      ],
+      "NativeFont.class": [
+        "countGlyphs:([BI)I", "getGlyphImageNoDefault:(JI)J",
+        "getGlyphImage:(JI)J", "getGlyphAdvance:(JI)F",
+        "getFontMetrics:(J)Lsun/font/StrikeMetrics;", "fontExists:([B)Z",
+        "haveBitmapFonts:([B)Z"
+      ],
+      "NativeStrike.class": [
+        "createNullScalerContext:()J", "getMaxGlyph:(J)I",
+        "createScalerContext:([BID)J"
+      ],
+      "NativeStrikeDisposer.class": [ "freeNativeScalerContext:(J)V" ],
+      "NullFontScaler.class": [
+        "getGlyphImage:(JI)J", "getNullScalerContext:()J"
+      ],
+      "StrikeCache.class": [
+        "freeLongMemory:([JJ)V", "freeIntMemory:([IJ)V",
+        "freeLongPointer:(J)V", "freeIntPointer:(I)V",
+        "getGlyphCacheDescription:([J)V"
+      ],
+      "SunFontManager.class": [ "initIDs:()V" ],
+      "SunLayoutEngine.class": [
+        "nativeLayout:(Lsun/font/Font2D;Lsun/font/FontStrike;[FII[CIIIIIIILjava/awt/geom/Point2D$Float;Lsun/font/GlyphLayout$GVData;JJ)V",
+        "initGVIDs:()V"
+      ],
+      "T2KFontScaler.class": [
+        "getGlyphPointNative:(Lsun/font/Font2D;JJII)Ljava/awt/geom/Point2D$Float;",
+        "createScalerContextNative:(J[DIIFFZ)J", "getUnitsPerEMNative:(J)J",
+        "getMissingGlyphCodeNative:(J)I", "getNumGlyphsNative:(J)I",
+        "disposeNativeScaler:(JJ)V", "getLayoutTableCacheNative:(J)J",
+        "getGlyphCodeNative:(JC)I",
+        "getGlyphVectorOutlineNative:(Lsun/font/Font2D;JJ[IIFF)Ljava/awt/geom/GeneralPath;",
+        "getGlyphOutlineNative:(Lsun/font/Font2D;JJIFF)Ljava/awt/geom/GeneralPath;",
+        "getGlyphOutlineBoundsNative:(Lsun/font/Font2D;JJI)Ljava/awt/geom/Rectangle2D$Float;",
+        "getGlyphImageNative:(Lsun/font/Font2D;JJI)J",
+        "getGlyphMetricsNative:(Lsun/font/Font2D;JJILjava/awt/geom/Point2D$Float;)V",
+        "getGlyphAdvanceNative:(Lsun/font/Font2D;JJI)F",
+        "getFontMetricsNative:(Lsun/font/Font2D;JJ)Lsun/font/StrikeMetrics;",
+        "initNativeScaler:(Lsun/font/Font2D;IIZI[I)J",
+        "initIDs:(Ljava/lang/Class;)V"
+      ],
+      "X11TextRenderer.class": [
+        "doDrawGlyphList:(JJLsun/java2d/pipe/Region;Lsun/font/GlyphList;)V"
+      ]
+    },
+    "instrument": {
+      "InstrumentationImpl.class": [
+        "setNativeMethodPrefixes:(J[Ljava/lang/String;Z)V",
+        "appendToClassLoaderSearch0:(JLjava/lang/String;Z)V",
+        "getObjectSize0:(JLjava/lang/Object;)J",
+        "getInitiatedClasses0:(JLjava/lang/ClassLoader;)[Ljava/lang/Class;",
+        "getAllLoadedClasses0:(J)[Ljava/lang/Class;",
+        "redefineClasses0:(J[Ljava/lang/instrument/ClassDefinition;)V",
+        "retransformClasses0:(J[Ljava/lang/Class;)V",
+        "setHasRetransformableTransformers:(JZ)V",
+        "isRetransformClassesSupported0:(J)Z",
+        "isModifiableClass0:(JLjava/lang/Class;)Z"
+      ]
+    },
+    "java2d": {
+      "DefaultDisposerRecord.class": [ "invokeNativeDispose:(JJ)V" ],
+      "Disposer.class": [ "initIDs:()V" ],
+      "SurfaceData.class": [
+        "isOpaqueGray:(Ljava/awt/image/IndexColorModel;)Z", "initIDs:()V"
+      ],
+      "cmm": {
+        "kcms": {
+          "CMM.class": [
+            "cmmTerminate:()I", "cmmInit:()I",
+            "cmmColorConvert:(JLsun/java2d/cmm/kcms/CMMImageLayout;Lsun/java2d/cmm/kcms/CMMImageLayout;)I",
+            "cmmGetNumComponents:(J[I)I", "cmmFreeTransform:(J)I",
+            "cmmCombineTransforms:([Lsun/java2d/cmm/kcms/ICC_Transform;Lsun/java2d/cmm/kcms/ICC_Transform;)I",
+            "cmmGetTransform:(Ljava/awt/color/ICC_Profile;IILsun/java2d/cmm/kcms/ICC_Transform;)I",
+            "cmmSetTagData:(JI[B)I", "cmmGetTagData:(JI[B)I",
+            "cmmGetTagSize:(JI[I)I", "cmmGetProfileData:(J[B)I",
+            "cmmGetProfileSize:(J[I)I", "cmmFreeProfile:(J)I",
+            "cmmLoadProfile:([B[J)I"
+          ]
+        },
+        "lcms": {
+          "LCMS.class": [
+            "initLCMS:(Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;)V",
+            "freeTransform:(J)V",
+            "colorConvert:(Lsun/java2d/cmm/lcms/LCMSTransform;Lsun/java2d/cmm/lcms/LCMSImageLayout;Lsun/java2d/cmm/lcms/LCMSImageLayout;)V",
+            "createNativeTransform:([JIIZIZLjava/lang/Object;)J",
+            "getProfileID:(Ljava/awt/color/ICC_Profile;)Lsun/java2d/cmm/lcms/LCMSProfile;",
+            "setTagDataNative:(JI[B)V", "getTagNative:(JI)[B",
+            "getProfileDataNative:(J[B)V", "getProfileSizeNative:(J)I",
+            "loadProfileNative:([BLjava/lang/Object;)J"
+          ]
+        }
+      },
+      "jules": {
+        "JulesAATileGenerator.class": [
+          "freePixmanImgPtr:(J)V", "rasterizeTrapezoidsNative:(J[I[II[BII)J"
+        ],
+        "JulesPathBuf.class": [
+          "tesselateFillNative:([I[BII[IIIIIII)[I",
+          "tesselateStrokeNative:([I[BII[IIDIID[DIDDDDDDDIIII)[I"
+        ]
+      },
+      "loops": {
+        "Blit.class": [
+          "Blit:(Lsun/java2d/SurfaceData;Lsun/java2d/SurfaceData;Ljava/awt/Composite;Lsun/java2d/pipe/Region;IIIIII)V"
+        ],
+        "BlitBg.class": [
+          "BlitBg:(Lsun/java2d/SurfaceData;Lsun/java2d/SurfaceData;Ljava/awt/Composite;Lsun/java2d/pipe/Region;IIIIIII)V"
+        ],
+        "DrawGlyphList.class": [
+          "DrawGlyphList:(Lsun/java2d/SunGraphics2D;Lsun/java2d/SurfaceData;Lsun/font/GlyphList;)V"
+        ],
+        "DrawGlyphListAA.class": [
+          "DrawGlyphListAA:(Lsun/java2d/SunGraphics2D;Lsun/java2d/SurfaceData;Lsun/font/GlyphList;)V"
+        ],
+        "DrawGlyphListLCD.class": [
+          "DrawGlyphListLCD:(Lsun/java2d/SunGraphics2D;Lsun/java2d/SurfaceData;Lsun/font/GlyphList;)V"
+        ],
+        "DrawLine.class": [
+          "DrawLine:(Lsun/java2d/SunGraphics2D;Lsun/java2d/SurfaceData;IIII)V"
+        ],
+        "DrawParallelogram.class": [
+          "DrawParallelogram:(Lsun/java2d/SunGraphics2D;Lsun/java2d/SurfaceData;DDDDDDDD)V"
+        ],
+        "DrawPath.class": [
+          "DrawPath:(Lsun/java2d/SunGraphics2D;Lsun/java2d/SurfaceData;IILjava/awt/geom/Path2D$Float;)V"
+        ],
+        "DrawPolygons.class": [
+          "DrawPolygons:(Lsun/java2d/SunGraphics2D;Lsun/java2d/SurfaceData;[I[I[IIIIZ)V"
+        ],
+        "DrawRect.class": [
+          "DrawRect:(Lsun/java2d/SunGraphics2D;Lsun/java2d/SurfaceData;IIII)V"
+        ],
+        "FillParallelogram.class": [
+          "FillParallelogram:(Lsun/java2d/SunGraphics2D;Lsun/java2d/SurfaceData;DDDDDD)V"
+        ],
+        "FillPath.class": [
+          "FillPath:(Lsun/java2d/SunGraphics2D;Lsun/java2d/SurfaceData;IILjava/awt/geom/Path2D$Float;)V"
+        ],
+        "FillRect.class": [
+          "FillRect:(Lsun/java2d/SunGraphics2D;Lsun/java2d/SurfaceData;IIII)V"
+        ],
+        "FillSpans.class": [
+          "FillSpans:(Lsun/java2d/SunGraphics2D;Lsun/java2d/SurfaceData;IJLsun/java2d/pipe/SpanIterator;)V"
+        ],
+        "GraphicsPrimitiveMgr.class": [
+          "registerNativeLoops:()V",
+          "initIDs:(Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;)V"
+        ],
+        "MaskBlit.class": [
+          "MaskBlit:(Lsun/java2d/SurfaceData;Lsun/java2d/SurfaceData;Ljava/awt/Composite;Lsun/java2d/pipe/Region;IIIIII[BII)V"
+        ],
+        "MaskFill.class": [
+          "DrawAAPgram:(Lsun/java2d/SunGraphics2D;Lsun/java2d/SurfaceData;Ljava/awt/Composite;DDDDDDDD)V",
+          "FillAAPgram:(Lsun/java2d/SunGraphics2D;Lsun/java2d/SurfaceData;Ljava/awt/Composite;DDDDDD)V",
+          "MaskFill:(Lsun/java2d/SunGraphics2D;Lsun/java2d/SurfaceData;Ljava/awt/Composite;IIII[BII)V"
+        ],
+        "ScaledBlit.class": [
+          "Scale:(Lsun/java2d/SurfaceData;Lsun/java2d/SurfaceData;Ljava/awt/Composite;Lsun/java2d/pipe/Region;IIIIDDDD)V"
+        ],
+        "TransformBlit.class": [
+          "Transform:(Lsun/java2d/SurfaceData;Lsun/java2d/SurfaceData;Ljava/awt/Composite;Lsun/java2d/pipe/Region;Ljava/awt/geom/AffineTransform;IIIIIII)V"
+        ],
+        "TransformHelper.class": [
+          "Transform:(Lsun/java2d/loops/MaskBlit;Lsun/java2d/SurfaceData;Lsun/java2d/SurfaceData;Ljava/awt/Composite;Lsun/java2d/pipe/Region;Ljava/awt/geom/AffineTransform;IIIIIIIII[III)V"
+        ]
+      },
+      "opengl": {
+        "GLXGraphicsConfig.class": [
+          "initConfig:(JJ)V", "getOGLCapabilities:(J)I",
+          "getGLXConfigInfo:(II)J"
+        ],
+        "GLXSurfaceData.class": [
+          "initPbuffer:(JJZII)Z", "initOps:(Lsun/awt/X11ComponentPeer;J)V"
+        ],
+        "OGLContext.class": [ "getOGLIdString:()Ljava/lang/String;" ],
+        "OGLMaskFill.class": [ "maskFill:(IIIIIII[B)V" ],
+        "OGLRenderQueue.class": [ "flushBuffer:(JI)V" ],
+        "OGLRenderer.class": [ "drawPoly:([I[IIZII)V" ],
+        "OGLSurfaceData.class": [
+          "getTextureID:(J)I", "getTextureTarget:(J)I",
+          "initFlipBackbuffer:(J)Z", "initFBObject:(JZZZII)Z",
+          "initTexture:(JZZZII)Z"
+        ],
+        "OGLTextRenderer.class": [ "drawGlyphList:(IZZZIFF[J[F)V" ]
+      },
+      "pipe": {
+        "BufferedMaskBlit.class": [
+          "enqueueTile:(JILsun/java2d/SurfaceData;JI[BIIIIIIIII)I"
+        ],
+        "BufferedRenderPipe.class": [
+          "fillSpans:(Lsun/java2d/pipe/RenderQueue;JIILsun/java2d/pipe/SpanIterator;JII)I"
+        ],
+        "Region.class": [ "initIDs:()V" ],
+        "ShapeSpanIterator.class": [
+          "getNativeConsumer:()J", "pathDone:()V", "closePath:()V",
+          "curveTo:(FFFFFF)V", "quadTo:(FFFF)V", "lineTo:(FF)V",
+          "moveTo:(FF)V", "dispose:()V", "getNativeIterator:()J",
+          "skipDownTo:(I)V", "nextSpan:([I)Z", "intersectClipBox:(IIII)V",
+          "getPathBox:([I)V", "addSegment:(I[F)V", "setRule:(I)V",
+          "setOutputAreaXYXY:(IIII)V", "setNormalize:(Z)V",
+          "appendPoly:([I[IIII)V", "initIDs:()V"
+        ],
+        "SpanClipRenderer.class": [
+          "eraseTile:(Lsun/java2d/pipe/RegionIterator;[BII[I)V",
+          "fillTile:(Lsun/java2d/pipe/RegionIterator;[BII[I)V",
+          "initIDs:(Ljava/lang/Class;Ljava/lang/Class;)V"
+        ]
+      },
+      "x11": {
+        "X11PMBlitBgLoops.class": [ "nativeBlitBg:(JJJIIIIIII)V" ],
+        "X11PMBlitLoops.class": [
+          "updateBitmask:(Lsun/java2d/SurfaceData;Lsun/java2d/SurfaceData;Z)V",
+          "nativeBlit:(JJJLsun/java2d/pipe/Region;IIIIII)V"
+        ],
+        "X11Renderer.class": [
+          "devCopyArea:(JJIIIIII)V",
+          "XDoPath:(Lsun/java2d/SunGraphics2D;JJIILjava/awt/geom/Path2D$Float;Z)V",
+          "XFillSpans:(JJLsun/java2d/pipe/SpanIterator;JII)V",
+          "XFillPoly:(JJII[I[II)V", "XFillArc:(JJIIIIII)V",
+          "XFillOval:(JJIIII)V", "XFillRoundRect:(JJIIIIII)V",
+          "XFillRect:(JJIIII)V", "XDrawPoly:(JJII[I[IIZ)V",
+          "XDrawArc:(JJIIIIII)V", "XDrawOval:(JJIIII)V",
+          "XDrawRoundRect:(JJIIIIII)V", "XDrawRect:(JJIIII)V",
+          "XDrawLine:(JJIIII)V"
+        ],
+        "X11SurfaceData.class": [
+          "XSetForeground:(JI)V", "XSetXorMode:(J)V", "XSetCopyMode:(J)V",
+          "isShmPMAvailable:()Z", "isDgaAvailable:()Z",
+          "initSurface:(IIIJ)V", "initIDs:(Ljava/lang/Class;Z)V"
+        ],
+        "XSurfaceData.class": [
+          "XSetGraphicsExposures:(JZ)V", "setInvalid:()V",
+          "isDrawableValid:()Z", "flushNativeSurface:()V",
+          "XSetClip:(JIIIILsun/java2d/pipe/Region;)V", "XResetClip:(J)V",
+          "XCreateGC:(J)J",
+          "initOps:(Lsun/awt/X11ComponentPeer;Lsun/awt/X11GraphicsConfig;I)V"
+        ]
+      },
+      "xr": {
+        "XIDGenerator.class": [ "bufferXIDs:([II)V" ],
+        "XRBackendNative.class": [
+          "renderCompositeTrapezoidsNative:(BIJIII[I)V",
+          "padBlitNative:(BIIIIIIIIIIIIIIIIIII)V",
+          "putMaskNative:(IJ[BIIIIIIIIFJ)V",
+          "XRenderCreateGlyphSetNative:(J)I",
+          "XRenderCompositeTextNative:(IIIIIJ[I[III)V",
+          "XRFreeGlyphsNative:(I[II)V", "XRAddGlyphsNative:(I[JI[BI)V",
+          "XRSetClipNative:(JIIIILsun/java2d/pipe/Region;Z)V",
+          "setFilter:(II)V",
+          "XRCreateRadialGradientPaintNative:([F[SIIIIII)I",
+          "XRCreateLinearGradientPaintNative:([F[SIIIIII)I",
+          "XRSetTransformNative:(IIIIIII)V",
+          "XRenderRectanglesNative:(IBSSSS[II)V",
+          "renderRectangle:(IBSSSSIIII)V", "renderComposite:(BIIIIIIIIIII)V",
+          "GCRectanglesNative:(IJ[II)V", "setGCMode:(JZ)V",
+          "copyArea:(IIJIIIIII)V", "setPictureRepeat:(II)V",
+          "setGCForeground:(JI)V", "setGCExposures:(JZ)V", "freePixmap:(I)V",
+          "freePicture:(I)V", "createPictureNative:(IJ)I",
+          "createPixmap:(IIII)I", "freeGC:(J)V", "createGC:(I)J",
+          "initIDs:()V"
+        ],
+        "XRMaskBlit.class": [ "maskBlit:(JJIIIIIIIII[B)V" ],
+        "XRMaskFill.class": [ "maskFill:(JIIIIIII[B)V" ],
+        "XRSurfaceData.class": [
+          "freeXSDOPicture:(J)V", "initXRPicture:(JI)V",
+          "XRInitSurface:(IIIJI)V", "initIDs:()V"
+        ]
+      }
+    },
+    "management": {
+      "ClassLoadingImpl.class": [ "setVerboseClass:(Z)V" ],
+      "DiagnosticCommandImpl.class": [
+        "executeDiagnosticCommand:(Ljava/lang/String;)Ljava/lang/String;",
+        "getDiagnosticCommandInfo:([Ljava/lang/String;)[Lsun/management/DiagnosticCommandInfo;",
+        "getDiagnosticCommands:()[Ljava/lang/String;",
+        "setNotificationEnabled:(Z)V"
+      ],
+      "FileSystemImpl.class": [ "isAccessUserOnly0:(Ljava/lang/String;)Z" ],
+      "Flag.class": [
+        "initialize:()V",
+        "setStringValue:(Ljava/lang/String;Ljava/lang/String;)V",
+        "setBooleanValue:(Ljava/lang/String;Z)V",
+        "setLongValue:(Ljava/lang/String;J)V", "getInternalFlagCount:()I",
+        "getFlags:([Ljava/lang/String;[Lsun/management/Flag;I)I",
+        "getAllFlagNames:()[Ljava/lang/String;"
+      ],
+      "GarbageCollectorImpl.class": [
+        "setNotificationEnabled:(Lcom/sun/management/GarbageCollectorMXBean;Z)V",
+        "getCollectionTime:()J", "getCollectionCount:()J"
+      ],
+      "GcInfoBuilder.class": [
+        "getLastGcInfo0:(Ljava/lang/management/GarbageCollectorMXBean;I[Ljava/lang/Object;[C[Ljava/lang/management/MemoryUsage;[Ljava/lang/management/MemoryUsage;)Lcom/sun/management/GcInfo;",
+        "fillGcAttributeInfo:(Ljava/lang/management/GarbageCollectorMXBean;I[Ljava/lang/String;[C[Ljava/lang/String;)V",
+        "getNumGcExtAttributes:(Ljava/lang/management/GarbageCollectorMXBean;)I"
+      ],
+      "HotSpotDiagnostic.class": [ "dumpHeap0:(Ljava/lang/String;Z)V" ],
+      "HotspotThread.class": [
+        "getInternalThreadTimes0:([Ljava/lang/String;[J)I",
+        "getInternalThreadCount:()I"
+      ],
+      "MemoryImpl.class": [
+        "setVerboseGC:(Z)V",
+        "getMemoryUsage0:(Z)Ljava/lang/management/MemoryUsage;",
+        "getMemoryManagers0:()[Ljava/lang/management/MemoryManagerMXBean;",
+        "getMemoryPools0:()[Ljava/lang/management/MemoryPoolMXBean;"
+      ],
+      "MemoryManagerImpl.class": [
+        "getMemoryPools0:()[Ljava/lang/management/MemoryPoolMXBean;"
+      ],
+      "MemoryPoolImpl.class": [
+        "setPoolCollectionSensor:(Lsun/management/Sensor;)V",
+        "setPoolUsageSensor:(Lsun/management/Sensor;)V",
+        "getMemoryManagers0:()[Ljava/lang/management/MemoryManagerMXBean;",
+        "resetPeakUsage0:()V", "setCollectionThreshold0:(JJ)V",
+        "setUsageThreshold0:(JJ)V",
+        "getCollectionUsage0:()Ljava/lang/management/MemoryUsage;",
+        "getPeakUsage0:()Ljava/lang/management/MemoryUsage;",
+        "getUsage0:()Ljava/lang/management/MemoryUsage;"
+      ],
+      "OperatingSystemImpl.class": [
+        "initialize:()V", "getProcessCpuLoad:()D", "getSystemCpuLoad:()D",
+        "getMaxFileDescriptorCount:()J", "getOpenFileDescriptorCount:()J",
+        "getTotalPhysicalMemorySize:()J", "getFreePhysicalMemorySize:()J",
+        "getProcessCpuTime:()J", "getFreeSwapSpaceSize:()J",
+        "getTotalSwapSpaceSize:()J", "getCommittedVirtualMemorySize:()J"
+      ],
+      "ThreadImpl.class": [
+        "resetContentionTimes0:(J)V",
+        "dumpThreads0:([JZZ)[Ljava/lang/management/ThreadInfo;",
+        "resetPeakThreadCount0:()V",
+        "findDeadlockedThreads0:()[Ljava/lang/Thread;",
+        "findMonitorDeadlockedThreads0:()[Ljava/lang/Thread;",
+        "setThreadContentionMonitoringEnabled0:(Z)V",
+        "setThreadAllocatedMemoryEnabled0:(Z)V",
+        "setThreadCpuTimeEnabled0:(Z)V", "getThreadAllocatedMemory1:([J[J)V",
+        "getThreadUserCpuTime1:([J[J)V", "getThreadUserCpuTime0:(J)J",
+        "getThreadTotalCpuTime1:([J[J)V", "getThreadTotalCpuTime0:(J)J",
+        "getThreadInfo1:([JI[Ljava/lang/management/ThreadInfo;)V",
+        "getThreads:()[Ljava/lang/Thread;"
+      ],
+      "VMManagementImpl.class": [
+        "getClassVerificationTime:()J", "getClassInitializationTime:()J",
+        "getInitializedClassCount:()J", "getMethodDataSize:()J",
+        "getClassLoadingTime:()J", "getUnloadedClassSize:()J",
+        "getLoadedClassSize:()J", "getTotalApplicationNonStoppedTime:()J",
+        "getSafepointSyncTime:()J", "getTotalSafepointTime:()J",
+        "getSafepointCount:()J", "getDaemonThreadCount:()I",
+        "getPeakThreadCount:()I", "getLiveThreadCount:()I",
+        "getTotalThreadCount:()J", "getTotalCompileTime:()J",
+        "getAvailableProcessors:()I", "getUptime0:()J", "getStartupTime:()J",
+        "getVmArguments0:()[Ljava/lang/String;", "getProcessId:()I",
+        "getVerboseGC:()Z", "getVerboseClass:()Z",
+        "getUnloadedClassCount:()J", "getTotalClassCount:()J",
+        "isThreadAllocatedMemoryEnabled:()Z", "isThreadCpuTimeEnabled:()Z",
+        "isThreadContentionMonitoringEnabled:()Z",
+        "initOptionalSupportFields:()V", "getVersion0:()Ljava/lang/String;"
+      ]
+    },
+    "misc": {
+      "GC.class": [ "maxObjectInspectionAge:()J" ],
+      "MessageUtils.class": [
+        "toStdout:(Ljava/lang/String;)V", "toStderr:(Ljava/lang/String;)V"
+      ],
+      "NativeSignalHandler.class": [ "handle0:(IJ)V" ],
+      "Perf.class": [
+        "registerNatives:()V", "highResFrequency:()J", "highResCounter:()J",
+        "createByteArray:(Ljava/lang/String;II[BI)Ljava/nio/ByteBuffer;",
+        "createLong:(Ljava/lang/String;IIJ)Ljava/nio/ByteBuffer;",
+        "detach:(Ljava/nio/ByteBuffer;)V",
+        "attach:(Ljava/lang/String;II)Ljava/nio/ByteBuffer;"
+      ],
+      "Signal.class": [
+        "raise0:(I)V", "handle0:(IJ)J", "findSignal:(Ljava/lang/String;)I"
+      ],
+      "URLClassPath.class": [
+        "knownToNotExist0:(Ljava/lang/ClassLoader;Ljava/lang/String;)Z",
+        "getLookupCacheForClassLoader:(Ljava/lang/ClassLoader;Ljava/lang/String;)[I",
+        "getLookupCacheURLs:(Ljava/lang/ClassLoader;)[Ljava/net/URL;"
+      ],
+      "Unsafe.class": [
+        "fullFence:()V", "storeFence:()V", "loadFence:()V",
+        "getLoadAverage:([DI)I", "park:(ZJ)V",
+        "unpark:(Ljava/lang/Object;)V",
+        "putOrderedLong:(Ljava/lang/Object;JJ)V",
+        "putOrderedInt:(Ljava/lang/Object;JI)V",
+        "putOrderedObject:(Ljava/lang/Object;JLjava/lang/Object;)V",
+        "putDoubleVolatile:(Ljava/lang/Object;JD)V",
+        "getDoubleVolatile:(Ljava/lang/Object;J)D",
+        "putFloatVolatile:(Ljava/lang/Object;JF)V",
+        "getFloatVolatile:(Ljava/lang/Object;J)F",
+        "putLongVolatile:(Ljava/lang/Object;JJ)V",
+        "getLongVolatile:(Ljava/lang/Object;J)J",
+        "putCharVolatile:(Ljava/lang/Object;JC)V",
+        "getCharVolatile:(Ljava/lang/Object;J)C",
+        "putShortVolatile:(Ljava/lang/Object;JS)V",
+        "getShortVolatile:(Ljava/lang/Object;J)S",
+        "putByteVolatile:(Ljava/lang/Object;JB)V",
+        "getByteVolatile:(Ljava/lang/Object;J)B",
+        "putBooleanVolatile:(Ljava/lang/Object;JZ)V",
+        "getBooleanVolatile:(Ljava/lang/Object;J)Z",
+        "putIntVolatile:(Ljava/lang/Object;JI)V",
+        "getIntVolatile:(Ljava/lang/Object;J)I",
+        "putObjectVolatile:(Ljava/lang/Object;JLjava/lang/Object;)V",
+        "getObjectVolatile:(Ljava/lang/Object;J)Ljava/lang/Object;",
+        "compareAndSwapLong:(Ljava/lang/Object;JJJ)Z",
+        "compareAndSwapInt:(Ljava/lang/Object;JII)Z",
+        "compareAndSwapObject:(Ljava/lang/Object;JLjava/lang/Object;Ljava/lang/Object;)Z",
+        "throwException:(Ljava/lang/Throwable;)V",
+        "tryMonitorEnter:(Ljava/lang/Object;)Z",
+        "monitorExit:(Ljava/lang/Object;)V",
+        "monitorEnter:(Ljava/lang/Object;)V",
+        "allocateInstance:(Ljava/lang/Class;)Ljava/lang/Object;",
+        "defineAnonymousClass:(Ljava/lang/Class;[B[Ljava/lang/Object;)Ljava/lang/Class;",
+        "defineClass:(Ljava/lang/String;[BIILjava/lang/ClassLoader;Ljava/security/ProtectionDomain;)Ljava/lang/Class;",
+        "pageSize:()I", "addressSize:()I",
+        "arrayIndexScale:(Ljava/lang/Class;)I",
+        "arrayBaseOffset:(Ljava/lang/Class;)I",
+        "ensureClassInitialized:(Ljava/lang/Class;)V",
+        "shouldBeInitialized:(Ljava/lang/Class;)Z",
+        "staticFieldBase:(Ljava/lang/reflect/Field;)Ljava/lang/Object;",
+        "objectFieldOffset:(Ljava/lang/reflect/Field;)J",
+        "staticFieldOffset:(Ljava/lang/reflect/Field;)J", "freeMemory:(J)V",
+        "copyMemory:(Ljava/lang/Object;JLjava/lang/Object;JJ)V",
+        "setMemory:(Ljava/lang/Object;JJB)V", "reallocateMemory:(JJ)J",
+        "allocateMemory:(J)J", "putAddress:(JJ)V", "getAddress:(J)J",
+        "putDouble:(JD)V", "getDouble:(J)D", "putFloat:(JF)V",
+        "getFloat:(J)F", "putLong:(JJ)V", "getLong:(J)J", "putInt:(JI)V",
+        "getInt:(J)I", "putChar:(JC)V", "getChar:(J)C", "putShort:(JS)V",
+        "getShort:(J)S", "putByte:(JB)V", "getByte:(J)B",
+        "putDouble:(Ljava/lang/Object;JD)V",
+        "getDouble:(Ljava/lang/Object;J)D",
+        "putFloat:(Ljava/lang/Object;JF)V",
+        "getFloat:(Ljava/lang/Object;J)F", "putLong:(Ljava/lang/Object;JJ)V",
+        "getLong:(Ljava/lang/Object;J)J", "putChar:(Ljava/lang/Object;JC)V",
+        "getChar:(Ljava/lang/Object;J)C", "putShort:(Ljava/lang/Object;JS)V",
+        "getShort:(Ljava/lang/Object;J)S", "putByte:(Ljava/lang/Object;JB)V",
+        "getByte:(Ljava/lang/Object;J)B",
+        "putBoolean:(Ljava/lang/Object;JZ)V",
+        "getBoolean:(Ljava/lang/Object;J)Z",
+        "putObject:(Ljava/lang/Object;JLjava/lang/Object;)V",
+        "getObject:(Ljava/lang/Object;J)Ljava/lang/Object;",
+        "putInt:(Ljava/lang/Object;JI)V", "getInt:(Ljava/lang/Object;J)I",
+        "registerNatives:()V"
+      ],
+      "VM.class": [
+        "initialize:()V", "latestUserDefinedLoader:()Ljava/lang/ClassLoader;"
+      ],
+      "VMSupport.class": [
+        "getVMTemporaryDirectory:()Ljava/lang/String;",
+        "initAgentProperties:(Ljava/util/Properties;)Ljava/util/Properties;"
+      ],
+      "Version.class": [
+        "getJdkVersionInfo:()V", "getJvmVersionInfo:()Z",
+        "getJdkSpecialVersion:()Ljava/lang/String;",
+        "getJvmSpecialVersion:()Ljava/lang/String;"
+      ]
+    },
+    "net": {
+      "ExtendedOptionsImpl.class": [
+        "flowSupported:()Z",
+        "getFlowOption:(Ljava/io/FileDescriptor;Ljdk/net/SocketFlow;)V",
+        "setFlowOption:(Ljava/io/FileDescriptor;Ljdk/net/SocketFlow;)V",
+        "init:()V"
+      ],
+      "PortConfig.class": [ "getUpper0:()I", "getLower0:()I" ],
+      "dns": {
+        "ResolverConfigurationImpl.class": [
+          "fallbackDomain0:()Ljava/lang/String;",
+          "localDomain0:()Ljava/lang/String;"
+        ]
+      },
+      "sdp": { "SdpSupport.class": [ "convert0:(I)V", "create0:()I" ] },
+      "spi": {
+        "DefaultProxySelector.class": [
+          "getSystemProxy:(Ljava/lang/String;Ljava/lang/String;)Ljava/net/Proxy;",
+          "init:()Z"
+        ]
+      }
+    },
+    "nio": {
+      "ch": {
+        "DatagramChannelImpl.class": [
+          "send0:(ZLjava/io/FileDescriptor;JILjava/net/InetAddress;I)I",
+          "receive0:(Ljava/io/FileDescriptor;JIZ)I",
+          "disconnect0:(Ljava/io/FileDescriptor;Z)V", "initIDs:()V"
+        ],
+        "DatagramDispatcher.class": [
+          "writev0:(Ljava/io/FileDescriptor;JI)J",
+          "write0:(Ljava/io/FileDescriptor;JI)I",
+          "readv0:(Ljava/io/FileDescriptor;JI)J",
+          "read0:(Ljava/io/FileDescriptor;JI)I"
+        ],
+        "EPoll.class": [
+          "epollWait:(IJI)I", "epollCtl:(IIII)I", "epollCreate:()I",
+          "dataOffset:()I", "eventsOffset:()I", "eventSize:()I"
+        ],
+        "EPollArrayWrapper.class": [
+          "init:()V", "interrupt:(I)V", "offsetofData:()I",
+          "sizeofEPollEvent:()I", "epollWait:(JIJI)I", "epollCtl:(IIII)V",
+          "epollCreate:()I"
+        ],
+        "EPollPort.class": [
+          "close0:(I)V", "drain1:(I)V", "interrupt:(I)V", "socketpair:([I)V"
+        ],
+        "FileChannelImpl.class": [
+          "initIDs:()J", "position0:(Ljava/io/FileDescriptor;J)J",
+          "transferTo0:(Ljava/io/FileDescriptor;JJLjava/io/FileDescriptor;)J",
+          "unmap0:(JJ)I", "map0:(IJJ)J"
+        ],
+        "FileDispatcherImpl.class": [
+          "init:()V", "closeIntFD:(I)V",
+          "preClose0:(Ljava/io/FileDescriptor;)V",
+          "close0:(Ljava/io/FileDescriptor;)V",
+          "release0:(Ljava/io/FileDescriptor;JJ)V",
+          "lock0:(Ljava/io/FileDescriptor;ZJJZ)I",
+          "size0:(Ljava/io/FileDescriptor;)J",
+          "truncate0:(Ljava/io/FileDescriptor;J)I",
+          "force0:(Ljava/io/FileDescriptor;Z)I",
+          "writev0:(Ljava/io/FileDescriptor;JI)J",
+          "pwrite0:(Ljava/io/FileDescriptor;JIJ)I",
+          "write0:(Ljava/io/FileDescriptor;JI)I",
+          "readv0:(Ljava/io/FileDescriptor;JI)J",
+          "pread0:(Ljava/io/FileDescriptor;JIJ)I",
+          "read0:(Ljava/io/FileDescriptor;JI)I"
+        ],
+        "FileKey.class": [
+          "initIDs:()V", "init:(Ljava/io/FileDescriptor;)V"
+        ],
+        "IOUtil.class": [
+          "initIDs:()V", "iovMax:()I", "fdLimit:()I",
+          "setfdVal:(Ljava/io/FileDescriptor;I)V",
+          "fdVal:(Ljava/io/FileDescriptor;)I",
+          "configureBlocking:(Ljava/io/FileDescriptor;Z)V", "drain:(I)Z",
+          "makePipe:(Z)J", "randomBytes:([B)Z"
+        ],
+        "InheritedChannel.class": [
+          "peerPort0:(I)I", "peerAddress0:(I)Ljava/net/InetAddress;",
+          "soType0:(I)I", "close0:(I)V", "open0:(Ljava/lang/String;I)I",
+          "dup2:(II)V", "dup:(I)I"
+        ],
+        "NativeThread.class": [ "init:()V", "signal:(J)V", "current:()J" ],
+        "Net.class": [
+          "pollconnValue:()S", "pollnvalValue:()S", "pollhupValue:()S",
+          "pollerrValue:()S", "polloutValue:()S", "pollinValue:()S",
+          "initIDs:()V", "getInterface6:(Ljava/io/FileDescriptor;)I",
+          "setInterface6:(Ljava/io/FileDescriptor;I)V",
+          "getInterface4:(Ljava/io/FileDescriptor;)I",
+          "setInterface4:(Ljava/io/FileDescriptor;I)V",
+          "blockOrUnblock6:(ZLjava/io/FileDescriptor;[BI[B)I",
+          "joinOrDrop6:(ZLjava/io/FileDescriptor;[BI[B)I",
+          "blockOrUnblock4:(ZLjava/io/FileDescriptor;III)I",
+          "joinOrDrop4:(ZLjava/io/FileDescriptor;III)I",
+          "poll:(Ljava/io/FileDescriptor;IJ)I",
+          "setIntOption0:(Ljava/io/FileDescriptor;ZIIIZ)V",
+          "getIntOption0:(Ljava/io/FileDescriptor;ZII)I",
+          "remoteInetAddress:(Ljava/io/FileDescriptor;)Ljava/net/InetAddress;",
+          "remotePort:(Ljava/io/FileDescriptor;)I",
+          "localInetAddress:(Ljava/io/FileDescriptor;)Ljava/net/InetAddress;",
+          "localPort:(Ljava/io/FileDescriptor;)I",
+          "shutdown:(Ljava/io/FileDescriptor;I)V",
+          "connect0:(ZLjava/io/FileDescriptor;Ljava/net/InetAddress;I)I",
+          "listen:(Ljava/io/FileDescriptor;I)V",
+          "bind0:(Ljava/io/FileDescriptor;ZZLjava/net/InetAddress;I)V",
+          "socket0:(ZZZZ)I", "canJoin6WithIPv4Group0:()Z",
+          "canIPv6SocketJoinIPv4Group0:()Z", "isExclusiveBindAvailable:()I",
+          "isIPv6Available0:()Z"
+        ],
+        "PollArrayWrapper.class": [ "interrupt:(I)V", "poll0:(JIJ)I" ],
+        "ServerSocketChannelImpl.class": [
+          "initIDs:()V",
+          "accept0:(Ljava/io/FileDescriptor;Ljava/io/FileDescriptor;[Ljava/net/InetSocketAddress;)I"
+        ],
+        "SocketChannelImpl.class": [
+          "sendOutOfBandData:(Ljava/io/FileDescriptor;B)I",
+          "checkConnect:(Ljava/io/FileDescriptor;ZZ)I"
+        ],
+        "UnixAsynchronousServerSocketChannelImpl.class": [
+          "accept0:(Ljava/io/FileDescriptor;Ljava/io/FileDescriptor;[Ljava/net/InetSocketAddress;)I",
+          "initIDs:()V"
+        ],
+        "UnixAsynchronousSocketChannelImpl.class": [ "checkConnect:(I)V" ],
+        "sctp": {
+          "SctpChannelImpl.class": [
+            "checkConnect:(Ljava/io/FileDescriptor;ZZ)I",
+            "send0:(IJILjava/net/InetAddress;IIIZI)I",
+            "receive0:(ILsun/nio/ch/sctp/ResultContainer;JIZ)I",
+            "initIDs:()V"
+          ],
+          "SctpNet.class": [
+            "init:()V", "shutdown0:(II)V", "setInitMsgOption0:(III)V",
+            "getInitMsgOption0:(I[I)V",
+            "getPrimAddrOption0:(II)Ljava/net/SocketAddress;",
+            "setPeerPrimAddrOption0:(IILjava/net/InetAddress;IZ)V",
+            "setPrimAddrOption0:(IILjava/net/InetAddress;I)V",
+            "branch0:(II)I",
+            "getRemoteAddresses0:(II)[Ljava/net/SocketAddress;",
+            "getLocalAddresses0:(I)[Ljava/net/SocketAddress;",
+            "setIntOption0:(III)V", "getIntOption0:(II)I",
+            "bindx:(I[Ljava/net/InetAddress;IIZZ)V", "preClose0:(I)V",
+            "close0:(I)V", "connect0:(ILjava/net/InetAddress;I)I",
+            "listen0:(II)V", "socket0:(Z)I"
+          ],
+          "SctpServerChannelImpl.class": [
+            "accept0:(Ljava/io/FileDescriptor;Ljava/io/FileDescriptor;[Ljava/net/InetSocketAddress;)I",
+            "initIDs:()V"
+          ]
+        }
+      },
+      "fs": {
+        "GnomeFileTypeDetector.class": [
+          "probeUsingGnomeVfs:(J)[B", "initializeGnomeVfs:()Z",
+          "probeUsingGio:(J)[B", "initializeGio:()Z"
+        ],
+        "LinuxNativeDispatcher.class": [
+          "init:()V", "flistxattr:(IJI)I", "fremovexattr0:(IJ)V",
+          "fsetxattr0:(IJJI)V", "fgetxattr0:(IJJI)I", "endmntent:(J)V",
+          "getmntent:(JLsun/nio/fs/UnixMountEntry;)I", "setmntent0:(JJ)J"
+        ],
+        "LinuxWatchService.class": [
+          "poll:(II)I", "socketpair:([I)V", "configureBlocking:(IZ)V",
+          "inotifyRmWatch:(II)V", "inotifyAddWatch:(IJI)I",
+          "inotifyInit:()I", "eventOffsets:()[I", "eventSize:()I"
+        ],
+        "MagicFileTypeDetector.class": [ "probe0:(J)[B", "initialize0:()Z" ],
+        "UnixCopyFile.class": [ "transfer:(IIJ)V" ],
+        "UnixNativeDispatcher.class": [
+          "init:()I", "strerror:(I)[B", "fpathconf:(II)J", "pathconf0:(JI)J",
+          "statvfs0:(JLsun/nio/fs/UnixFileStoreAttributes;)V",
+          "getgrnam0:(J)I", "getpwnam0:(J)I", "getgrgid:(I)[B",
+          "getpwuid:(I)[B", "access0:(JI)V", "write:(IJI)I", "read:(IJI)I",
+          "readdir:(J)[B", "closedir:(J)V", "fdopendir:(I)J",
+          "opendir0:(J)J", "futimes:(IJJ)V", "utimes0:(JJJ)V",
+          "fchmod:(II)V", "chmod0:(JI)V", "fchown:(III)V", "lchown0:(JII)V",
+          "chown0:(JII)V", "fstatat0:(IJILsun/nio/fs/UnixFileAttributes;)V",
+          "fstat:(ILsun/nio/fs/UnixFileAttributes;)V",
+          "lstat0:(JLsun/nio/fs/UnixFileAttributes;)V",
+          "stat0:(JLsun/nio/fs/UnixFileAttributes;)V", "symlink0:(JJ)V",
+          "realpath0:(J)[B", "readlink0:(J)[B", "rmdir0:(J)V",
+          "mkdir0:(JI)V", "renameat0:(IJIJ)V", "rename0:(JJ)V",
+          "mknod0:(JIJ)V", "unlinkat0:(IJI)V", "unlink0:(J)V", "link0:(JJ)V",
+          "fclose:(J)V", "fopen0:(JJ)J", "close:(I)V", "openat0:(IJII)I",
+          "open0:(JII)I", "dup:(I)I", "getcwd:()[B"
+        ]
+      }
+    },
+    "print": {
+      "CUPSPrinter.class": [
+        "getPageSizes:(Ljava/lang/String;)[F",
+        "getMedia:(Ljava/lang/String;)[Ljava/lang/String;", "initIDs:()Z",
+        "canConnect:(Ljava/lang/String;I)Z", "getCupsPort:()I",
+        "getCupsServer:()Ljava/lang/String;"
+      ]
+    },
+    "reflect": {
+      "ConstantPool.class": [
+        "getUTF8At0:(Ljava/lang/Object;I)Ljava/lang/String;",
+        "getStringAt0:(Ljava/lang/Object;I)Ljava/lang/String;",
+        "getDoubleAt0:(Ljava/lang/Object;I)D",
+        "getFloatAt0:(Ljava/lang/Object;I)F",
+        "getLongAt0:(Ljava/lang/Object;I)J",
+        "getIntAt0:(Ljava/lang/Object;I)I",
+        "getMemberRefInfoAt0:(Ljava/lang/Object;I)[Ljava/lang/String;",
+        "getFieldAtIfLoaded0:(Ljava/lang/Object;I)Ljava/lang/reflect/Field;",
+        "getFieldAt0:(Ljava/lang/Object;I)Ljava/lang/reflect/Field;",
+        "getMethodAtIfLoaded0:(Ljava/lang/Object;I)Ljava/lang/reflect/Member;",
+        "getMethodAt0:(Ljava/lang/Object;I)Ljava/lang/reflect/Member;",
+        "getClassAtIfLoaded0:(Ljava/lang/Object;I)Ljava/lang/Class;",
+        "getClassAt0:(Ljava/lang/Object;I)Ljava/lang/Class;",
+        "getSize0:(Ljava/lang/Object;)I"
+      ],
+      "NativeConstructorAccessorImpl.class": [
+        "newInstance0:(Ljava/lang/reflect/Constructor;[Ljava/lang/Object;)Ljava/lang/Object;"
+      ],
+      "NativeMethodAccessorImpl.class": [
+        "invoke0:(Ljava/lang/reflect/Method;Ljava/lang/Object;[Ljava/lang/Object;)Ljava/lang/Object;"
+      ],
+      "Reflection.class": [
+        "getClassAccessFlags:(Ljava/lang/Class;)I",
+        "getCallerClass:(I)Ljava/lang/Class;",
+        "getCallerClass:()Ljava/lang/Class;"
+      ]
+    },
+    "security": {
+      "jgss": {
+        "wrapper": {
+          "GSSLibStub.class": [
+            "unwrap:(J[BLorg/ietf/jgss/MessageProp;)[B",
+            "wrap:(J[BLorg/ietf/jgss/MessageProp;)[B",
+            "verifyMic:(J[B[BLorg/ietf/jgss/MessageProp;)V",
+            "getMic:(JI[B)[B", "exportContext:(J)[B",
+            "wrapSizeLimit:(JIII)I", "deleteContext:(J)J",
+            "getContextTime:(J)I", "getContextName:(JZ)J",
+            "getContextMech:(J)Lorg/ietf/jgss/Oid;", "inquireContext:(J)[J",
+            "acceptContext:(JLorg/ietf/jgss/ChannelBinding;[BLsun/security/jgss/wrapper/NativeGSSContext;)[B",
+            "initContext:(JJLorg/ietf/jgss/ChannelBinding;[BLsun/security/jgss/wrapper/NativeGSSContext;)[B",
+            "importContext:([B)Lsun/security/jgss/wrapper/NativeGSSContext;",
+            "getCredUsage:(J)I", "getCredTime:(J)I", "getCredName:(J)J",
+            "releaseCred:(J)J", "acquireCred:(JII)J",
+            "displayName:(J)[Ljava/lang/Object;", "exportName:(J)[B",
+            "canonicalizeName:(J)J", "compareName:(JJ)Z",
+            "importName:([BLorg/ietf/jgss/Oid;)J", "releaseName:(J)V",
+            "inquireNamesForMech:()[Lorg/ietf/jgss/Oid;",
+            "indicateMechs:()[Lorg/ietf/jgss/Oid;", "getMechPtr:([B)J",
+            "init:(Ljava/lang/String;Z)Z"
+          ]
+        }
+      },
+      "krb5": {
+        "Config.class": [ "getWindowsDirectory:(Z)Ljava/lang/String;" ],
+        "Credentials.class": [
+          "acquireDefaultNativeCreds:([I)Lsun/security/krb5/Credentials;"
+        ],
+        "SCDynamicStoreConfig.class": [
+          "getKerberosConfig:()Ljava/util/Hashtable;",
+          "installNotificationCallback:()V"
+        ]
+      },
+      "smartcardio": {
+        "PCSC.class": [
+          "SCardControl:(JI[B)[B", "SCardEndTransaction:(JI)V",
+          "SCardBeginTransaction:(J)V",
+          "SCardGetStatusChange:(JJ[I[Ljava/lang/String;)[I",
+          "SCardDisconnect:(JI)V", "SCardStatus:(J[B)[B",
+          "SCardTransmit:(JI[BII)[B",
+          "SCardConnect:(JLjava/lang/String;II)J",
+          "SCardListReaders:(J)[Ljava/lang/String;",
+          "SCardEstablishContext:(I)J"
+        ],
+        "PlatformPCSC.class": [ "initialize:(Ljava/lang/String;)V" ]
+      }
+    },
+    "tracing": {
+      "dtrace": {
+        "JVM.class": [
+          "defineClass0:(Ljava/lang/ClassLoader;Ljava/lang/String;[BII)Ljava/lang/Class;",
+          "isSupported0:()Z", "isEnabled0:(Ljava/lang/reflect/Method;)Z",
+          "dispose0:(J)V",
+          "activate0:(Ljava/lang/String;[Lsun/tracing/dtrace/DTraceProvider;)J"
+        ]
+      }
+    }
+  },
+  "java": {
+    "awt": {
+      "AWTEvent.class": [
+        "nativeSetSource:(Ljava/awt/peer/ComponentPeer;)V", "initIDs:()V"
+      ],
+      "Button.class": [ "initIDs:()V" ],
+      "Checkbox.class": [ "initIDs:()V" ],
+      "CheckboxMenuItem.class": [ "initIDs:()V" ],
+      "Choice.class": [ "initIDs:()V" ],
+      "Color.class": [ "initIDs:()V" ],
+      "Component.class": [ "initIDs:()V" ],
+      "Container.class": [ "initIDs:()V" ],
+      "Cursor.class": [ "finalizeImpl:(J)V", "initIDs:()V" ],
+      "Dialog.class": [ "initIDs:()V" ],
+      "Dimension.class": [ "initIDs:()V" ],
+      "Event.class": [ "initIDs:()V" ],
+      "FileDialog.class": [ "initIDs:()V" ],
+      "Font.class": [ "initIDs:()V" ],
+      "FontMetrics.class": [ "initIDs:()V" ],
+      "Frame.class": [ "initIDs:()V" ],
+      "Insets.class": [ "initIDs:()V" ],
+      "KeyboardFocusManager.class": [ "initIDs:()V" ],
+      "Label.class": [ "initIDs:()V" ],
+      "Menu.class": [ "initIDs:()V" ],
+      "MenuBar.class": [ "initIDs:()V" ],
+      "MenuComponent.class": [ "initIDs:()V" ],
+      "MenuItem.class": [ "initIDs:()V" ],
+      "Rectangle.class": [ "initIDs:()V" ],
+      "ScrollPane.class": [ "initIDs:()V" ],
+      "ScrollPaneAdjustable.class": [ "initIDs:()V" ],
+      "Scrollbar.class": [ "initIDs:()V" ],
+      "SplashScreen.class": [
+        "_getScaleFactor:(J)F", "_setImageData:(J[B)Z",
+        "_getImageJarName:(J)Ljava/lang/String;",
+        "_getImageFileName:(J)Ljava/lang/String;", "_close:(J)V",
+        "_getInstance:()J", "_getBounds:(J)Ljava/awt/Rectangle;",
+        "_isVisible:(J)Z", "_update:(J[IIIIII)V"
+      ],
+      "TextArea.class": [ "initIDs:()V" ],
+      "TextField.class": [ "initIDs:()V" ],
+      "Toolkit.class": [ "initIDs:()V" ],
+      "TrayIcon.class": [ "initIDs:()V" ],
+      "Window.class": [ "initIDs:()V" ],
+      "event": {
+        "InputEvent.class": [ "initIDs:()V" ],
+        "KeyEvent.class": [ "initIDs:()V" ],
+        "MouseEvent.class": [ "initIDs:()V" ]
+      },
+      "image": {
+        "BufferedImage.class": [ "initIDs:()V" ],
+        "ColorModel.class": [ "initIDs:()V" ],
+        "ComponentSampleModel.class": [ "initIDs:()V" ],
+        "IndexColorModel.class": [ "initIDs:()V" ],
+        "Kernel.class": [ "initIDs:()V" ],
+        "Raster.class": [ "initIDs:()V" ],
+        "SampleModel.class": [ "initIDs:()V" ],
+        "SinglePixelPackedSampleModel.class": [ "initIDs:()V" ]
+      }
+    },
+    "io": {
+      "Console.class": [
+        "istty:()Z", "echo:(Z)Z", "encoding:()Ljava/lang/String;"
+      ],
+      "FileDescriptor.class": [ "initIDs:()V", "sync:()V" ],
+      "FileInputStream.class": [
+        "close0:()V", "initIDs:()V", "available:()I", "skip:(J)J",
+        "readBytes:([BII)I", "read0:()I", "open0:(Ljava/lang/String;)V"
+      ],
+      "FileOutputStream.class": [
+        "initIDs:()V", "close0:()V", "writeBytes:([BIIZ)V", "write:(IZ)V",
+        "open0:(Ljava/lang/String;Z)V"
+      ],
+      "ObjectInputStream.class": [
+        "bytesToDoubles:([BI[DII)V", "bytesToFloats:([BI[FII)V"
+      ],
+      "ObjectOutputStream.class": [
+        "doublesToBytes:([DI[BII)V", "floatsToBytes:([FI[BII)V"
+      ],
+      "ObjectStreamClass.class": [
+        "hasStaticInitializer:(Ljava/lang/Class;)Z", "initNative:()V"
+      ],
+      "RandomAccessFile.class": [
+        "close0:()V", "initIDs:()V", "setLength:(J)V", "length:()J",
+        "seek0:(J)V", "getFilePointer:()J", "writeBytes:([BII)V",
+        "write0:(I)V", "readBytes:([BII)I", "read0:()I",
+        "open0:(Ljava/lang/String;I)V"
+      ],
+      "UnixFileSystem.class": [
+        "initIDs:()V", "getSpace:(Ljava/io/File;I)J",
+        "setReadOnly:(Ljava/io/File;)Z",
+        "setLastModifiedTime:(Ljava/io/File;J)Z",
+        "rename0:(Ljava/io/File;Ljava/io/File;)Z",
+        "createDirectory:(Ljava/io/File;)Z",
+        "list:(Ljava/io/File;)[Ljava/lang/String;",
+        "delete0:(Ljava/io/File;)Z",
+        "createFileExclusively:(Ljava/lang/String;)Z",
+        "setPermission:(Ljava/io/File;IZZ)Z", "getLength:(Ljava/io/File;)J",
+        "getLastModifiedTime:(Ljava/io/File;)J",
+        "checkAccess:(Ljava/io/File;I)Z",
+        "getBooleanAttributes0:(Ljava/io/File;)I",
+        "canonicalize0:(Ljava/lang/String;)Ljava/lang/String;"
+      ]
+    },
+    "lang": {
+      "Class.class": [
+        "desiredAssertionStatus0:(Ljava/lang/Class;)Z",
+        "getDeclaredClasses0:()[Ljava/lang/Class;",
+        "getDeclaredConstructors0:(Z)[Ljava/lang/reflect/Constructor;",
+        "getDeclaredMethods0:(Z)[Ljava/lang/reflect/Method;",
+        "getDeclaredFields0:(Z)[Ljava/lang/reflect/Field;",
+        "getConstantPool:()Lsun/reflect/ConstantPool;",
+        "getRawTypeAnnotations:()[B", "getRawAnnotations:()[B",
+        "getGenericSignature0:()Ljava/lang/String;",
+        "getPrimitiveClass:(Ljava/lang/String;)Ljava/lang/Class;",
+        "getProtectionDomain0:()Ljava/security/ProtectionDomain;",
+        "getDeclaringClass0:()Ljava/lang/Class;",
+        "getEnclosingMethod0:()[Ljava/lang/Object;",
+        "setSigners:([Ljava/lang/Object;)V",
+        "getSigners:()[Ljava/lang/Object;", "getModifiers:()I",
+        "getComponentType:()Ljava/lang/Class;",
+        "getInterfaces0:()[Ljava/lang/Class;",
+        "getSuperclass:()Ljava/lang/Class;", "getName0:()Ljava/lang/String;",
+        "isPrimitive:()Z", "isArray:()Z", "isInterface:()Z",
+        "isAssignableFrom:(Ljava/lang/Class;)Z",
+        "isInstance:(Ljava/lang/Object;)Z",
+        "forName0:(Ljava/lang/String;ZLjava/lang/ClassLoader;Ljava/lang/Class;)Ljava/lang/Class;",
+        "registerNatives:()V"
+      ],
+      "ClassLoader$NativeLibrary.class": [
+        "unload:(Ljava/lang/String;Z)V", "find:(Ljava/lang/String;)J",
+        "load:(Ljava/lang/String;Z)V"
+      ],
+      "ClassLoader.class": [
+        "retrieveDirectives:()Ljava/lang/AssertionStatusDirectives;",
+        "findBuiltinLib:(Ljava/lang/String;)Ljava/lang/String;",
+        "findLoadedClass0:(Ljava/lang/String;)Ljava/lang/Class;",
+        "findBootstrapClass:(Ljava/lang/String;)Ljava/lang/Class;",
+        "resolveClass0:(Ljava/lang/Class;)V",
+        "defineClass2:(Ljava/lang/String;Ljava/nio/ByteBuffer;IILjava/security/ProtectionDomain;Ljava/lang/String;)Ljava/lang/Class;",
+        "defineClass1:(Ljava/lang/String;[BIILjava/security/ProtectionDomain;Ljava/lang/String;)Ljava/lang/Class;",
+        "defineClass0:(Ljava/lang/String;[BIILjava/security/ProtectionDomain;)Ljava/lang/Class;",
+        "registerNatives:()V"
+      ],
+      "Compiler.class": [
+        "disable:()V", "enable:()V",
+        "command:(Ljava/lang/Object;)Ljava/lang/Object;",
+        "compileClasses:(Ljava/lang/String;)Z",
+        "compileClass:(Ljava/lang/Class;)Z", "registerNatives:()V",
+        "initialize:()V"
+      ],
+      "Double.class": [ "longBitsToDouble:(J)D", "doubleToRawLongBits:(D)J" ],
+      "Float.class": [ "intBitsToFloat:(I)F", "floatToRawIntBits:(F)I" ],
+      "Object.class": [
+        "wait:(J)V", "notifyAll:()V", "notify:()V",
+        "clone:()Ljava/lang/Object;", "hashCode:()I",
+        "getClass:()Ljava/lang/Class;", "registerNatives:()V"
+      ],
+      "Package.class": [
+        "getSystemPackages0:()[Ljava/lang/String;",
+        "getSystemPackage0:(Ljava/lang/String;)Ljava/lang/String;"
+      ],
+      "ProcessEnvironment.class": [ "environ:()[[B" ],
+      "Runtime.class": [
+        "traceMethodCalls:(Z)V", "traceInstructions:(Z)V",
+        "runFinalization0:()V", "gc:()V", "maxMemory:()J", "totalMemory:()J",
+        "freeMemory:()J", "availableProcessors:()I"
+      ],
+      "SecurityManager.class": [
+        "currentLoadedClass0:()Ljava/lang/Class;", "classLoaderDepth0:()I",
+        "classDepth:(Ljava/lang/String;)I",
+        "currentClassLoader0:()Ljava/lang/ClassLoader;",
+        "getClassContext:()[Ljava/lang/Class;"
+      ],
+      "Shutdown.class": [ "runAllFinalizers:()V", "halt0:(I)V" ],
+      "StrictMath.class": [
+        "log1p:(D)D", "expm1:(D)D", "hypot:(DD)D", "tanh:(D)D", "cosh:(D)D",
+        "sinh:(D)D", "pow:(DD)D", "atan2:(DD)D", "IEEEremainder:(DD)D",
+        "cbrt:(D)D", "sqrt:(D)D", "log10:(D)D", "log:(D)D", "exp:(D)D",
+        "atan:(D)D", "acos:(D)D", "asin:(D)D", "tan:(D)D", "cos:(D)D",
+        "sin:(D)D"
+      ],
+      "String.class": [ "intern:()Ljava/lang/String;" ],
+      "System.class": [
+        "mapLibraryName:(Ljava/lang/String;)Ljava/lang/String;",
+        "initProperties:(Ljava/util/Properties;)Ljava/util/Properties;",
+        "identityHashCode:(Ljava/lang/Object;)I",
+        "arraycopy:(Ljava/lang/Object;ILjava/lang/Object;II)V",
+        "nanoTime:()J", "currentTimeMillis:()J",
+        "setErr0:(Ljava/io/PrintStream;)V",
+        "setOut0:(Ljava/io/PrintStream;)V",
+        "setIn0:(Ljava/io/InputStream;)V", "registerNatives:()V"
+      ],
+      "Thread.class": [
+        "setNativeName:(Ljava/lang/String;)V", "interrupt0:()V",
+        "resume0:()V", "suspend0:()V", "stop0:(Ljava/lang/Object;)V",
+        "setPriority0:(I)V", "getThreads:()[Ljava/lang/Thread;",
+        "dumpThreads:([Ljava/lang/Thread;)[[Ljava/lang/StackTraceElement;",
+        "holdsLock:(Ljava/lang/Object;)Z", "countStackFrames:()I",
+        "isAlive:()Z", "isInterrupted:(Z)Z", "start0:()V", "sleep:(J)V",
+        "yield:()V", "currentThread:()Ljava/lang/Thread;",
+        "registerNatives:()V"
+      ],
+      "Throwable.class": [
+        "getStackTraceElement:(I)Ljava/lang/StackTraceElement;",
+        "getStackTraceDepth:()I", "fillInStackTrace:(I)Ljava/lang/Throwable;"
+      ],
+      "UNIXProcess.class": [
+        "init:()V", "destroyProcess:(IZ)V",
+        "forkAndExec:(I[B[B[BI[BI[B[IZ)I", "waitForProcessExit:(I)I"
+      ],
+      "invoke": {
+        "MethodHandle.class": [
+          "linkToInterface:([Ljava/lang/Object;)Ljava/lang/Object;",
+          "linkToSpecial:([Ljava/lang/Object;)Ljava/lang/Object;",
+          "linkToStatic:([Ljava/lang/Object;)Ljava/lang/Object;",
+          "linkToVirtual:([Ljava/lang/Object;)Ljava/lang/Object;",
+          "invokeBasic:([Ljava/lang/Object;)Ljava/lang/Object;",
+          "invoke:([Ljava/lang/Object;)Ljava/lang/Object;",
+          "invokeExact:([Ljava/lang/Object;)Ljava/lang/Object;"
+        ],
+        "MethodHandleNatives.class": [
+          "getNamedCon:(I[Ljava/lang/Object;)I", "registerNatives:()V",
+          "setCallSiteTargetVolatile:(Ljava/lang/invoke/CallSite;Ljava/lang/invoke/MethodHandle;)V",
+          "setCallSiteTargetNormal:(Ljava/lang/invoke/CallSite;Ljava/lang/invoke/MethodHandle;)V",
+          "getConstant:(I)I",
+          "getMemberVMInfo:(Ljava/lang/invoke/MemberName;)Ljava/lang/Object;",
+          "staticFieldBase:(Ljava/lang/invoke/MemberName;)Ljava/lang/Object;",
+          "staticFieldOffset:(Ljava/lang/invoke/MemberName;)J",
+          "objectFieldOffset:(Ljava/lang/invoke/MemberName;)J",
+          "getMembers:(Ljava/lang/Class;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Class;I[Ljava/lang/invoke/MemberName;)I",
+          "resolve:(Ljava/lang/invoke/MemberName;Ljava/lang/Class;)Ljava/lang/invoke/MemberName;",
+          "expand:(Ljava/lang/invoke/MemberName;)V",
+          "init:(Ljava/lang/invoke/MemberName;Ljava/lang/Object;)V"
+        ]
+      },
+      "reflect": {
+        "Array.class": [
+          "multiNewArray:(Ljava/lang/Class;[I)Ljava/lang/Object;",
+          "newArray:(Ljava/lang/Class;I)Ljava/lang/Object;",
+          "setDouble:(Ljava/lang/Object;ID)V",
+          "setFloat:(Ljava/lang/Object;IF)V",
+          "setLong:(Ljava/lang/Object;IJ)V",
+          "setInt:(Ljava/lang/Object;II)V",
+          "setShort:(Ljava/lang/Object;IS)V",
+          "setChar:(Ljava/lang/Object;IC)V",
+          "setByte:(Ljava/lang/Object;IB)V",
+          "setBoolean:(Ljava/lang/Object;IZ)V",
+          "set:(Ljava/lang/Object;ILjava/lang/Object;)V",
+          "getDouble:(Ljava/lang/Object;I)D",
+          "getFloat:(Ljava/lang/Object;I)F",
+          "getLong:(Ljava/lang/Object;I)J", "getInt:(Ljava/lang/Object;I)I",
+          "getShort:(Ljava/lang/Object;I)S",
+          "getChar:(Ljava/lang/Object;I)C", "getByte:(Ljava/lang/Object;I)B",
+          "getBoolean:(Ljava/lang/Object;I)Z",
+          "get:(Ljava/lang/Object;I)Ljava/lang/Object;",
+          "getLength:(Ljava/lang/Object;)I"
+        ],
+        "Executable.class": [
+          "getTypeAnnotationBytes0:()[B",
+          "getParameters0:()[Ljava/lang/reflect/Parameter;"
+        ],
+        "Field.class": [ "getTypeAnnotationBytes0:()[B" ],
+        "Proxy.class": [
+          "defineClass0:(Ljava/lang/ClassLoader;Ljava/lang/String;[BII)Ljava/lang/Class;"
+        ]
+      }
+    },
+    "net": {
+      "DatagramPacket.class": [ "init:()V" ],
+      "Inet4Address.class": [ "init:()V" ],
+      "Inet4AddressImpl.class": [
+        "isReachable0:([BI[BI)Z", "getHostByAddr:([B)Ljava/lang/String;",
+        "lookupAllHostAddr:(Ljava/lang/String;)[Ljava/net/InetAddress;",
+        "getLocalHostName:()Ljava/lang/String;"
+      ],
+      "Inet6Address.class": [ "init:()V" ],
+      "Inet6AddressImpl.class": [
+        "isReachable0:([BII[BII)Z", "getHostByAddr:([B)Ljava/lang/String;",
+        "lookupAllHostAddr:(Ljava/lang/String;)[Ljava/net/InetAddress;",
+        "getLocalHostName:()Ljava/lang/String;"
+      ],
+      "InetAddress.class": [ "init:()V" ],
+      "InetAddressImplFactory.class": [ "isIPv6Supported:()Z" ],
+      "NetworkInterface.class": [
+        "init:()V", "getMTU0:(Ljava/lang/String;I)I",
+        "getMacAddr0:([BLjava/lang/String;I)[B",
+        "isP2P0:(Ljava/lang/String;I)Z",
+        "supportsMulticast0:(Ljava/lang/String;I)Z",
+        "isLoopback0:(Ljava/lang/String;I)Z", "isUp0:(Ljava/lang/String;I)Z",
+        "getByInetAddress0:(Ljava/net/InetAddress;)Ljava/net/NetworkInterface;",
+        "getByIndex0:(I)Ljava/net/NetworkInterface;",
+        "getByName0:(Ljava/lang/String;)Ljava/net/NetworkInterface;",
+        "getAll:()[Ljava/net/NetworkInterface;"
+      ],
+      "PlainDatagramSocketImpl.class": [
+        "init:()V", "dataAvailable:()I", "disconnect0:(I)V",
+        "connect0:(Ljava/net/InetAddress;I)V",
+        "socketGetOption:(I)Ljava/lang/Object;",
+        "socketSetOption0:(ILjava/lang/Object;)V", "datagramSocketClose:()V",
+        "datagramSocketCreate:()V",
+        "leave:(Ljava/net/InetAddress;Ljava/net/NetworkInterface;)V",
+        "join:(Ljava/net/InetAddress;Ljava/net/NetworkInterface;)V",
+        "getTTL:()B", "setTTL:(B)V", "getTimeToLive:()I",
+        "setTimeToLive:(I)V", "receive0:(Ljava/net/DatagramPacket;)V",
+        "peekData:(Ljava/net/DatagramPacket;)I",
+        "peek:(Ljava/net/InetAddress;)I",
+        "send:(Ljava/net/DatagramPacket;)V",
+        "bind0:(ILjava/net/InetAddress;)V"
+      ],
+      "PlainSocketImpl.class": [
+        "socketSendUrgentData:(I)V",
+        "socketGetOption:(ILjava/lang/Object;)I",
+        "socketSetOption0:(IZLjava/lang/Object;)V", "initProto:()V",
+        "socketShutdown:(I)V", "socketClose0:(Z)V", "socketAvailable:()I",
+        "socketAccept:(Ljava/net/SocketImpl;)V", "socketListen:(I)V",
+        "socketBind:(Ljava/net/InetAddress;I)V",
+        "socketConnect:(Ljava/net/InetAddress;II)V", "socketCreate:(Z)V"
+      ],
+      "SocketInputStream.class": [
+        "init:()V", "socketRead0:(Ljava/io/FileDescriptor;[BIII)I"
+      ],
+      "SocketOutputStream.class": [
+        "init:()V", "socketWrite0:(Ljava/io/FileDescriptor;[BII)V"
+      ]
+    },
+    "nio": {
+      "Bits.class": [
+        "copyToLongArray:(JLjava/lang/Object;JJ)V",
+        "copyFromLongArray:(Ljava/lang/Object;JJJ)V",
+        "copyToIntArray:(JLjava/lang/Object;JJ)V",
+        "copyFromIntArray:(Ljava/lang/Object;JJJ)V",
+        "copyToShortArray:(JLjava/lang/Object;JJ)V",
+        "copyFromShortArray:(Ljava/lang/Object;JJJ)V"
+      ],
+      "MappedByteBuffer.class": [
+        "force0:(Ljava/io/FileDescriptor;JJ)V", "load0:(JJ)V",
+        "isLoaded0:(JJI)Z"
+      ]
+    },
+    "security": {
+      "AccessController.class": [
+        "getInheritedAccessControlContext:()Ljava/security/AccessControlContext;",
+        "getStackAccessControlContext:()Ljava/security/AccessControlContext;",
+        "doPrivileged:(Ljava/security/PrivilegedExceptionAction;Ljava/security/AccessControlContext;)Ljava/lang/Object;",
+        "doPrivileged:(Ljava/security/PrivilegedExceptionAction;)Ljava/lang/Object;",
+        "doPrivileged:(Ljava/security/PrivilegedAction;Ljava/security/AccessControlContext;)Ljava/lang/Object;",
+        "doPrivileged:(Ljava/security/PrivilegedAction;)Ljava/lang/Object;"
+      ]
+    },
+    "util": {
+      "TimeZone.class": [
+        "getSystemGMTOffsetID:()Ljava/lang/String;",
+        "getSystemTimeZoneID:(Ljava/lang/String;)Ljava/lang/String;"
+      ],
+      "concurrent": {
+        "atomic": { "AtomicLong.class": [ "VMSupportsCS8:()Z" ] }
+      },
+      "jar": {
+        "JarFile.class": [ "getMetaInfEntryNames:()[Ljava/lang/String;" ]
+      },
+      "logging": { "FileHandler.class": [ "isSetUID:()Z" ] },
+      "prefs": {
+        "FileSystemPreferences.class": [
+          "chmod:(Ljava/lang/String;I)I", "unlockFile0:(I)I",
+          "lockFile0:(Ljava/lang/String;IZ)[I"
+        ]
+      },
+      "zip": {
+        "Adler32.class": [
+          "updateByteBuffer:(IJII)I", "updateBytes:(I[BII)I", "update:(II)I"
+        ],
+        "CRC32.class": [
+          "updateByteBuffer:(IJII)I", "updateBytes:(I[BII)I", "update:(II)I"
+        ],
+        "Deflater.class": [
+          "end:(J)V", "reset:(J)V", "getAdler:(J)I",
+          "deflateBytes:(J[BIII)I", "setDictionary:(J[BII)V", "init:(IIZ)J",
+          "initIDs:()V"
+        ],
+        "Inflater.class": [
+          "end:(J)V", "reset:(J)V", "getAdler:(J)I", "inflateBytes:(J[BII)I",
+          "setDictionary:(J[BII)V", "init:(Z)J", "initIDs:()V"
+        ],
+        "ZipFile.class": [
+          "getZipMessage:(J)Ljava/lang/String;", "getEntryBytes:(JI)[B",
+          "getCommentBytes:(J)[B", "getEntryFlag:(J)I",
+          "getEntryMethod:(J)I", "getEntrySize:(J)J", "getEntryCSize:(J)J",
+          "getEntryCrc:(J)J", "getEntryTime:(J)J", "read:(JJJ[BII)I",
+          "startsWithLOC:(J)Z", "getTotal:(J)I",
+          "open:(Ljava/lang/String;IJZ)J", "close:(J)V",
+          "getNextEntry:(JI)J", "freeEntry:(JJ)V", "getEntry:(J[BZ)J",
+          "initIDs:()V"
+        ]
+      }
+    }
+  },
+  "com": {
+    "sun": {
+      "demo": {
+        "jvmti": {
+          "hprof": {
+            "Tracker.class": [
+              "nativeReturnSite:(Ljava/lang/Object;II)V",
+              "nativeCallSite:(Ljava/lang/Object;II)V",
+              "nativeNewArray:(Ljava/lang/Object;Ljava/lang/Object;)V",
+              "nativeObjectInit:(Ljava/lang/Object;Ljava/lang/Object;)V"
+            ]
+          }
+        }
+      },
+      "imageio": {
+        "plugins": {
+          "jpeg": {
+            "JPEGImageReader.class": [
+              "disposeReader:(J)V", "resetReader:(J)V",
+              "resetLibraryState:(J)V", "abortRead:(J)V",
+              "readImage:(J[BI[I[IIIIIII[Ljavax/imageio/plugins/jpeg/JPEGQTable;[Ljavax/imageio/plugins/jpeg/JPEGHuffmanTable;[Ljavax/imageio/plugins/jpeg/JPEGHuffmanTable;IIZ)Z",
+              "setOutColorSpace:(JI)V", "readImageHeader:(JZZ)Z",
+              "setSource:(J)V", "initJPEGImageReader:()J",
+              "initReaderIDs:(Ljava/lang/Class;Ljava/lang/Class;Ljava/lang/Class;)V"
+            ],
+            "JPEGImageWriter.class": [
+              "disposeWriter:(J)V", "resetWriter:(J)V", "abortWrite:(J)V",
+              "writeTables:(J[Ljavax/imageio/plugins/jpeg/JPEGQTable;[Ljavax/imageio/plugins/jpeg/JPEGHuffmanTable;[Ljavax/imageio/plugins/jpeg/JPEGHuffmanTable;)V",
+              "writeImage:(J[BIII[IIIIII[Ljavax/imageio/plugins/jpeg/JPEGQTable;Z[Ljavax/imageio/plugins/jpeg/JPEGHuffmanTable;[Ljavax/imageio/plugins/jpeg/JPEGHuffmanTable;ZZZI[I[I[I[I[IZI)Z",
+              "setDest:(J)V", "initJPEGImageWriter:()J",
+              "initWriterIDs:(Ljava/lang/Class;Ljava/lang/Class;)V"
+            ]
+          }
+        }
+      },
+      "java": {
+        "swing": {
+          "plaf": {
+            "gtk": {
+              "GTKEngine.class": [
+                "native_switch_theme:()V", "nativeFinishPainting:([III)I",
+                "nativeStartPainting:(II)V", "nativeSetRangeValue:(IDDDD)V",
+                "native_get_gtk_setting:(I)Ljava/lang/Object;",
+                "native_paint_background:(IIIIII)V",
+                "native_paint_vline:(IILjava/lang/String;IIII)V",
+                "native_paint_slider:(IIILjava/lang/String;IIIII)V",
+                "native_paint_shadow:(IIILjava/lang/String;IIIIII)V",
+                "native_paint_option:(IILjava/lang/String;IIII)V",
+                "native_paint_hline:(IILjava/lang/String;IIII)V",
+                "native_paint_handle:(IIILjava/lang/String;IIIII)V",
+                "native_paint_focus:(IILjava/lang/String;IIII)V",
+                "native_paint_flat_box:(IIILjava/lang/String;IIIIZ)V",
+                "native_paint_extension:(IIILjava/lang/String;IIIII)V",
+                "native_paint_expander:(IILjava/lang/String;IIIII)V",
+                "native_paint_check:(IILjava/lang/String;IIII)V",
+                "native_paint_box_gap:(IIILjava/lang/String;IIIIIII)V",
+                "native_paint_box:(IIILjava/lang/String;IIIIII)V",
+                "native_paint_arrow:(IIILjava/lang/String;IIIII)V"
+              ],
+              "GTKStyle.class": [
+                "nativeGetPangoFontName:(I)Ljava/lang/String;",
+                "nativeGetClassValue:(ILjava/lang/String;)Ljava/lang/Object;",
+                "nativeGetColorForState:(III)I", "nativeGetYThickness:(I)I",
+                "nativeGetXThickness:(I)I"
+              ]
+            }
+          }
+        },
+        "util": {
+          "jar": {
+            "pack": {
+              "NativeUnpack.class": [
+                "getOption:(Ljava/lang/String;)Ljava/lang/String;",
+                "setOption:(Ljava/lang/String;Ljava/lang/String;)Z",
+                "finish:()J", "getUnusedInput:()Ljava/nio/ByteBuffer;",
+                "getNextFile:([Ljava/lang/Object;)Z",
+                "start:(Ljava/nio/ByteBuffer;J)J", "initIDs:()V"
+              ]
+            }
+          }
+        }
+      },
+      "media": {
+        "sound": {
+          "DirectAudioDevice.class": [
+            "nService:(JZ)V", "nRequiresServicing:(JZ)Z",
+            "nSetBytePosition:(JZJ)V", "nGetBytePosition:(JZJ)J",
+            "nAvailable:(JZ)I", "nFlush:(JZ)V", "nIsStillDraining:(JZ)Z",
+            "nGetBufferSize:(JZ)I", "nRead:(J[BIII)I", "nWrite:(J[BIIIFF)I",
+            "nClose:(JZ)V", "nStop:(JZ)V", "nStart:(JZ)V",
+            "nOpen:(IIZIFIIIZZI)J", "nGetFormats:(IIZLjava/util/Vector;)V"
+          ],
+          "DirectAudioDeviceProvider.class": [
+            "nNewDirectAudioDeviceInfo:(I)Lcom/sun/media/sound/DirectAudioDeviceProvider$DirectAudioDeviceInfo;",
+            "nGetNumDevices:()I"
+          ],
+          "MidiInDevice.class": [
+            "nGetMessages:(J)V", "nGetTimeStamp:(J)J", "nStop:(J)V",
+            "nStart:(J)V", "nClose:(J)V", "nOpen:(I)J"
+          ],
+          "MidiInDeviceProvider.class": [
+            "nGetVersion:(I)Ljava/lang/String;",
+            "nGetDescription:(I)Ljava/lang/String;",
+            "nGetVendor:(I)Ljava/lang/String;",
+            "nGetName:(I)Ljava/lang/String;", "nGetNumDevices:()I"
+          ],
+          "MidiOutDevice.class": [
+            "nGetTimeStamp:(J)J", "nSendLongMessage:(J[BIJ)V",
+            "nSendShortMessage:(JIJ)V", "nClose:(J)V", "nOpen:(I)J"
+          ],
+          "MidiOutDeviceProvider.class": [
+            "nGetVersion:(I)Ljava/lang/String;",
+            "nGetDescription:(I)Ljava/lang/String;",
+            "nGetVendor:(I)Ljava/lang/String;",
+            "nGetName:(I)Ljava/lang/String;", "nGetNumDevices:()I"
+          ],
+          "Platform.class": [
+            "nGetLibraryForFeature:(I)I",
+            "nGetExtraLibraries:()Ljava/lang/String;", "nIsSigned8:()Z",
+            "nIsBigEndian:()Z"
+          ],
+          "PortMixer.class": [
+            "nControlGetFloatValue:(J)F", "nControlSetFloatValue:(JF)V",
+            "nControlGetIntValue:(J)I", "nControlSetIntValue:(JI)V",
+            "nGetControls:(JILjava/util/Vector;)V",
+            "nGetPortName:(JI)Ljava/lang/String;", "nGetPortType:(JI)I",
+            "nGetPortCount:(J)I", "nClose:(J)V", "nOpen:(I)J"
+          ],
+          "PortMixerProvider.class": [
+            "nNewPortMixerInfo:(I)Lcom/sun/media/sound/PortMixerProvider$PortMixerInfo;",
+            "nGetNumDevices:()I"
+          ]
+        }
+      },
+      "security": {
+        "auth": { "module": { "UnixSystem.class": [ "getUnixInfo:()V" ] } }
+      }
+    }
+  },
+  "jdk": {
+    "internal": {
+      "cmm": {
+        "SystemResourcePressureImpl.class": [
+          "getVmMemoryPressure:()I", "setVmMemoryPressure:(I)I"
+        ]
+      },
+      "instrumentation": {
+        "Tracer.class": [
+          "init:()V", "retransformClasses0:([Ljava/lang/Class;)V"
+        ]
+      }
+    },
+    "management": {
+      "resource": {
+        "internal": {
+          "ResourceNatives.class": [
+            "computeRetainedMemory0:([IB)V",
+            "setRetainedMemoryNotificationEnabled0:(Ljava/lang/Object;)V",
+            "getContextsRetainedMemory0:([I[J[B)Z",
+            "getThreadResourceContext0:(J)I",
+            "setThreadResourceContext0:(JI)I",
+            "destroyResourceContext0:(II)V",
+            "createResourceContext0:(Ljava/lang/String;)I",
+            "getCurrentThreadAllocatedHeap0:()J",
+            "getCurrentThreadCPUTime0:()J", "getThreadStats0:([J[J[J)V",
+            "sampleInterval0:()I", "featuresEnabled0:()I"
+          ]
+        }
+      }
+    }
+  }
+}
