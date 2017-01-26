@@ -1,6 +1,11 @@
 open Core.Std
 open Yojson
 
+(* Find native methods of a jar file.
+   By default, the runtime "rt.jar" will be used.
+   Alternative jar file can be passed as Sys.argv[1].
+*)
+
 let find entry file =
   let filename = entry.Zip.filename in
   if (not entry.Zip.is_directory) &&
@@ -18,7 +23,7 @@ let find entry file =
           let descriptor_index = mth.Bytecode.Method.descriptor_index in
           let name = Poolbc.get_utf8 pool name_index in
           let descriptor = Poolbc.get_utf8 pool descriptor_index in
-          Some (sprintf "%s:%s" name descriptor)
+          Some (name, descriptor)
         else
           None
       ) in
@@ -30,7 +35,7 @@ module Tree = struct
   module T = struct
     type t =
       | Dir of string
-      | File of string * (string list)
+      | File of string * ((string * string) list)
     [@@deriving sexp]
 
     let compare a b =
@@ -51,6 +56,7 @@ let () =
   let file = Zip.open_in jar in
   let entries = Zip.entries file in
   let natives = List.map entries ~f:(fun entry -> find entry file) in
+  Zip.close_in file;
   let map = Hashtbl.create ~hashable:String.hashable () in
   let rec parent_dirs filename =
     let dirname = FilePath.dirname filename in
@@ -81,9 +87,10 @@ let () =
     let fjson = List.map (Set.to_list files) ~f:(fun file ->
         match file with
         | Tree.Dir d -> to_json (FilePath.concat dir d)
-        | Tree.File (name, natives) -> name, `List (List.map natives ~f:(fun m -> `String m))
+        | Tree.File (name, natives) ->
+          name, `Assoc (List.map natives ~f:(fun (m,descriptor) -> m, `String descriptor))
       )
     in FilePath.basename dir, `Assoc fjson
   in
   let json = `Assoc (List.map dirs ~f:to_json) in
-  printf "%s\n" (Yojson.Basic.pretty_to_string json);
+  printf "%s\n" (Yojson.pretty_to_string (Yojson.sort json));
