@@ -9,7 +9,7 @@ type jclass =
     methods : jmethod list;
     conspool : conspool array;
     attributes : Attribute.AttrClass.t list;
-    loader : string;
+    loader_name : string;
   }
 and jfield =
   { field_name          : string;
@@ -40,31 +40,6 @@ and conspool =
   | InvokeDynamic of string
   | Byte8Placeholder
 
+type jarry = { name : string;}
+
 type t = jclass
-
-
-let package name =
-  let dot = String.rfindi name ~f:(fun _ c -> c = '.') in
-  match dot with
-  | Some i -> String.sub name ~pos:0 ~len:i
-  | _ -> "."
-
-  (* let rec resolute_class loader_name target_name =
-    let jclass = match target_name with
-      | '['::tail -> resolute_class loader_name tail
-      | 'L'::tail -> load_class loader (String.of_char_list tail)
-      | cls -> load_class loader (String.of_char_list cls)
-    in
-    if not (List.exists jclass.access_flags ~f:(fun flag -> flag = Accflag.Public))
-    then
-      raise (Class_format_error "")
-    else
-      jclass
-
-  let resolute_conspool pool target =
-    Array.iteri pool ~f:(fun i ele ->
-        let entry = match ele with
-          | Poolbc.Class index -> let name = Poolbc.get_class pool index in
-            Class (load_class loader name)
-        in target.(i) <- entry
-      ) *)

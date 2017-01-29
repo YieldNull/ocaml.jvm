@@ -5,7 +5,7 @@ open BatIO.BigEndian
 
 let assert_equal len real_len =
   if len <> real_len then raise
-      (Class_format_error (sprintf "Invalid attribute length. Expected:%d Real:%d" len real_len))
+      (ClassFormatError (sprintf "Invalid attribute length. Expected:%d Real:%d" len real_len))
 
 let assoc_fold assoc =
   let entries = List.map assoc ~f:(fun (entry, _) -> entry) in
@@ -207,7 +207,7 @@ module Annotation = struct
                    ~f:(fun _ -> parse_element_value input) in
         let values, len = assoc_fold assoc in
         ArrayValue values, len + 2
-      | _ -> raise (Class_format_error "Invalid element value tag") in
+      | _ -> raise (ClassFormatError "Invalid element value tag") in
     value, len + 1
 end
 
@@ -278,7 +278,7 @@ module TypeAnnotation = struct
                                            { offset = read_ui16 input;
                                              type_argument_index = read_byte input;
                                            }, 3
-      | _ -> raise (Class_format_error "Invalid target type") in
+      | _ -> raise (ClassFormatError "Invalid target type") in
     let path_len = read_byte input in
     let target_path = List.init path_len ~f:(fun _ ->
         { type_path_kind = read_byte input;
@@ -452,7 +452,7 @@ module StackMapTable = struct
       | 6 -> UninitializedThis, 1
       | 7 -> Object (read_ui16 input), 1 + 2
       | 8 -> Uninitialized (read_ui16 input), 1 + 2
-      | _ -> raise (Class_format_error "Invalid verification_type")
+      | _ -> raise (ClassFormatError "Invalid verification_type")
     in
     let parse_vtype_list input count =
       let assoc = Array.init count ~f:(fun _ -> parse_vtype input) in
@@ -485,7 +485,7 @@ module StackMapTable = struct
         let stacks_count = read_ui16 input in
         let stacks, stacks_len = parse_vtype_list input stacks_count in
         FullFrame { offset_delta; locals; stacks}, 3 + 2 + local_len + 2 + stacks_len
-      | _ -> raise (Class_format_error "Invalid frame type")
+      | _ -> raise (ClassFormatError "Invalid frame type")
     in
     let count = read_ui16 input in
     let assoc = List.init count ~f:(fun _ -> parse_frame input) in
@@ -550,7 +550,7 @@ module Code = struct
     let code_len = read_i32 input in
     if code_len <= 0 || code_len >= 65536
     then
-      raise (Class_format_error "Invalid Code length")
+      raise (ClassFormatError "Invalid Code length")
     else
       let code = List.init code_len ~f:(fun _ -> read_byte input) in
       let exn_len = read_ui16 input in

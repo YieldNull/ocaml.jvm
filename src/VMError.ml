@@ -1,3 +1,8 @@
-exception Class_format_error of string
+exception ClassFormatError of string
 exception IllegalAccessError
-exception Class_not_found
+exception ClassNotFoundException
+exception LinkageError
+exception UnsupportedClassVersionError
+exception NoClassdefFoundError
+exception IncompatibleClassChangeError
+exception ClassCircularityError

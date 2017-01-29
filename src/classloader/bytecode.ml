@@ -53,12 +53,12 @@ type t =
 let parse input =
   let check_magic input =
     if not (read_ui16 input = 0xCAFE && read_ui16 input = 0xBABE) then
-      raise (Class_format_error "Invalid magic")
+      raise (ClassFormatError "Invalid magic")
   in
   let check_end input =
     try
       let _ = read input in
-      raise (Class_format_error "Invalid file ending")
+      raise (ClassFormatError "Invalid file ending")
     with
     | No_more_input -> ()
   in
@@ -112,7 +112,7 @@ let load binary_name =
     | [] -> None
   in match find Config.classpath with
   | Some code -> code
-  | None -> raise Class_not_found
+  | None -> raise ClassNotFoundException
 
 let load_from_stream input =
   parse input

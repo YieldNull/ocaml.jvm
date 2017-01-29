@@ -37,7 +37,7 @@ let parse input = function
   | 15 -> MethodHandle (read_byte input, read_ui16 input)
   | 16 -> MethodType (read_ui16 input)
   | 18 -> InvokeDynamic (read_ui16 input, read_ui16 input)
-  | i  -> raise (Class_format_error ("Invalid Constant Pool Flag " ^ string_of_int i))
+  | i  -> raise (ClassFormatError ("Invalid Constant Pool Flag " ^ string_of_int i))
 
 let create input =
   let size = read_ui16 input in
@@ -57,7 +57,7 @@ let create input =
     )
 
 let raise_index_error index =
-  raise (Class_format_error (sprintf "Invalid constant pool index %d" index))
+  raise (ClassFormatError (sprintf "Invalid constant pool index %d" index))
 
 let get pool index =
   let i = index - 1 in
