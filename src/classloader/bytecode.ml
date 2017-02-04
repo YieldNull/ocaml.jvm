@@ -110,7 +110,7 @@ let load binary_name =
         | _ -> find tail
       in if Option.is_none bytecode then find tail else bytecode
     | [] -> None
-  in match find Config.classpath with
+  in match find @@ Config.get_classpath () with
   | Some code -> code
   | None -> raise ClassNotFoundException
 

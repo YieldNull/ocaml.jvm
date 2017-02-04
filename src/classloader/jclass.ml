@@ -40,6 +40,4 @@ and conspool =
   | InvokeDynamic of string
   | Byte8Placeholder
 
-type jarry = { name : string;}
-
 type t = jclass
