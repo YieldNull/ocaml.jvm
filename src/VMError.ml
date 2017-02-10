@@ -6,3 +6,5 @@ exception UnsupportedClassVersionError
 exception NoClassdefFoundError
 exception IncompatibleClassChangeError
 exception ClassCircularityError
+exception NoSuchFieldError
+exception NoSuchMethodError

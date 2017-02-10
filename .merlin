@@ -1,4 +1,4 @@
 B +threads
 B _build/**
-PKG core batteries zip yojson fileutils ppx_sexp_conv
+PKG core batteries zip yojson fileutils ppx_sexp_conv ppx_compare
 src/** tool/**
