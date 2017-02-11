@@ -30,13 +30,13 @@ let parse input = function
   | 6  -> Double (read_double input)
   | 7  -> Class (read_ui16 input)
   | 8  -> String (read_ui16 input)
-  | 9  -> Fieldref (read_ui16 input, read_ui16 input)
-  | 10 -> Methodref (read_ui16 input, read_ui16 input)
-  | 11 -> InterfaceMethodref (read_ui16 input, read_ui16 input)
-  | 12 -> NameAndType (read_ui16 input, read_ui16 input)
-  | 15 -> MethodHandle (read_byte input, read_ui16 input)
+  | 9  -> let ci = read_ui16 input in let nti = read_ui16 input in Fieldref (ci, nti)
+  | 10 -> let ci = read_ui16 input in let nti = read_ui16 input in Methodref (ci, nti)
+  | 11 -> let ci = read_ui16 input in let nti = read_ui16 input in InterfaceMethodref (ci, nti)
+  | 12 -> let ni = read_ui16 input in let ti = read_ui16 input in NameAndType (ni, ti)
+  | 15 -> let kind = read_byte input in let index = read_ui16 input in MethodHandle (kind, index)
   | 16 -> MethodType (read_ui16 input)
-  | 18 -> InvokeDynamic (read_ui16 input, read_ui16 input)
+  | 18 -> let bi = read_ui16 input in let nti = read_ui16 input in InvokeDynamic (bi, nti)
   | i  -> raise (ClassFormatError ("Invalid Constant Pool Flag " ^ string_of_int i))
 
 let create input =
@@ -71,26 +71,6 @@ let get_utf8 pool index =
   | Utf8 str -> str
   | _ -> raise_index_error index
 
-let get_integer pool index =
-  match get pool index with
-  | Integer i -> i
-  | _ -> raise_index_error index
-
-let get_float pool index =
-  match get pool index with
-  | Float f -> f
-  | _ -> raise_index_error index
-
-let get_long pool index =
-  match get pool index with
-  | Long l -> l
-  | _ -> raise_index_error index
-
-let get_double pool index =
-  match get pool index with
-  | Double d -> d
-  | _ -> raise_index_error index
-
 let get_class pool index =
   match get pool index with
   | Class index -> get_utf8 pool index
@@ -103,16 +83,13 @@ let get_string pool index =
 
 let get_name_and_type pool index =
   match get pool index with
-  | NameAndType (name_index, descriptor_index) -> name_index, descriptor_index
+  | NameAndType (ni, di) -> get_utf8 pool ni, get_utf8 pool di
   | _ -> raise_index_error index
 
-let get_memberref pool index =
-  match get pool index with
-  | Fieldref (class_index, name_and_type_index)
-  | Methodref (class_index, name_and_type_index)
-  | InterfaceMethodref (class_index, name_and_type_index) ->
-    class_index, name_and_type_index
-  | _ -> raise_index_error index
+let get_memberref pool ci nti =
+  let class_name = get_class pool ci in
+  let name, descriptor = get_name_and_type pool nti in
+  class_name, name, descriptor
 
 let get_method_handle pool index =
   match get pool index with

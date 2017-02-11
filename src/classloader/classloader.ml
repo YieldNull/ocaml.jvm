@@ -5,6 +5,11 @@ let major_version = 52
 
 let java_lang_object = "java/lang/Object"
 
+let rec component = function
+  | '['::tail -> component tail
+  | 'L'::tail -> String.of_char_list @@ List.slice tail 0 (List.length tail - 1)
+  | chrs -> String.of_char_list chrs
+
 module MemID = struct
   module T = struct
     type t = { name: string; descriptor : string; } [@@deriving sexp, compare]
@@ -13,6 +18,9 @@ module MemID = struct
   end
   include T
   include Hashable.Make(T)
+
+  let to_string t =
+    sprintf "%s:%s" t.name t.descriptor
 end
 
 module rec Jclass : sig
@@ -23,32 +31,19 @@ module rec Jclass : sig
       interfaces   : t list;
       fields : (MemID.t, Jfield.t) Hashtbl.t;
       methods : (MemID.t, Jmethod.t) Hashtbl.t;
-      conspool : conspool array;
+      conspool : Poolrt.t;
       attributes : Attribute.AttrClass.t list;
       loader  : Loader.t;
     }
-  and conspool =
-    | Utf8 of string
-    | Integer of int32
-    | Float of float
-    | Long of int64
-    | Double of float
-    | Class of t
-    | String of string
-    | Fieldref of Jfield.t
-    | Methodref of Jmethod.t
-    | InterfaceMethodref of string
-    | NameAndType of int * int
-    | MethodHandle of string
-    | MethodType of string
-    | InvokeDynamic of string
-    | Byte8Placeholder
 
+  val real_acc : t -> Accflag.t list
   val package_of_name : string -> string
-  val package_equal : t -> t -> bool
+  val package_of_class : t -> string
+  val package_rt_equal : t -> t -> bool
   val is_subclass : sub:t -> super:t -> bool
   val is_interface : t -> bool
   val contains_field : t -> MemID.t -> bool
+  val contains_method : t -> MemID.t -> bool
   val find_field : t -> MemID.t -> Jfield.t option
   val find_method_of_class : t -> MemID.t -> Jmethod.t option
   val find_method_of_interface : t -> MemID.t -> Jmethod.t option
@@ -60,39 +55,39 @@ end = struct
       interfaces   : t list;
       fields : (MemID.t, Jfield.t) Hashtbl.t;
       methods : (MemID.t, Jmethod.t) Hashtbl.t;
-      conspool : conspool array;
+      conspool : Poolrt.t;
       attributes : Attribute.AttrClass.t list;
       loader  : Loader.t;
     }
-  and conspool =
-    | Utf8 of string
-    | Integer of int32
-    | Float of float
-    | Long of int64
-    | Double of float
-    | Class of t
-    | String of string
-    | Fieldref of Jfield.t
-    | Methodref of Jmethod.t
-    | InterfaceMethodref of string
-    | NameAndType of int * int
-    | MethodHandle of string
-    | MethodType of string
-    | InvokeDynamic of string
-    | Byte8Placeholder
+
+  let real_acc jclass =
+    let rec aux = function
+      | [] -> []
+      | hd :: tail -> match hd with
+        | Accflag.Public -> [Accflag.Public]
+        | Accflag.Protected -> [Accflag.Protected]
+        | Accflag.Private -> [Accflag.Private]
+        | _ -> aux tail
+    in aux jclass.access_flags
 
   let package_of_name name =
-    let slash = String.rfindi name ~f:(fun _ c -> c = '/') in
+    let cls = component (String.to_list name) in
+    let slash = String.rfindi cls ~f:(fun _ c -> c = '/') in
     match slash with
-    | Some i -> String.sub name ~pos:0 ~len:i
+    | Some i -> String.sub cls ~pos:0 ~len:i
     | _ -> "."
 
-  let package_equal class1 class2 =
+  let package_of_class jclass = package_of_name jclass.name
+
+  let package_rt_equal class1 class2 =
     Loader.equal class1.loader class2.loader &&
     package_of_name class1.name = package_of_name class2.name
 
   let contains_field jclass memid =
     Option.is_some @@ Hashtbl.find jclass.fields memid
+
+  let contains_method jclass memid =
+    Option.is_some @@ Hashtbl.find jclass.methods memid
 
   let rec is_subclass ~sub ~super =
     sub.name = super.name ||
@@ -126,26 +121,19 @@ end = struct
         | None -> None
 
   let find_method_in_interfaces jclass memid =
-    (* maximally-specific superinterface method *)
-    let find_mssm jclass memid =
-      let rec find_single cls =
-        match Hashtbl.find cls.methods memid with
-        | Some jmethod -> if List.exists jmethod.Jmethod.access_flags
-            ~f:(fun acc -> acc = Accflag.Private || acc = Accflag.Static)
-          then None else Some jmethod
-        | None -> match cls.super_class with
-          | Some super -> find_single super
-          | None -> None
-      in
-      List.filter_map jclass.interfaces ~f:find_single
+    let check_acc jmethod =
+      if List.exists jmethod.Jmethod.access_flags
+          ~f:(fun acc -> acc = Accflag.Private || acc = Accflag.Static )
+      then false else true
     in
-    let mssms = find_mssm jclass memid in
-    let mssm = List.find_map mssms ~f:(fun jmethod ->
-        if List.exists jmethod.Jmethod.access_flags ~f:((=) Accflag.Abstract) then None
-        else Some jmethod
-      ) in match mssm with
-    | Some m -> Some m
-    | None -> List.hd mssms
+    let rec aux = function
+      | [] -> None
+      | hd :: tail -> match Hashtbl.find hd.Jclass.methods memid with
+        | Some jmethod when check_acc jmethod -> Some jmethod
+        | _ -> match aux hd.Jclass.interfaces with
+          | Some jmethod when check_acc jmethod -> Some jmethod
+          | _ -> aux tail
+    in aux jclass.Jclass.interfaces
 
   let rec find_method_of_class jclass memid =
     let find_in_superclass jclass memid =
@@ -231,6 +219,45 @@ end = struct
   let add_class_exn loader jclass =
     Hashtbl.add_exn loader.classes ~key:jclass.Jclass.name ~data:jclass
 end
+and Poolrt : sig
+  type entry =
+    | Utf8 of string
+    | Integer of int32
+    | Float of float
+    | Long of int64
+    | Double of float
+    | Class of Jclass.t
+    | String of string
+    | Fieldref of Jfield.t
+    | Methodref of Jmethod.t
+    | InterfaceMethodref of Jmethod.t
+    | NameAndType of int * int
+    | MethodHandle of string
+    | MethodType of string
+    | InvokeDynamic of string
+    | Byte8Placeholder
+
+  type t = entry array
+end = struct
+  type entry =
+    | Utf8 of string
+    | Integer of int32
+    | Float of float
+    | Long of int64
+    | Double of float
+    | Class of Jclass.t
+    | String of string
+    | Fieldref of Jfield.t
+    | Methodref of Jmethod.t
+    | InterfaceMethodref of Jmethod.t
+    | NameAndType of int * int
+    | MethodHandle of string
+    | MethodType of string
+    | InvokeDynamic of string
+    | Byte8Placeholder
+
+  type t = entry array
+end
 
 let bootstrap_loader =
   { Loader.name = "_bootstrap";
@@ -239,6 +266,50 @@ let bootstrap_loader =
 
 let create_membertbl () =
   Hashtbl.create ~hashable:MemID.hashable ()
+
+let is_field_accessible src_class jfield =
+  let memid = jfield.Jfield.memid in
+  let target_class = jfield.Jfield.jclass in
+  let check_private () =
+    if Jclass.contains_field src_class memid then true else false
+  in
+  let check_default () =
+    Jclass.package_rt_equal src_class target_class
+  in
+  let check_protected () =
+    if Jclass.is_subclass ~sub:src_class ~super:target_class then true
+    else check_default ()
+  in
+  let rec check = function
+    | [] -> check_default ()
+    | h :: t -> match h with
+      | Accflag.Public -> true
+      | Accflag.Private -> check_private ()
+      | Accflag.Protected -> check_protected ()
+      | _ -> check t
+  in check jfield.Jfield.access_flags
+
+let is_method_accessible src_class jmethod =
+  let memid = jmethod.Jmethod.memid in
+  let target_class = jmethod.Jmethod.jclass in
+  let check_private () =
+    if Jclass.contains_method src_class memid then true else false
+  in
+  let check_default () =
+    Jclass.package_rt_equal src_class target_class
+  in
+  let check_protected () =
+    if Jclass.is_subclass ~sub:src_class ~super:target_class then true
+    else check_default ()
+  in
+  let rec check = function
+    | [] -> check_default ()
+    | h :: t -> match h with
+      | Accflag.Public -> true
+      | Accflag.Private -> check_private ()
+      | Accflag.Protected -> check_protected ()
+      | _ -> check t
+  in check jmethod.Jmethod.access_flags
 
 (* load a none array class from file System *)
 let rec load_from_bytecode loader binary_name =
@@ -277,13 +348,12 @@ let rec load_from_bytecode loader binary_name =
   let name = Poolbc.get_class pool bytecode.this_class in
   (* check class name *)
   if name <> binary_name then raise NoClassdefFoundError;
-  let package = Jclass.package_of_name name in
   let access_flags = bytecode.access_flags in
   let super_class  = match bytecode.super_class with
     | 0 -> if name <> java_lang_object then (* Only Object has no super class *)
         raise (ClassFormatError "Invalid superclass index")
       else None
-    | i -> let jclass = resolve_class loader package (Poolbc.get_class pool i) in
+    | i -> let jclass = resolve_class loader name (Poolbc.get_class pool i) in
       (* interface's super class must be Object *)
       if is_interface access_flags && jclass.Jclass.name <> java_lang_object then
         raise (ClassFormatError "Invalid superclass index");
@@ -295,7 +365,7 @@ let rec load_from_bytecode loader binary_name =
   in
   let interfaces = List.map bytecode.interfaces ~f:(fun index ->
       let cls = Poolbc.get_class pool index in
-      let jclass = resolve_class loader package cls in
+      let jclass = resolve_class loader name cls in
       (* must be interface *)
       if not @@ is_interface jclass.Jclass.access_flags then raise IncompatibleClassChangeError;
       (* interface can not be itself *)
@@ -306,7 +376,7 @@ let rec load_from_bytecode loader binary_name =
   let open! Jclass in
   let fields = create_membertbl () in
   let methods = create_membertbl () in
-  let conspool = Array.create ~len:(Array.length pool) Byte8Placeholder in
+  let conspool = Array.create ~len:(Array.length pool) Poolrt.Byte8Placeholder in
   let attributes = bytecode.attributes in
   let jclass = { name; access_flags; super_class; interfaces;
                  fields; methods; conspool; attributes;
@@ -320,8 +390,9 @@ let rec load_from_bytecode loader binary_name =
       let jmethod = create_method jclass mth bytecode.constant_pool in
       Hashtbl.add_exn jclass.methods ~key:jmethod.Jmethod.memid ~data:jmethod
     );
-  (* record as initiating loader*)
-  Loader.add_class_exn loader jclass;
+  Loader.add_class loader jclass; (* record as initiating loader*)
+  resovle_pool jclass bytecode.Bytecode.constant_pool;
+  printf "%s\n" name; flush stdout;
   jclass
 
 (* Loading Using the Bootstrap Class Loader *)
@@ -330,14 +401,10 @@ and load_class loader binary_name =
   | Some jclass -> jclass
   | None -> load_from_bytecode loader binary_name
 
-and resolve_class loader referer_package binary_name =
+and resolve_class loader src_class binary_name =
   let is_array name = String.get name 0 = '[' in
   let is_primitive name =
     List.exists ["B";"C";"D";"F";"I";"J";"S";"Z"] ~f:((=) name)
-  in
-  let rec component name_char_list = match name_char_list with
-    | '['::tail -> component tail
-    | chrs -> String.of_char_list chrs
   in
   let resolve () =
     let open! Jclass in
@@ -352,7 +419,7 @@ and resolve_class loader referer_package binary_name =
         }
       else
         let cmpnt_class = load_class loader cmpnt in
-        { name = binary_name; access_flags = cmpnt_class.access_flags;
+        { name = binary_name; access_flags = Jclass.real_acc cmpnt_class;
           super_class = Loader.find_class loader java_lang_object;
           interfaces = []; fields = create_membertbl ();
           methods = create_membertbl (); attributes = [];
@@ -366,61 +433,81 @@ and resolve_class loader referer_package binary_name =
     | None -> let cls = resolve () in Loader.add_class loader cls; cls
   in
   let acc = jclass.Jclass.access_flags in
+  let referer_package = Jclass.package_of_name src_class in
   if not (List.exists acc ~f:((=) Accflag.Public)) then begin
     let pkg_target = Jclass.package_of_name jclass.Jclass.name in
     if not @@ Loader.equal loader jclass.Jclass.loader || referer_package <> pkg_target then
-      raise IllegalAccessError
+      if not @@ String.contains binary_name '$' then (* inner class access bug? *)
+        raise IllegalAccessError
   end;
   jclass
 
-let member_accessible src_class target_class memid acc =
-  let check_private () =
-    if Jclass.contains_field src_class memid then true else false
-  in
-  let check_default () =
-    Jclass.package_equal src_class target_class
-  in
-  let check_protected () =
-    if Jclass.is_subclass ~sub:src_class ~super:target_class then true
-    else check_default ()
-  in
-  let rec check = function
-    | [] -> check_default ()
-    | h :: t -> match h with
-      | Accflag.Public -> true
-      | Accflag.Private -> check_private ()
-      | Accflag.Protected -> check_protected ()
-      | _ -> check t
-  in check acc
-
-let resolve_field src_class class_name memid =
-  let jclass = load_class src_class.Jclass.loader class_name in
+and resolve_field src_class class_name memid =
+  let jclass = resolve_class src_class.Jclass.loader src_class.Jclass.name class_name in
   let jfield = match Jclass.find_field jclass memid with
     | Some jfield -> jfield
     | None -> raise NoSuchFieldError
   in
-  if not @@ member_accessible src_class jclass memid jfield.Jfield.access_flags then
+  if not @@ is_field_accessible src_class jfield then
     raise IllegalAccessError;
   jfield
 
-let resolve_method_of_class src_class class_name memid =
-  let jclass = load_class src_class.Jclass.loader class_name in
+and resolve_method_of_class src_class class_name memid =
+  let jclass = resolve_class src_class.Jclass.loader src_class.Jclass.name class_name in
   if Jclass.is_interface jclass then raise IncompatibleClassChangeError;
   let jmethod = match Jclass.find_method_of_class jclass memid with
     | Some jmethod -> jmethod
-    | None -> raise NoSuchMethodError
+    | None -> let msg = sprintf "No such method{%s} in class{%s}"
+                  (MemID.to_string memid) class_name
+      in raise (NoSuchMethodError msg)
   in
-  if not @@ member_accessible src_class jclass memid jmethod.Jmethod.access_flags then
+  if not @@ is_method_accessible src_class jmethod then
     raise IllegalAccessError;
   jmethod
 
-let resolve_method_of_interface src_class class_name memid =
-  let jclass = load_class src_class.Jclass.loader class_name in
+and resolve_method_of_interface src_class class_name memid =
+  let jclass = resolve_class src_class.Jclass.loader src_class.Jclass.name class_name in
   if not @@ Jclass.is_interface jclass then raise IncompatibleClassChangeError;
   let jmethod = match Jclass.find_method_of_interface jclass memid with
     | Some jmethod -> jmethod
-    | None -> raise NoSuchMethodError
+    | None -> let msg = sprintf "No such method{%s} in class{%s}"
+                  (MemID.to_string memid) class_name
+      in raise (NoSuchMethodError msg)
   in
-  if not @@ member_accessible src_class jclass memid jmethod.Jmethod.access_flags then
+  if not @@ is_method_accessible src_class jmethod then
     raise IllegalAccessError;
   jmethod
+
+and resovle_pool jclass poolbc =
+  let member_arg ci nti =
+    let class_name, name, descriptor = Poolbc.get_memberref poolbc ci nti in
+    let memid = { MemID.name = name; MemID.descriptor = descriptor } in
+    class_name, memid
+  in
+  let loader = jclass.Jclass.loader in
+  Array.iteri poolbc ~f:(fun index entry ->
+      let new_entry = match entry with
+        | Poolbc.Utf8 x -> Poolrt.Utf8 x
+        | Poolbc.Integer x -> Poolrt.Integer x
+        | Poolbc.Float x -> Poolrt.Float x
+        | Poolbc.Long x -> Poolrt.Long x
+        | Poolbc.Double x -> Poolrt.Double x
+        | Poolbc.Class i -> Poolrt.Class (
+            resolve_class loader jclass.Jclass.name (Poolbc.get_utf8 poolbc i)
+          )
+        | Poolbc.String i -> Poolrt.String (Poolbc.get_utf8 poolbc i)
+        | Poolbc.Fieldref (ci, nti) ->
+          let class_name, memid = member_arg ci nti in
+          let jfield = resolve_field jclass class_name memid in
+          Poolrt.Fieldref jfield
+        | Poolbc.Methodref (ci, nti) ->
+          let class_name, memid = member_arg ci nti in
+          let jmethod = resolve_method_of_class jclass class_name memid in
+          Poolrt.Methodref jmethod
+        | Poolbc.InterfaceMethodref (ci, nti) ->
+          let class_name, memid = member_arg ci nti in
+          let jmethod = resolve_method_of_interface jclass class_name memid in
+          Poolrt.InterfaceMethodref jmethod
+        | _ -> Poolrt.Byte8Placeholder
+      in jclass.Jclass.conspool.(index) <- new_entry
+    )

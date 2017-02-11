@@ -21,21 +21,11 @@ val create : BatInnerIO.input -> t
 
 val get_utf8 : t -> int -> string
 
-val get_integer : t -> int -> int32
-
-val get_float : t -> int -> float
-
-val get_long : t -> int -> int64
-
-val get_double : t -> int -> float
-
 val get_class : t -> int -> string
 
 val get_string : t -> int -> string
 
-val get_name_and_type : t -> int -> int * int
-
-val get_memberref : t -> int -> int * int
+val get_memberref : t -> int -> int -> string * string * string
 
 val get_method_handle : t -> int -> int * int
 

@@ -50,7 +50,28 @@ type t =
     attributes    : Attribute.AttrClass.t list;
   }
 
-let parse input =
+let runtime = Hashtbl.create ~hashable:String.hashable ()
+let cached = Hashtbl.create ~hashable:String.hashable ()
+
+let rec cache_jar jar =
+  let file = Zip.open_in jar in
+  let entries = Zip.entries file in
+  List.iter entries ~f:(fun entry ->
+      if Filename.check_suffix entry.Zip.filename ".class" then
+        let content = Zip.read_entry file entry in
+        let input = BatIO.input_string content in
+        let bytecode = load_from_stream input in
+        let key = String.chop_suffix_exn entry.Zip.filename ~suffix:".class" in
+        Hashtbl.add_exn runtime ~key:key ~data:bytecode;
+        BatIO.close_in input
+    );
+  Zip.close_in file;
+  Hashtbl.add_exn cached ~key:jar ~data:true
+
+and load_from_stream input =
+  parse input
+
+and parse input =
   let check_magic input =
     if not (read_ui16 input = 0xCAFE && read_ui16 input = 0xBABE) then
       raise (ClassFormatError "Invalid magic")
@@ -106,13 +127,14 @@ let load binary_name =
     match classpath with
     | hd :: tail -> let bytecode = match Sys.is_directory hd with
         | `Yes -> load_from_dir hd path
-        | `No ->  load_from_jar hd path
+        | `No -> load_from_jar hd path
         | _ -> find tail
       in if Option.is_none bytecode then find tail else bytecode
     | [] -> None
-  in match find @@ Config.get_classpath () with
+  in
+  let bc = Hashtbl.find runtime binary_name in
+  match bc with
   | Some code -> code
-  | None -> raise ClassNotFoundException
-
-let load_from_stream input =
-  parse input
+  | _ -> match find @@ Config.get_classpath () with
+    | Some code -> code
+    | None -> raise (ClassNotFoundException binary_name)
