@@ -1,5 +1,6 @@
 open VMError
 open Core.Std
+open Accflag
 
 let major_version = 52
 
@@ -26,7 +27,7 @@ end
 module rec Jclass : sig
   type t =
     { name : string;
-      access_flags : Accflag.t list;
+      access_flags : int;
       super_class  : t option;
       interfaces   : t list;
       fields : (MemID.t, Jfield.t) Hashtbl.t;
@@ -36,7 +37,6 @@ module rec Jclass : sig
       loader  : Loader.t;
     }
 
-  val real_acc : t -> Accflag.t list
   val package_of_name : string -> string
   val package_of_class : t -> string
   val package_rt_equal : t -> t -> bool
@@ -50,7 +50,7 @@ module rec Jclass : sig
 end = struct
   type t =
     { name : string;
-      access_flags : Accflag.t list;
+      access_flags : int;
       super_class  : t option;
       interfaces   : t list;
       fields : (MemID.t, Jfield.t) Hashtbl.t;
@@ -59,16 +59,6 @@ end = struct
       attributes : Attribute.AttrClass.t list;
       loader  : Loader.t;
     }
-
-  let real_acc jclass =
-    let rec aux = function
-      | [] -> []
-      | hd :: tail -> match hd with
-        | Accflag.Public -> [Accflag.Public]
-        | Accflag.Protected -> [Accflag.Protected]
-        | Accflag.Private -> [Accflag.Private]
-        | _ -> aux tail
-    in aux jclass.access_flags
 
   let package_of_name name =
     let cls = component (String.to_list name) in
@@ -96,7 +86,7 @@ end = struct
     | _ -> false
 
   let is_interface jclass =
-    List.exists jclass.access_flags ~f:((=) Accflag.Interface)
+    FlagClass.is_set jclass.access_flags FlagClass.Interface
 
   let rec find_field jclass memid =
     let find_in_interfaces jclass memid =
@@ -122,9 +112,8 @@ end = struct
 
   let find_method_in_interfaces jclass memid =
     let check_acc jmethod =
-      if List.exists jmethod.Jmethod.access_flags
-          ~f:(fun acc -> acc = Accflag.Private || acc = Accflag.Static )
-      then false else true
+      FlagMethod.is_not_set_list jmethod.Jmethod.access_flags
+        [FlagMethod.Private; FlagMethod.Static]
     in
     let rec aux = function
       | [] -> None
@@ -137,13 +126,17 @@ end = struct
 
   let rec find_method_of_class jclass memid =
     let find_polymorphic jclass memid =
-      let new_memid =
-        { MemID.name = memid.MemID.name;
-          MemID.descriptor = "([Ljava/lang/Object;)Ljava/lang/Object;"
-        }
-      in
       if jclass.name = "java/lang/invoke/MethodHandle" then
-        Hashtbl.find jclass.methods new_memid
+        let new_memid =
+          { MemID.name = memid.MemID.name;
+            MemID.descriptor = "([Ljava/lang/Object;)Ljava/lang/Object;"
+          }
+        in
+        let jmethod = Hashtbl.find jclass.methods new_memid in
+        match jmethod with
+        | Some m -> if FlagMethod.is_set_list m.Jmethod.access_flags
+            [FlagMethod.Varargs; FlagMethod.Native] then Some m else None
+        | None -> None
       else None
     in
     let find_in_superclass jclass memid =
@@ -174,14 +167,14 @@ and Jfield : sig
   type t =
     { jclass        : Jclass.t;
       memid         : MemID.t;
-      access_flags  : Accflag.t list;
+      access_flags  : int;
       attrs         : Attribute.AttrField.t list;
     }
 end = struct
   type t =
     { jclass        : Jclass.t;
       memid         : MemID.t;
-      access_flags  : Accflag.t list;
+      access_flags  : int;
       attrs         : Attribute.AttrField.t list;
     }
 end
@@ -189,14 +182,14 @@ and Jmethod : sig
   type t =
     { jclass        : Jclass.t;
       memid         : MemID.t;
-      access_flags  : Accflag.t list;
+      access_flags  : int;
       attrs         : Attribute.AttrMethod.t list;
     }
 end = struct
   type t =
     { jclass        : Jclass.t;
       memid         : MemID.t;
-      access_flags  : Accflag.t list;
+      access_flags  : int;
       attrs         : Attribute.AttrMethod.t list;
     }
 end
@@ -292,14 +285,11 @@ let is_field_accessible src_class jfield =
     if Jclass.is_subclass ~sub:src_class ~super:target_class then true
     else check_default ()
   in
-  let rec check = function
-    | [] -> check_default ()
-    | h :: t -> match h with
-      | Accflag.Public -> true
-      | Accflag.Private -> check_private ()
-      | Accflag.Protected -> check_protected ()
-      | _ -> check t
-  in check jfield.Jfield.access_flags
+  let flags = jfield.Jfield.access_flags in
+  if FlagField.is_set flags FlagField.Public then true
+  else if FlagField.is_set flags FlagField.Private then check_private ()
+  else if FlagField.is_set flags FlagField.Protected then check_protected ()
+  else check_default ()
 
 let is_method_accessible src_class jmethod =
   let memid = jmethod.Jmethod.memid in
@@ -314,19 +304,16 @@ let is_method_accessible src_class jmethod =
     if Jclass.is_subclass ~sub:src_class ~super:target_class then true
     else check_default ()
   in
-  let rec check = function
-    | [] -> check_default ()
-    | h :: t -> match h with
-      | Accflag.Public -> true
-      | Accflag.Private -> check_private ()
-      | Accflag.Protected -> check_protected ()
-      | _ -> check t
-  in check jmethod.Jmethod.access_flags
+  let flags = jmethod.Jmethod.access_flags in
+  if FlagMethod.is_set flags FlagMethod.Public then true
+  else if FlagMethod.is_set flags FlagMethod.Private then check_private ()
+  else if FlagMethod.is_set flags FlagMethod.Protected then check_protected ()
+  else check_default ()
 
 (* load a none array class from file System *)
 let rec load_from_bytecode loader binary_name =
   let is_interface access_flags =
-    List.exists access_flags ~f:((=) Accflag.Interface)
+    FlagClass.is_set access_flags FlagClass.Interface
   in
   let create_field jclass field pool =
     let open! Bytecode.Field in
@@ -422,7 +409,7 @@ and resolve_class loader src_class binary_name =
     if is_array binary_name then
       let cmpnt = component (String.to_list binary_name) in
       if is_primitive cmpnt then
-        { name = binary_name; access_flags = [Accflag.Public];
+        { name = binary_name; access_flags = FlagClass.public_flag;
           super_class = Loader.find_class loader java_lang_object;
           interfaces = []; fields = create_membertbl ();
           methods = create_membertbl (); attributes = [];
@@ -430,7 +417,7 @@ and resolve_class loader src_class binary_name =
         }
       else
         let cmpnt_class = load_class loader cmpnt in
-        { name = binary_name; access_flags = Jclass.real_acc cmpnt_class;
+        { name = binary_name; access_flags = FlagClass.real_acc cmpnt_class.access_flags;
           super_class = Loader.find_class loader java_lang_object;
           interfaces = []; fields = create_membertbl ();
           methods = create_membertbl (); attributes = [];
@@ -445,7 +432,7 @@ and resolve_class loader src_class binary_name =
   in
   let acc = jclass.Jclass.access_flags in
   let referer_package = Jclass.package_of_name src_class in
-  if not (List.exists acc ~f:((=) Accflag.Public)) then begin
+  if FlagClass.is_not_set acc FlagClass.Public then begin
     let pkg_target = Jclass.package_of_name jclass.Jclass.name in
     if not @@ Loader.equal loader jclass.Jclass.loader || referer_package <> pkg_target then
       if not @@ String.contains binary_name '$' then (* inner class access bug? *)

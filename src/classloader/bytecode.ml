@@ -6,13 +6,13 @@ open BatIO.BigEndian
 module Field = struct
   type t =
     { name_index          : int;
-      access_flags        : Accflag.t list;
+      access_flags        : int;
       descriptor_index    : int;
       attributes          : Attribute.AttrField.t list;
     }
 
   let parse input pool =
-    let access_flags = Accflag.parse (read_ui16 input) in
+    let access_flags = read_ui16 input in
     let name_index = read_ui16 input in
     let descriptor_index = read_ui16 input in
     let attributes = List.init (read_ui16 input) ~f:(fun _ ->
@@ -23,13 +23,13 @@ end
 module Method = struct
   type t =
     { name_index          : int;
-      access_flags        : Accflag.t list;
+      access_flags        : int;
       descriptor_index    : int;
       attributes          : Attribute.AttrMethod.t list;
     }
 
   let parse input pool =
-    let access_flags = Accflag.parse (read_ui16 input) in
+    let access_flags = read_ui16 input in
     let name_index = read_ui16 input in
     let descriptor_index = read_ui16 input in
     let attributes = List.init (read_ui16 input) ~f:(fun _ ->
@@ -41,7 +41,7 @@ type t =
   { minor_version : int;
     major_version : int;
     constant_pool : Poolbc.t;
-    access_flags  : Accflag.t list;
+    access_flags  : int;
     this_class    : int;
     super_class   : int;
     interfaces    : int list;
@@ -84,7 +84,7 @@ and parse input =
   let minor_version = read_i16 input in
   let major_version = read_i16 input in
   let pool = Poolbc.create input in
-  let access_flags = Accflag.parse (read_ui16 input) in
+  let access_flags = read_ui16 input in
   let this_class = read_ui16 input in
   let super_class = read_ui16 input in
   let interfaces = List.init (read_ui16 input) ~f:(fun _ -> read_ui16 input) in
