@@ -16,8 +16,7 @@ let find entry file =
     let bytecode = Bytecode.load_from_stream input in
     let pool = bytecode.Bytecode.constant_pool in
     let natives = List.filter_map bytecode.Bytecode.methods ~f:(fun mth ->
-        if List.exists mth.Bytecode.Method.access_flags
-            ~f:(fun flag -> flag = Accflag.Native)
+        if Accflag.FlagMethod.is_set mth.Bytecode.Method.access_flags Accflag.FlagMethod.Native
         then
           let name_index = mth.Bytecode.Method.name_index in
           let descriptor_index = mth.Bytecode.Method.descriptor_index in
