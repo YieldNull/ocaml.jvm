@@ -51,22 +51,19 @@ type t =
   }
 
 let runtime = Hashtbl.create ~hashable:String.hashable ()
-let cached = Hashtbl.create ~hashable:String.hashable ()
 
-let rec cache_jar jar =
-  let file = Zip.open_in jar in
-  let entries = Zip.entries file in
+let rec cache_jar input =
+  let entries = Zip.entries input in
   List.iter entries ~f:(fun entry ->
       if Filename.check_suffix entry.Zip.filename ".class" then
-        let content = Zip.read_entry file entry in
+        let content = Zip.read_entry input entry in
         let input = BatIO.input_string content in
         let bytecode = load_from_stream input in
         let key = String.chop_suffix_exn entry.Zip.filename ~suffix:".class" in
         Hashtbl.add_exn runtime ~key:key ~data:bytecode;
         BatIO.close_in input
     );
-  Zip.close_in file;
-  Hashtbl.add_exn cached ~key:jar ~data:true
+  Zip.close_in input;
 
 and load_from_stream input =
   parse input
@@ -101,36 +98,49 @@ and parse input =
     interfaces; fields; methods ; attributes
   }
 
-let load_from_jar jar_file path =
-  let jar = Zip.open_in jar_file in
-  let bytecode =
-    try
-      let entry = Zip.find_entry jar (path ^ ".class") in
-      let content = Zip.read_entry jar entry in
-      let input = BatIO.input_string content in
-      Some (parse input)
-    with Not_found -> None
-  in
-  Zip.close_in jar; bytecode
-
-let load_from_dir dir path =
-  let file = Filename.concat dir path in
-  match Sys.file_exists file with
-  | `Yes -> let input = BatFile.open_in file in
-    let bytecode = parse input in
-    BatIO.close_in input; Some bytecode
-  | _ -> None
-
 let load binary_name =
-  let path = String.tr binary_name ~target:'.' ~replacement:'/' in
+  let load_from_file dir =
+    let file = Filename.concat dir (binary_name ^ ".class") in
+    match Sys.file_exists file with
+    | `Yes -> let input = BatFile.open_in file in
+      let bytecode = parse input in
+      BatIO.close_in input; Some bytecode
+    | _ -> None
+  in
+  let load_from_jar jar =
+    let jar_stream = Zip.open_in jar in
+    let bytecode =
+      try
+        let entry = Zip.find_entry jar_stream (binary_name ^ ".class") in
+        let content = Zip.read_entry jar_stream entry in
+        let input = BatIO.input_string content in
+        cache_jar jar_stream; (* load all bytecodes in the same jar file *)
+        Some (parse input)
+      with Not_found -> None
+    in
+    Zip.close_in jar_stream; bytecode
+  in
   let rec find classpath =
     match classpath with
     | hd :: tail -> let bytecode = match Sys.is_directory hd with
-        | `Yes -> load_from_dir hd path
-        | `No -> load_from_jar hd path
-        | _ -> find tail
+        | `Yes -> load_from_dir hd
+        | `No -> if String.is_suffix hd ~suffix:".jar"
+                 && not @@ String.is_prefix hd ~prefix:"."
+          then load_from_jar hd else None
+        | _ -> None
       in if Option.is_none bytecode then find tail else bytecode
     | [] -> None
+  and load_from_dir dir =
+    match load_from_file dir with
+    | Some code -> Some code
+    | _ -> let dirs, files =
+             Sys.readdir dir
+             |> Array.to_list
+             |> List.map ~f:(Filename.concat dir)
+             |> List.split_while
+               ~f:(fun file -> Sys.is_directory file = `Yes
+                               && not @@ String.is_prefix file ~prefix:".")
+      in find (files @ dirs)
   in
   let bc = Hashtbl.find runtime binary_name in
   match bc with

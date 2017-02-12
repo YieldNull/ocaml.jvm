@@ -136,16 +136,28 @@ end = struct
     in aux jclass.Jclass.interfaces
 
   let rec find_method_of_class jclass memid =
+    let find_polymorphic jclass memid =
+      let new_memid =
+        { MemID.name = memid.MemID.name;
+          MemID.descriptor = "([Ljava/lang/Object;)Ljava/lang/Object;"
+        }
+      in
+      if jclass.name = "java/lang/invoke/MethodHandle" then
+        Hashtbl.find jclass.methods new_memid
+      else None
+    in
     let find_in_superclass jclass memid =
       match jclass.super_class with
       | Some cls -> find_method_of_class cls memid
       | None -> None
     in
-    match Hashtbl.find jclass.methods memid with
+    match find_polymorphic jclass memid with
     | Some m -> Some m
-    | None -> match find_in_superclass jclass memid with
+    | None -> match Hashtbl.find jclass.methods memid with
       | Some m -> Some m
-      | None -> find_method_in_interfaces jclass memid
+      | None -> match find_in_superclass jclass memid with
+        | Some m -> Some m
+        | None -> find_method_in_interfaces jclass memid
 
   let find_method_of_interface jclass memid =
     let find_in_object jclass memid =
@@ -392,7 +404,6 @@ let rec load_from_bytecode loader binary_name =
     );
   Loader.add_class loader jclass; (* record as initiating loader*)
   resovle_pool jclass bytecode.Bytecode.constant_pool;
-  printf "%s\n" name; flush stdout;
   jclass
 
 (* Loading Using the Bootstrap Class Loader *)
