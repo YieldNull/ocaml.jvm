@@ -6,11 +6,6 @@ let major_version = 52
 
 let java_lang_object = "java/lang/Object"
 
-let rec component = function
-  | '['::tail -> component tail
-  | 'L'::tail -> String.of_char_list @@ List.slice tail 0 (List.length tail - 1)
-  | chrs -> String.of_char_list chrs
-
 module MemID = struct
   module T = struct
     type t = { name: string; descriptor : string; } [@@deriving sexp, compare]
@@ -22,6 +17,34 @@ module MemID = struct
 
   let to_string t =
     sprintf "%s:%s" t.name t.descriptor
+
+  let hashtbl () = Hashtbl.create ~hashable:hashable ()
+end
+
+module Descriptor = struct
+  type t =
+    | Byte
+    | Short
+    | Char
+    | Int
+    | Float
+    | Long
+    | Double
+    | Boolean
+    | Class of string
+
+  let type_of_field descriptor =
+    match String.get descriptor 0 with
+    | 'B' -> Byte
+    | 'S' -> Short
+    | 'C' -> Char
+    | 'I' -> Int
+    | 'F' -> Float
+    | 'J' -> Long
+    | 'D' -> Double
+    | 'Z' -> Boolean
+    | 'L' -> Class (String.sub descriptor ~pos:1 ~len:(String.length descriptor - 2))
+    | _ -> Class descriptor
 end
 
 module rec Jclass : sig
@@ -35,8 +58,10 @@ module rec Jclass : sig
       conspool : Poolrt.t;
       attributes : Attribute.AttrClass.t list;
       loader  : Loader.t;
+      static_fields : (MemID.t, Jobject.value) Hashtbl.t;
     }
 
+  val component : char list -> string
   val package_of_name : string -> string
   val package_of_class : t -> string
   val package_rt_equal : t -> t -> bool
@@ -58,7 +83,13 @@ end = struct
       conspool : Poolrt.t;
       attributes : Attribute.AttrClass.t list;
       loader  : Loader.t;
+      static_fields : (MemID.t, Jobject.value) Hashtbl.t;
     }
+
+  let rec component = function
+    | '['::tail -> component tail
+    | 'L'::tail -> String.of_char_list @@ List.slice tail 0 (List.length tail - 1)
+    | chrs -> String.of_char_list chrs
 
   let package_of_name name =
     let cls = component (String.to_list name) in
@@ -263,14 +294,44 @@ end = struct
 
   type t = entry array
 end
+and Jobject : sig
+  type t =
+    { jclass : Jclass.t;
+      fields : (string, value) Hashtbl.t;
+    }
+  and value =
+    | Byte of int
+    | Short of int
+    | Char of int
+    | Int of int32
+    | Float of float
+    | Long of int64
+    | Double of float
+    | Boolean of bool
+    | Reference of t
+    | Null
+end = struct
+  type t =
+    { jclass : Jclass.t;
+      fields : (string, value) Hashtbl.t;
+    }
+  and value =
+    | Byte of int
+    | Short of int
+    | Char of int
+    | Int of int32
+    | Float of float
+    | Long of int64
+    | Double of float
+    | Boolean of bool
+    | Reference of t
+    | Null
+end
 
 let bootstrap_loader =
   { Loader.name = "_bootstrap";
     Loader.classes = Hashtbl.create ~hashable:String.hashable ()
   }
-
-let create_membertbl () =
-  Hashtbl.create ~hashable:MemID.hashable ()
 
 let is_field_accessible src_class jfield =
   let memid = jfield.Jfield.memid in
@@ -337,6 +398,29 @@ let rec load_from_bytecode loader binary_name =
       access_flags; attrs;
     }
   in
+  let create_static_fields bytecode =
+    let open! Bytecode in
+    let statics = MemID.hashtbl () in
+    let pool = bytecode.constant_pool in
+    List.iter bytecode.fields ~f:(fun field ->
+        let name = Poolbc.get_utf8 pool field.Field.name_index in
+        let descriptor = Poolbc.get_utf8 pool field.Field.descriptor_index in
+        if FlagField.is_set field.Field.access_flags FlagField.Static then
+          let memid = { MemID.name = name; MemID.descriptor = descriptor } in
+          let value = match Descriptor.type_of_field descriptor with
+          | Descriptor.Byte -> Jobject.Byte 0
+          | Descriptor.Short -> Jobject.Short 0
+          | Descriptor.Char -> Jobject.Char 0
+          | Descriptor.Int -> Jobject.Int Int32.zero
+          | Descriptor.Float -> Jobject.Float 0.
+          | Descriptor.Long -> Jobject.Long Int64.zero
+          | Descriptor.Double -> Jobject.Double 0.
+          | Descriptor.Boolean -> Jobject.Boolean false
+          | Descriptor.Class _ -> Jobject.Null
+        in Hashtbl.add_exn statics ~key:memid ~data:value
+      );
+    statics
+  in
   (* check initiating loader *)
   if Loader.is_loader loader binary_name then raise LinkageError;
   let open! Bytecode in
@@ -373,13 +457,14 @@ let rec load_from_bytecode loader binary_name =
     )
   in
   let open! Jclass in
-  let fields = create_membertbl () in
-  let methods = create_membertbl () in
+  let fields = MemID.hashtbl () in
+  let methods = MemID.hashtbl () in
   let conspool = Array.create ~len:(Array.length pool) Poolrt.Byte8Placeholder in
   let attributes = bytecode.attributes in
+  let static_fields = create_static_fields bytecode in
   let jclass = { name; access_flags; super_class; interfaces;
                  fields; methods; conspool; attributes;
-                 loader;} (* record as defining loader*)
+                 loader; static_fields} (* record as defining loader*)
   in
   List.iter bytecode.fields ~f:(fun field ->
       let jfield = create_field jclass field bytecode.constant_pool in
@@ -407,21 +492,23 @@ and resolve_class loader src_class binary_name =
   let resolve () =
     let open! Jclass in
     if is_array binary_name then
-      let cmpnt = component (String.to_list binary_name) in
+      let cmpnt = Jclass.component (String.to_list binary_name) in
       if is_primitive cmpnt then
         { name = binary_name; access_flags = FlagClass.public_flag;
           super_class = Loader.find_class loader java_lang_object;
-          interfaces = []; fields = create_membertbl ();
-          methods = create_membertbl (); attributes = [];
+          interfaces = []; fields = MemID.hashtbl ();
+          methods = MemID.hashtbl (); attributes = [];
           conspool = [||]; loader = bootstrap_loader;
+          static_fields = MemID.hashtbl ()
         }
       else
         let cmpnt_class = load_class loader cmpnt in
         { name = binary_name; access_flags = FlagClass.real_acc cmpnt_class.access_flags;
           super_class = Loader.find_class loader java_lang_object;
-          interfaces = []; fields = create_membertbl ();
-          methods = create_membertbl (); attributes = [];
+          interfaces = []; fields = MemID.hashtbl ();
+          methods = MemID.hashtbl (); attributes = [];
           conspool = [||]; loader = cmpnt_class.loader;
+          static_fields = MemID.hashtbl ()
         }
     else
       load_class loader binary_name
