@@ -22,7 +22,7 @@ module MemID = struct
 end
 
 module Descriptor = struct
-  type t =
+  type field =
     | Byte
     | Short
     | Char
@@ -44,7 +44,31 @@ module Descriptor = struct
     | 'D' -> Double
     | 'Z' -> Boolean
     | 'L' -> Class (String.sub descriptor ~pos:1 ~len:(String.length descriptor - 2))
-    | _ -> Class descriptor
+    | _ -> Class descriptor (* array *)
+
+  let classes_of_method descriptor =
+    let rec parse_class lst =
+      match lst with
+      | ';' :: tail -> [], tail
+      | chr :: tail -> let cls, rest = parse_class tail in chr :: cls, rest
+      | [] -> [], []
+    in
+    let rec parse_array lst =
+      let comp, last = match lst with
+        | '[' :: tail -> parse_array tail
+        | 'L' :: tail -> let cls, rest = parse_class tail in
+          sprintf "L%s;" (String.of_char_list cls), rest
+        | chr :: tail -> String.of_char chr, tail
+        | [] -> failwith ""
+      in "[" ^ comp, last
+    in
+    let rec parse = function
+      | [] -> []
+      | ('(' | 'B' | 'S' | 'C' | 'I' | 'F' | 'J' | 'D' | 'Z' | ')' ) :: tail -> parse tail
+      | '[' :: tail -> let cls, rest = parse_array tail in cls :: (parse rest)
+      | _ :: tail -> let chrs, rest = parse_class tail
+        in (String.of_char_list chrs) :: (parse rest)
+    in parse (String.to_list descriptor)
 end
 
 module rec Jclass : sig
@@ -156,32 +180,16 @@ end = struct
     in aux jclass.Jclass.interfaces
 
   let rec find_method_of_class jclass memid =
-    let find_polymorphic jclass memid =
-      if jclass.name = "java/lang/invoke/MethodHandle" then
-        let new_memid =
-          { MemID.name = memid.MemID.name;
-            MemID.descriptor = "([Ljava/lang/Object;)Ljava/lang/Object;"
-          }
-        in
-        let jmethod = Hashtbl.find jclass.methods new_memid in
-        match jmethod with
-        | Some m -> if FlagMethod.is_set_list m.Jmethod.access_flags
-            [FlagMethod.Varargs; FlagMethod.Native] then Some m else None
-        | None -> None
-      else None
-    in
     let find_in_superclass jclass memid =
       match jclass.super_class with
       | Some cls -> find_method_of_class cls memid
       | None -> None
     in
-    match find_polymorphic jclass memid with
+    match Hashtbl.find jclass.methods memid with
     | Some m -> Some m
-    | None -> match Hashtbl.find jclass.methods memid with
+    | None -> match find_in_superclass jclass memid with
       | Some m -> Some m
-      | None -> match find_in_superclass jclass memid with
-        | Some m -> Some m
-        | None -> find_method_in_interfaces jclass memid
+      | None -> find_method_in_interfaces jclass memid
 
   let find_method_of_interface jclass memid =
     let find_in_object jclass memid =
@@ -216,6 +224,8 @@ and Jmethod : sig
       access_flags  : int;
       attrs         : Attribute.AttrMethod.t list;
     }
+
+  val is_polymorphic : Jclass.t -> MemID.t -> t option
 end = struct
   type t =
     { jclass        : Jclass.t;
@@ -223,6 +233,20 @@ end = struct
       access_flags  : int;
       attrs         : Attribute.AttrMethod.t list;
     }
+
+  let is_polymorphic jclass memid =
+    if jclass.Jclass.name = "java/lang/invoke/MethodHandle" then
+      let new_memid =
+        { MemID.name = memid.MemID.name;
+          MemID.descriptor = "([Ljava/lang/Object;)Ljava/lang/Object;"
+        }
+      in
+      let jmethod = Hashtbl.find jclass.Jclass.methods new_memid in
+      match jmethod with
+      | Some m -> if FlagMethod.is_set_list m.Jmethod.access_flags
+          [FlagMethod.Varargs; FlagMethod.Native] then Some m else None
+      | None -> None
+    else None
 end
 and Loader : sig
   type t =
@@ -408,16 +432,16 @@ let rec load_from_bytecode loader binary_name =
         if FlagField.is_set field.Field.access_flags FlagField.Static then
           let memid = { MemID.name = name; MemID.descriptor = descriptor } in
           let value = match Descriptor.type_of_field descriptor with
-          | Descriptor.Byte -> Jobject.Byte 0
-          | Descriptor.Short -> Jobject.Short 0
-          | Descriptor.Char -> Jobject.Char 0
-          | Descriptor.Int -> Jobject.Int Int32.zero
-          | Descriptor.Float -> Jobject.Float 0.
-          | Descriptor.Long -> Jobject.Long Int64.zero
-          | Descriptor.Double -> Jobject.Double 0.
-          | Descriptor.Boolean -> Jobject.Boolean false
-          | Descriptor.Class _ -> Jobject.Null
-        in Hashtbl.add_exn statics ~key:memid ~data:value
+            | Descriptor.Byte -> Jobject.Byte 0
+            | Descriptor.Short -> Jobject.Short 0
+            | Descriptor.Char -> Jobject.Char 0
+            | Descriptor.Int -> Jobject.Int Int32.zero
+            | Descriptor.Float -> Jobject.Float 0.
+            | Descriptor.Long -> Jobject.Long Int64.zero
+            | Descriptor.Double -> Jobject.Double 0.
+            | Descriptor.Boolean -> Jobject.Boolean false
+            | Descriptor.Class _ -> Jobject.Null
+          in Hashtbl.add_exn statics ~key:memid ~data:value
       );
     statics
   in
@@ -538,13 +562,19 @@ and resolve_field src_class class_name memid =
   jfield
 
 and resolve_method_of_class src_class class_name memid =
+  let resolve_polymorphic jclass memid =
+    let classes = Descriptor.classes_of_method memid.MemID.descriptor in
+    List.iter classes ~f:(fun cls -> let _ = resolve_class jclass.Jclass.loader cls in ())
+  in
   let jclass = resolve_class src_class.Jclass.loader src_class.Jclass.name class_name in
   if Jclass.is_interface jclass then raise IncompatibleClassChangeError;
-  let jmethod = match Jclass.find_method_of_class jclass memid with
-    | Some jmethod -> jmethod
-    | None -> let msg = sprintf "No such method{%s} in class{%s}"
-                  (MemID.to_string memid) class_name
-      in raise (NoSuchMethodError msg)
+  let jmethod = match Jmethod.is_polymorphic jclass memid with
+    | Some m -> resolve_polymorphic jclass memid; m
+    | None -> match Jclass.find_method_of_class jclass memid with
+      | Some m -> m
+      | None -> let msg = sprintf "No such method{%s} in class{%s}"
+                    (MemID.to_string memid) class_name
+        in raise (NoSuchMethodError msg)
   in
   if not @@ is_method_accessible src_class jmethod then
     raise IllegalAccessError;
