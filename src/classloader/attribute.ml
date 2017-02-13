@@ -532,7 +532,7 @@ module Code = struct
 
   type t = { max_stack : int;
              max_locals : int;
-             code : int list;
+             code : string;
              exn_table : code_exn list;
              attributes : AttrCode.t list;
            }
@@ -552,7 +552,7 @@ module Code = struct
     then
       raise (ClassFormatError "Invalid Code length")
     else
-      let code = List.init code_len ~f:(fun _ -> read_byte input) in
+      let code = String.init code_len ~f:(fun _ -> Char.of_int_exn @@ read_byte input) in
       let exn_len = read_ui16 input in
       let exn_table = List.init exn_len ~f:(fun _ ->
           let start_pc = read_ui16 input in
