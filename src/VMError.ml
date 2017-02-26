@@ -9,3 +9,7 @@ exception ClassCircularityError
 exception NoSuchFieldError
 exception NoSuchMethodError of string
 exception VirtualMachineError
+exception NullPointerException
+exception ArrayIndexOutOfBoundsException
+exception InstantiationError
+exception NegativeArraySizeException

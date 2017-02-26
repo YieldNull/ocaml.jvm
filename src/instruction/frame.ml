@@ -1,60 +1,15 @@
 open Core.Std
-open Classloader
 open Attribute
 open BatIO
 open BatIO.BigEndian
 open VMError
-
-module Localvar = struct
-  type value =
-    | Byte of int
-    | Short of int
-    | Char of int
-    | Int of int32
-    | Float of float
-    | Long of int64
-    | Double of float
-    | Boolean of bool
-    | Reference of Jobject.t
-    | Null
-    | ReturnAddress
-    | Byte8Placeholder
-
-  type t = value array
-
-  let get_int t i =
-    match t.(i) with
-    | Int x -> x
-    | _ -> raise VirtualMachineError
-
-  let get_long t i =
-    match t.(i) with
-    | Long x -> x
-    | _ -> raise VirtualMachineError
-
-  let get_float t i =
-    match t.(i) with
-    | Float x -> x
-    | _ -> raise VirtualMachineError
-
-  let get_double t i =
-    match t.(i) with
-    | Double x -> x
-    | _ -> raise VirtualMachineError
-
-  let get_reference t i =
-    match t.(i) with
-    | Reference x -> x
-    | _ -> raise VirtualMachineError
-
-end
-
-open Localvar
+open Float32
+open Jvalue
 
 type t =
   { jmethod : Jmethod.t;
-    localvars : Localvar.t;
-    opstack : (Localvar.value) Stack.t;
+    localvars : Jvalue.t array;
+    opstack : (Jvalue.t) Stack.t;
   }
 
 let create jmethod localvar_initializer =
@@ -65,14 +20,14 @@ let create jmethod localvar_initializer =
       | _ -> aux tail
   in
   let code = aux jmethod.Jmethod.attrs in
-  let localvars = Array.init code.Code.max_locals localvar_initializer in
+  let localvars = Array.init code.Code.max_locals ~f:localvar_initializer in
   let opstack = Stack.create () in
   { jmethod; localvars; opstack; }
 
-
+let get_conspool t = Jclass.conspool @@ Jmethod.get_class t.jmethod
 
 let op_nop t input = ()
-let op_aconst_null t input = Stack.push t.opstack Null
+let op_aconst_null t input = Stack.push t.opstack (Reference Jobject.Null)
 
 let op_iconst_m1 t input = Stack.push t.opstack (Int (Int32.of_int_exn (-1)))
 let op_iconst_0 t input = Stack.push t.opstack (Int (Int32.of_int_exn 0))
@@ -97,84 +52,129 @@ let op_ldc t input = ()
 let op_ldc_w t input = ()
 let op_ldc2_w t input = ()
 
-let op_iload t input = Stack.push t.opstack (Int (Localvar.get_int t.localvars (read_byte input)))
-let op_lload t input = Stack.push t.opstack (Long (Localvar.get_long t.localvars (read_byte input)))
-let op_fload t input = Stack.push t.opstack (Float (Localvar.get_float t.localvars (read_byte input)))
-let op_dload t input = Stack.push t.opstack (Double (Localvar.get_double t.localvars (read_byte input)))
-let op_aload t input = Stack.push t.opstack (Reference (Localvar.get_reference t.localvars (read_byte input)))
+let op_iload t input = Stack.push t.opstack (Int (get_int t.localvars.(read_byte input)))
+let op_lload t input = Stack.push t.opstack (Long (get_long t.localvars.(read_byte input)))
+let op_fload t input = Stack.push t.opstack (Float (get_float t.localvars.(read_byte input)))
+let op_dload t input = Stack.push t.opstack (Double (get_double t.localvars.(read_byte input)))
+let op_aload t input = Stack.push t.opstack (Reference (get_reference t.localvars.(read_byte input)))
 
-let op_iload_0 t input = Stack.push t.opstack (Int (Localvar.get_int t.localvars 0))
-let op_iload_1 t input = Stack.push t.opstack (Int (Localvar.get_int t.localvars 1))
-let op_iload_2 t input = Stack.push t.opstack (Int (Localvar.get_int t.localvars 2))
-let op_iload_3 t input = Stack.push t.opstack (Int (Localvar.get_int t.localvars 3))
+let op_iload_0 t input = Stack.push t.opstack (Int (get_int t.localvars.(0)))
+let op_iload_1 t input = Stack.push t.opstack (Int (get_int t.localvars.(1)))
+let op_iload_2 t input = Stack.push t.opstack (Int (get_int t.localvars.(2)))
+let op_iload_3 t input = Stack.push t.opstack (Int (get_int t.localvars.(3)))
 
-let op_lload_0 t input = Stack.push t.opstack (Long (Localvar.get_long t.localvars 0))
-let op_lload_1 t input = Stack.push t.opstack (Long (Localvar.get_long t.localvars 1))
-let op_lload_2 t input = Stack.push t.opstack (Long (Localvar.get_long t.localvars 2))
-let op_lload_3 t input = Stack.push t.opstack (Long (Localvar.get_long t.localvars 3))
+let op_lload_0 t input = Stack.push t.opstack (Long (get_long t.localvars.(0)))
+let op_lload_1 t input = Stack.push t.opstack (Long (get_long t.localvars.(1)))
+let op_lload_2 t input = Stack.push t.opstack (Long (get_long t.localvars.(2)))
+let op_lload_3 t input = Stack.push t.opstack (Long (get_long t.localvars.(3)))
 
-let op_fload_0 t input = Stack.push t.opstack (Float (Localvar.get_float t.localvars 0))
-let op_fload_1 t input = Stack.push t.opstack (Float (Localvar.get_float t.localvars 1))
-let op_fload_2 t input = Stack.push t.opstack (Float (Localvar.get_float t.localvars 2))
-let op_fload_3 t input = Stack.push t.opstack (Float (Localvar.get_float t.localvars 3))
+let op_fload_0 t input = Stack.push t.opstack (Float (get_float t.localvars.(0)))
+let op_fload_1 t input = Stack.push t.opstack (Float (get_float t.localvars.(1)))
+let op_fload_2 t input = Stack.push t.opstack (Float (get_float t.localvars.(2)))
+let op_fload_3 t input = Stack.push t.opstack (Float (get_float t.localvars.(3)))
 
-let op_dload_0 t input = Stack.push t.opstack (Double (Localvar.get_double t.localvars 0))
-let op_dload_1 t input = Stack.push t.opstack (Double (Localvar.get_double t.localvars 1))
-let op_dload_2 t input = Stack.push t.opstack (Double (Localvar.get_double t.localvars 2))
-let op_dload_3 t input = Stack.push t.opstack (Double (Localvar.get_double t.localvars 3))
+let op_dload_0 t input = Stack.push t.opstack (Double (get_double t.localvars.(0)))
+let op_dload_1 t input = Stack.push t.opstack (Double (get_double t.localvars.(1)))
+let op_dload_2 t input = Stack.push t.opstack (Double (get_double t.localvars.(2)))
+let op_dload_3 t input = Stack.push t.opstack (Double (get_double t.localvars.(3)))
 
-let op_aload_0 t input = Stack.push t.opstack (Reference (Localvar.get_reference t.localvars 0))
-let op_aload_1 t input = Stack.push t.opstack (Reference (Localvar.get_reference t.localvars 1))
-let op_aload_2 t input = Stack.push t.opstack (Reference (Localvar.get_reference t.localvars 2))
-let op_aload_3 t input = Stack.push t.opstack (Reference (Localvar.get_reference t.localvars 3))
+let op_aload_0 t input = Stack.push t.opstack (Reference (get_reference t.localvars.(0)))
+let op_aload_1 t input = Stack.push t.opstack (Reference (get_reference t.localvars.(1)))
+let op_aload_2 t input = Stack.push t.opstack (Reference (get_reference t.localvars.(2)))
+let op_aload_3 t input = Stack.push t.opstack (Reference (get_reference t.localvars.(3)))
 
-let op_iaload t input = ()
-let op_laload t input = ()
-let op_faload t input = ()
-let op_daload t input = ()
-let op_aaload t input = ()
-let op_baload t input = ()
-let op_caload t input = ()
-let op_saload t input = ()
+let op_iaload t input =
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
+  let index = get_int @@ Stack.pop_exn t.opstack in
+  let value = get_int @@ Jobject.load arr index in
+  Stack.push t.opstack (Int value)
 
-let op_istore t input = ()
-let op_lstore t input = ()
-let op_fstore t input = ()
-let op_dstore t input = ()
-let op_astore t input = ()
+let op_laload t input =
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
+  let index = get_int @@ Stack.pop_exn t.opstack in
+  let value = get_long @@ Jobject.load arr index in
+  Stack.push t.opstack (Long value)
 
-let op_istore_0 t input = ()
-let op_istore_1 t input = ()
-let op_istore_2 t input = ()
-let op_istore_3 t input = ()
-let op_lstore_0 t input = ()
-let op_lstore_1 t input = ()
-let op_lstore_2 t input = ()
-let op_lstore_3 t input = ()
+let op_faload t input =
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
+  let index = get_int @@ Stack.pop_exn t.opstack in
+  let value = get_float @@ Jobject.load arr index in
+  Stack.push t.opstack (Float value)
 
-let op_fstore_0 t input = ()
-let op_fstore_1 t input = ()
-let op_fstore_2 t input = ()
-let op_fstore_3 t input = ()
+let op_daload t input =
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
+  let index = get_int @@ Stack.pop_exn t.opstack in
+  let value = get_double @@ Jobject.load arr index in
+  Stack.push t.opstack (Double value)
 
-let op_dstore_0 t input = ()
-let op_dstore_1 t input = ()
-let op_dstore_2 t input = ()
-let op_dstore_3 t input = ()
+let op_aaload t input =
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
+  let index = get_int @@ Stack.pop_exn t.opstack in
+  let value = get_reference @@ Jobject.load arr index in
+  Stack.push t.opstack (Reference value)
 
-let op_astore_0 t input = ()
-let op_astore_1 t input = ()
-let op_astore_2 t input = ()
-let op_astore_3 t input = ()
+let op_baload t input =
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
+  let index = get_int @@ Stack.pop_exn t.opstack in
+  let value = get_byte @@ Jobject.load arr index in
+  Stack.push t.opstack (Byte value)
 
-let op_iastore t input = ()
-let op_lastore t input = ()
-let op_fastore t input = ()
-let op_dastore t input = ()
-let op_aastore t input = ()
-let op_bastore t input = ()
-let op_castore t input = ()
-let op_sastore t input = ()
+let op_caload t input =
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
+  let index = get_int @@ Stack.pop_exn t.opstack in
+  let value = get_char @@ Jobject.load arr index in
+  Stack.push t.opstack (Char value)
+
+let op_saload t input =
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
+  let index = get_int @@ Stack.pop_exn t.opstack in
+  let value = get_short @@ Jobject.load arr index in
+  Stack.push t.opstack (Short value)
+
+let op_istore t input = t.localvars.(read_byte input) <- Int (get_int @@ Stack.pop_exn t.opstack)
+let op_lstore t input = t.localvars.(read_byte input) <- Long (get_long @@ Stack.pop_exn t.opstack)
+let op_fstore t input = t.localvars.(read_byte input) <- Float (get_float @@ Stack.pop_exn t.opstack)
+let op_dstore t input = t.localvars.(read_byte input) <- Double (get_double @@ Stack.pop_exn t.opstack)
+let op_astore t input = t.localvars.(read_byte input) <- Reference (get_reference @@ Stack.pop_exn t.opstack)
+
+let op_istore_0 t input = t.localvars.(0) <- Int (get_int @@ Stack.pop_exn t.opstack)
+let op_istore_1 t input = t.localvars.(1) <- Int (get_int @@ Stack.pop_exn t.opstack)
+let op_istore_2 t input = t.localvars.(2) <- Int (get_int @@ Stack.pop_exn t.opstack)
+let op_istore_3 t input = t.localvars.(3) <- Int (get_int @@ Stack.pop_exn t.opstack)
+
+let op_lstore_0 t input = t.localvars.(0) <- Long (get_long @@ Stack.pop_exn t.opstack)
+let op_lstore_1 t input = t.localvars.(1) <- Long (get_long @@ Stack.pop_exn t.opstack)
+let op_lstore_2 t input = t.localvars.(2) <- Long (get_long @@ Stack.pop_exn t.opstack)
+let op_lstore_3 t input = t.localvars.(3) <- Long (get_long @@ Stack.pop_exn t.opstack)
+
+let op_fstore_0 t input = t.localvars.(0) <- Float (get_float @@ Stack.pop_exn t.opstack)
+let op_fstore_1 t input = t.localvars.(1) <- Float (get_float @@ Stack.pop_exn t.opstack)
+let op_fstore_2 t input = t.localvars.(2) <- Float (get_float @@ Stack.pop_exn t.opstack)
+let op_fstore_3 t input = t.localvars.(3) <- Float (get_float @@ Stack.pop_exn t.opstack)
+
+let op_dstore_0 t input = t.localvars.(0) <- Double (get_double @@ Stack.pop_exn t.opstack)
+let op_dstore_1 t input = t.localvars.(1) <- Double (get_double @@ Stack.pop_exn t.opstack)
+let op_dstore_2 t input = t.localvars.(2) <- Double (get_double @@ Stack.pop_exn t.opstack)
+let op_dstore_3 t input = t.localvars.(3) <- Double (get_double @@ Stack.pop_exn t.opstack)
+
+let op_astore_0 t input = t.localvars.(0) <- Reference (get_reference @@ Stack.pop_exn t.opstack)
+let op_astore_1 t input = t.localvars.(1) <- Reference (get_reference @@ Stack.pop_exn t.opstack)
+let op_astore_2 t input = t.localvars.(2) <- Reference (get_reference @@ Stack.pop_exn t.opstack)
+let op_astore_3 t input = t.localvars.(3) <- Reference (get_reference @@ Stack.pop_exn t.opstack)
+
+let op_iastore t input =
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
+  let index = get_int @@ Stack.pop_exn t.opstack in
+  let value = Stack.pop_exn t.opstack in
+  Jobject.store arr index value
+
+let op_lastore t input = op_iastore t input
+let op_fastore t input = op_iastore t input
+let op_dastore t input = op_iastore t input
+let op_aastore t input = op_iastore t input
+let op_bastore t input = op_iastore t input
+let op_castore t input = op_iastore t input
+let op_sastore t input = op_iastore t input
 
 let op_pop t input = ()
 let op_pop2 t input = ()
@@ -276,10 +276,32 @@ let op_invokespecial t input = ()
 let op_invokestatic t input = ()
 let op_invokeinterface t input = ()
 let op_invokedynamic t input = ()
-let op_new t input = ()
-let op_newarray t input = ()
-let op_anewarray t input = ()
-let op_arraylength t input = ()
+
+let op_new t input =
+  let conspool = get_conspool t in
+  let index = read_ui16 input in
+  let jclass = Poolrt.get_class conspool index in
+  let obj = Jobject.create_obj jclass in
+  Stack.push t.opstack (Reference obj)
+
+let op_newarray t input =
+  let count = get_int @@ Stack.pop_exn t.opstack in
+  let arr = Jobject.create_arr count (read_byte input) in
+  Stack.push t.opstack (Reference arr)
+
+let op_anewarray t input =
+  let index = read_ui16 input in
+  let count = get_int @@ Stack.pop_exn t.opstack in
+  let conspool = get_conspool t in
+  let jclass = Poolrt.get_class conspool index in
+  let arr = Jobject.create_multi_arr jclass count in
+  Stack.push t.opstack (Reference arr)
+
+let op_arraylength t input =
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
+  let len = Jobject.get_array_length arr in
+  Stack.push t.opstack (Int len)
+
 let op_athrow t input = ()
 let op_checkcast t input = ()
 let op_instanceof t input = ()

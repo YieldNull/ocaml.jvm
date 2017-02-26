@@ -11,5 +11,5 @@ let () =
         let binary_name = String.drop_suffix entry.Zip.filename 6 in
         let _ = load_class loader binary_name in ()
     );
-  List.iter (Hashtbl.data loader.Loader.classes) ~f:(fun cls -> printf "%s\n" cls.Jclass.name);
+  List.iter (Hashtbl.data loader.InnLoader.classes) ~f:(fun cls -> printf "%s\n" cls.InnClass.name);
   Zip.close_in file
