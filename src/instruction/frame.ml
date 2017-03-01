@@ -84,50 +84,50 @@ let op_aload_2 t input = Stack.push t.opstack (Reference (get_reference t.localv
 let op_aload_3 t input = Stack.push t.opstack (Reference (get_reference t.localvars.(3)))
 
 let op_iaload t input =
-  let arr = get_reference @@ Stack.pop_exn t.opstack in
   let index = get_int @@ Stack.pop_exn t.opstack in
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
   let value = get_int @@ Jobject.load arr index in
   Stack.push t.opstack (Int value)
 
 let op_laload t input =
-  let arr = get_reference @@ Stack.pop_exn t.opstack in
   let index = get_int @@ Stack.pop_exn t.opstack in
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
   let value = get_long @@ Jobject.load arr index in
   Stack.push t.opstack (Long value)
 
 let op_faload t input =
-  let arr = get_reference @@ Stack.pop_exn t.opstack in
   let index = get_int @@ Stack.pop_exn t.opstack in
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
   let value = get_float @@ Jobject.load arr index in
   Stack.push t.opstack (Float value)
 
 let op_daload t input =
-  let arr = get_reference @@ Stack.pop_exn t.opstack in
   let index = get_int @@ Stack.pop_exn t.opstack in
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
   let value = get_double @@ Jobject.load arr index in
   Stack.push t.opstack (Double value)
 
 let op_aaload t input =
-  let arr = get_reference @@ Stack.pop_exn t.opstack in
   let index = get_int @@ Stack.pop_exn t.opstack in
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
   let value = get_reference @@ Jobject.load arr index in
   Stack.push t.opstack (Reference value)
 
 let op_baload t input =
-  let arr = get_reference @@ Stack.pop_exn t.opstack in
   let index = get_int @@ Stack.pop_exn t.opstack in
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
   let value = get_byte @@ Jobject.load arr index in
   Stack.push t.opstack (Byte value)
 
 let op_caload t input =
-  let arr = get_reference @@ Stack.pop_exn t.opstack in
   let index = get_int @@ Stack.pop_exn t.opstack in
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
   let value = get_char @@ Jobject.load arr index in
   Stack.push t.opstack (Char value)
 
 let op_saload t input =
-  let arr = get_reference @@ Stack.pop_exn t.opstack in
   let index = get_int @@ Stack.pop_exn t.opstack in
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
   let value = get_short @@ Jobject.load arr index in
   Stack.push t.opstack (Short value)
 
@@ -163,9 +163,9 @@ let op_astore_2 t input = t.localvars.(2) <- Reference (get_reference @@ Stack.p
 let op_astore_3 t input = t.localvars.(3) <- Reference (get_reference @@ Stack.pop_exn t.opstack)
 
 let op_iastore t input =
-  let arr = get_reference @@ Stack.pop_exn t.opstack in
-  let index = get_int @@ Stack.pop_exn t.opstack in
   let value = Stack.pop_exn t.opstack in
+  let index = get_int @@ Stack.pop_exn t.opstack in
+  let arr = get_reference @@ Stack.pop_exn t.opstack in
   Jobject.store arr index value
 
 let op_lastore t input = op_iastore t input
@@ -176,14 +176,135 @@ let op_bastore t input = op_iastore t input
 let op_castore t input = op_iastore t input
 let op_sastore t input = op_iastore t input
 
-let op_pop t input = ()
-let op_pop2 t input = ()
-let op_dup t input = ()
-let op_dup_x1 t input = ()
-let op_dup_x2 t input = ()
-let op_dup2 t input = ()
-let op_dup2_x1 t input = ()
-let op_dup2_x2 t input = ()
+let op_pop t input =
+  let value = Stack.pop_exn t.opstack in
+  match value with
+  | Long _ | Double _ -> raise VirtualMachineError
+  | _ -> ()
+
+let op_pop2 t input =
+  let value = Stack.pop_exn t.opstack in
+  match value with
+  | Long _ | Double _ -> ()
+  | _ -> op_pop t input
+
+let op_dup t input =
+  let value = Stack.top_exn t.opstack in
+  match value with
+  | Long _ | Double _ -> raise VirtualMachineError
+  | _ -> Stack.push t.opstack value
+
+let op_dup_x1 t input =
+  let value1 = Stack.pop_exn t.opstack in
+  match value1 with
+  | Long _ | Double _ -> raise VirtualMachineError
+  | _ -> let value2 = Stack.pop_exn t.opstack in
+    match value2 with
+    | Long _ | Double _ -> raise VirtualMachineError
+    | _ -> let _ = Stack.push t.opstack value1 in
+      Stack.push t.opstack value2;
+      Stack.push t.opstack value1
+
+let op_dup_x2 t input =
+  let value1 = Stack.pop_exn t.opstack in
+  match value1 with
+  | Long _ | Double _ -> raise VirtualMachineError
+  | _ -> let value2 = Stack.pop_exn t.opstack in
+    match value2 with
+    | Long _ | Double _ ->
+      Stack.push t.opstack value1;
+      Stack.push t.opstack value2;
+      Stack.push t.opstack value1;
+    | _ -> let value3 = Stack.pop_exn t.opstack in
+      match value3 with
+      | Long _ | Double _ -> raise VirtualMachineError
+      | _ ->
+        Stack.push t.opstack value1;
+        Stack.push t.opstack value3;
+        Stack.push t.opstack value2;
+        Stack.push t.opstack value1
+
+let op_dup2 t input =
+  let value1 = Stack.pop_exn t.opstack in
+  match value1 with
+  | Long _ | Double _ -> Stack.push t.opstack value1; Stack.push t.opstack value1
+  | _ -> let value2 = Stack.pop_exn t.opstack in
+    match value2 with
+    | Long _ | Double _ -> raise VirtualMachineError
+    | _ -> Stack.push t.opstack value2;
+      Stack.push t.opstack value1;
+      Stack.push t.opstack value2;
+      Stack.push t.opstack value1
+
+let op_dup2_x1 t input =
+  let value1 = Stack.pop_exn t.opstack in
+  match value1 with
+  | Long _ | Double _ -> begin
+      let value2 = Stack.pop_exn t.opstack in
+      match value2 with
+      | Long _ | Double _ -> raise VirtualMachineError
+      | _ -> Stack.push t.opstack value1;
+        Stack.push t.opstack value2;
+        Stack.push t.opstack value1
+    end
+  | _ -> let value2 = Stack.pop_exn t.opstack in
+    match value2 with
+    | Long _ | Double _ -> raise VirtualMachineError
+    | _ ->
+      let value3 = Stack.pop_exn t.opstack in
+      match value3 with
+      | Long _ | Double _ -> raise VirtualMachineError
+      | _ -> Stack.push t.opstack value2;
+        Stack.push t.opstack value1;
+        Stack.push t.opstack value3;
+        Stack.push t.opstack value2;
+        Stack.push t.opstack value1
+
+let op_dup2_x2 t input =
+  let value1 = Stack.pop_exn t.opstack in
+  match value1 with
+  | Long _ | Double _ -> begin
+      let value2 = Stack.pop_exn t.opstack in
+      match value2 with
+      | Long _ | Double _ -> (* Form 4 *)
+        Stack.push t.opstack value1;
+        Stack.push t.opstack value2;
+        Stack.push t.opstack value1
+      | _ -> begin (* Form 2 *)
+          let value3 = Stack.pop_exn t.opstack in
+          match value3 with
+          | Long _ | Double _ -> raise VirtualMachineError
+          | _ -> Stack.push t.opstack value1;
+            Stack.push t.opstack value3;
+            Stack.push t.opstack value2;
+            Stack.push t.opstack value1
+        end
+    end
+  | _ -> begin
+      let value2 = Stack.pop_exn t.opstack in
+      match value2 with
+      | Long _ | Double _ -> raise VirtualMachineError
+      | _ -> let value3 = Stack.pop_exn t.opstack in
+        match value3 with
+        | Long _ | Double _ -> (* Form 3 *)
+          Stack.push t.opstack value2;
+          Stack.push t.opstack value1;
+          Stack.push t.opstack value3;
+          Stack.push t.opstack value2;
+          Stack.push t.opstack value1
+        | _ -> begin (* Form 1 *)
+            let value4 = Stack.pop_exn t.opstack in
+            match value4 with
+            | Long _ | Double _ -> raise VirtualMachineError
+            | _ -> Stack.push t.opstack value2;
+              Stack.push t.opstack value1;
+              Stack.push t.opstack value4;
+              Stack.push t.opstack value3;
+              Stack.push t.opstack value2;
+              Stack.push t.opstack value1
+          end
+    end
+
 let op_swap t input = ()
 let op_iadd t input = ()
 let op_ladd t input = ()
@@ -294,7 +415,16 @@ let op_anewarray t input =
   let count = get_int @@ Stack.pop_exn t.opstack in
   let conspool = get_conspool t in
   let jclass = Poolrt.get_class conspool index in
-  let arr = Jobject.create_multi_arr jclass count in
+  let arr = Jobject.create_ref_arr jclass count in
+  Stack.push t.opstack (Reference arr)
+
+let op_multianewarray t input =
+  let index = read_ui16 input in
+  let dimensions = read_byte input in
+  let conspool = get_conspool t in
+  let jclass = Poolrt.get_class conspool index in
+  let lens = List.init dimensions ~f:(fun _ -> get_int @@ Stack.pop_exn t.opstack) in
+  let arr = Jobject.create_multi_arr jclass dimensions lens in
   Stack.push t.opstack (Reference arr)
 
 let op_arraylength t input =
@@ -308,7 +438,6 @@ let op_instanceof t input = ()
 let op_monitorenter t input = ()
 let op_monitorexit t input = ()
 let op_wide t input = ()
-let op_multianewarray t input = ()
 let op_ifnull t input = ()
 let op_ifnonnull t input = ()
 let op_goto_w t input = ()

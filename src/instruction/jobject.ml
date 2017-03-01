@@ -36,10 +36,27 @@ let create_arr len type_code =
   in
   Arr { jclass = None; values = Array.create ~len default }
 
-let create_multi_arr jclass len =
+let create_ref_arr jclass len =
   let len = Int32.to_int_exn len in
   if len < 0 then raise NegativeArraySizeException;
   Arr { jclass = Some jclass; values = Array.create ~len (Reference Null)}
+
+let rec create_multi_arr jclass dimensions lens =
+  if dimensions <= 0 then raise VirtualMachineError;
+  let len = Int32.to_int_exn (List.hd_exn lens) in
+  if len < 0 then raise NegativeArraySizeException;
+  if len > 0 then
+    let name = jclass.Jclass.name in
+    let subname = String.sub name ~pos:1 ~len:(String.length name - 1) in
+    let component = if dimensions > 1 then
+        let subclass = Classloader.load_class jclass.Jclass.loader subname in
+        Reference (create_multi_arr subclass (dimensions - 1) (List.tl_exn lens))
+      else
+        Jfield.default_value {MemberID.name = ""; MemberID.descriptor = subname}
+    in
+    Arr { jclass = Some jclass; values = Array.create ~len component }
+  else
+    Arr { jclass = Some jclass; values = Array.empty () }
 
 let get_arr_exn obj =
   match obj with
