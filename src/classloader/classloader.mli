@@ -1,6 +1,5 @@
 open Core.Std
 open Accflag
-open Float32
 
 module rec InnClass : sig
   type t =
@@ -43,9 +42,9 @@ and InnPoolrt : sig
   type entry =
     | Utf8 of string
     | Integer of int32
-    | Float of float32
+    | Float of Float32.t
     | Long of int64
-    | Double of float64
+    | Double of float
     | Class of InnClass.t
     | String of string
     | Fieldref of InnField.t
@@ -65,9 +64,9 @@ and InnValue : sig
     | Short of int
     | Char of int
     | Int of int32
-    | Float of float32
+    | Float of Float32.t
     | Long of int64
-    | Double of float64
+    | Double of float
     | Boolean of bool
     | Reference of InnObject.t
     | ReturnAddress

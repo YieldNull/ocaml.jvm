@@ -1,5 +1,4 @@
 open Core.Std
-open Float32
 open VMError
 open Accflag
 open Jvalue
@@ -26,7 +25,7 @@ let create_arr len type_code =
   let default = match type_code with
     | 4 -> Boolean false
     | 5 -> Char 0
-    | 6 -> Float 0.0
+    | 6 -> Float Float32.zero
     | 7 -> Double 0.0
     | 8 -> Byte 0
     | 9 -> Short 0

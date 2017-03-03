@@ -1,7 +1,7 @@
 type elt =
   | Utf8                of string
   | Integer             of int32
-  | Float               of float
+  | Float               of Float32.t
   | Long                of int64
   | Double              of float
   | Class               of int (* utf8_index *)

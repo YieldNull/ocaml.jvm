@@ -1,7 +1,6 @@
 open VMError
 open Core.Std
 open Accflag
-open Float32
 
 let major_version = 52
 
@@ -158,7 +157,7 @@ end = struct
     | Descriptor.Short -> InnValue.Short 0
     | Descriptor.Char -> InnValue.Char 0
     | Descriptor.Int -> InnValue.Int Int32.zero
-    | Descriptor.Float -> InnValue.Float 0.
+    | Descriptor.Float -> InnValue.Float Float32.zero
     | Descriptor.Long -> InnValue.Long Int64.zero
     | Descriptor.Double -> InnValue.Double 0.
     | Descriptor.Boolean -> InnValue.Boolean false
@@ -226,7 +225,7 @@ and InnPoolrt : sig
   type entry =
     | Utf8 of string
     | Integer of int32
-    | Float of float
+    | Float of Float32.t
     | Long of int64
     | Double of float
     | Class of InnClass.t
@@ -245,7 +244,7 @@ end = struct
   type entry =
     | Utf8 of string
     | Integer of int32
-    | Float of float
+    | Float of Float32.t
     | Long of int64
     | Double of float
     | Class of InnClass.t
@@ -267,9 +266,9 @@ and InnValue : sig
     | Short of int
     | Char of int
     | Int of int32
-    | Float of float32
+    | Float of Float32.t
     | Long of int64
-    | Double of float64
+    | Double of float
     | Boolean of bool
     | Reference of InnObject.t
     | ReturnAddress
@@ -279,9 +278,9 @@ end = struct
     | Short of int
     | Char of int
     | Int of int32
-    | Float of float32
+    | Float of Float32.t
     | Long of int64
-    | Double of float64
+    | Double of float
     | Boolean of bool
     | Reference of InnObject.t
     | ReturnAddress

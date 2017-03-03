@@ -3,7 +3,6 @@ open Attribute
 open BatIO
 open BatIO.BigEndian
 open VMError
-open Float32
 open Jvalue
 
 type t =
@@ -39,9 +38,9 @@ let op_iconst_5 t input = Stack.push t.opstack (Int (Int32.of_int_exn 5))
 
 let op_lconst_0 t input = Stack.push t.opstack (Long (Int64.of_int 0))
 let op_lconst_1 t input = Stack.push t.opstack (Long (Int64.of_int 1))
-let op_fconst_0 t input = Stack.push t.opstack (Float 0.0)
-let op_fconst_1 t input = Stack.push t.opstack (Float 1.0)
-let op_fconst_2 t input = Stack.push t.opstack (Float 2.0)
+let op_fconst_0 t input = Stack.push t.opstack (Float Float32.zero)
+let op_fconst_1 t input = Stack.push t.opstack (Float Float32.one)
+let op_fconst_2 t input = Stack.push t.opstack (Float (Float32.add Float32.one Float32.one))
 let op_dconst_0 t input = Stack.push t.opstack (Double 0.0)
 let op_dconst_1 t input = Stack.push t.opstack (Double 1.0)
 
@@ -305,70 +304,263 @@ let op_dup2_x2 t input =
           end
     end
 
-let op_swap t input = ()
-let op_iadd t input = ()
-let op_ladd t input = ()
-let op_fadd t input = ()
-let op_dadd t input = ()
-let op_isub t input = ()
-let op_lsub t input = ()
-let op_fsub t input = ()
-let op_dsub t input = ()
-let op_imul t input = ()
-let op_lmul t input = ()
-let op_fmul t input = ()
-let op_dmul t input = ()
-let op_idiv t input = ()
-let op_ldiv t input = ()
-let op_fdiv t input = ()
-let op_ddiv t input = ()
-let op_irem t input = ()
-let op_lrem t input = ()
-let op_frem t input = ()
-let op_drem t input = ()
-let op_ineg t input = ()
-let op_lneg t input = ()
-let op_fneg t input = ()
-let op_dneg t input = ()
-let op_ishl t input = ()
-let op_lshl t input = ()
-let op_ishr t input = ()
-let op_lshr t input = ()
-let op_iushr t input = ()
-let op_lushr t input = ()
-let op_iand t input = ()
-let op_land t input = ()
-let op_ior t input = ()
-let op_lor t input = ()
-let op_ixor t input = ()
-let op_lxor t input = ()
+let op_swap t input =
+  let value1 = Stack.pop_exn t.opstack in
+  match value1 with
+  | Long _ | Double _ -> raise VirtualMachineError
+  | _ -> let value2 = Stack.pop_exn t.opstack in
+    match value2 with
+    | Long _ | Double _ -> raise VirtualMachineError
+    | _ -> Stack.push t.opstack value1;
+      Stack.push t.opstack value2
+
+let op_iadd t input =
+  let value2 = get_int @@ Stack.pop_exn t.opstack in
+  let value1 = get_int @@ Stack.pop_exn t.opstack in
+  let sum = Caml.Int32.add value1 value2 in
+  Stack.push t.opstack (Int sum)
+
+let op_ladd t input =
+  let value2 = get_long @@ Stack.pop_exn t.opstack in
+  let value1 = get_long @@ Stack.pop_exn t.opstack in
+  let sum = Caml.Int64.add value1 value2 in
+  Stack.push t.opstack (Long sum)
+
+let op_fadd t input =
+  let value2 = get_float @@ Stack.pop_exn t.opstack in
+  let value1 = get_float @@ Stack.pop_exn t.opstack in
+  let sum = Float32.add value1 value2 in
+  Stack.push t.opstack (Float sum)
+
+let op_dadd t input =
+  let value2 = get_double @@ Stack.pop_exn t.opstack in
+  let value1 = get_double @@ Stack.pop_exn t.opstack in
+  let sum = value1 +. value2 in
+  Stack.push t.opstack (Double sum)
+
+let op_isub t input =
+  let value2 = get_int @@ Stack.pop_exn t.opstack in
+  let value1 = get_int @@ Stack.pop_exn t.opstack in
+  let sub = Caml.Int32.sub value1 value2 in
+  Stack.push t.opstack (Int sub)
+
+let op_lsub t input =
+  let value2 = get_long @@ Stack.pop_exn t.opstack in
+  let value1 = get_long @@ Stack.pop_exn t.opstack in
+  let sub = Caml.Int64.sub value1 value2 in
+  Stack.push t.opstack (Long sub)
+
+let op_fsub t input =
+  let value2 = get_float @@ Stack.pop_exn t.opstack in
+  let value1 = get_float @@ Stack.pop_exn t.opstack in
+  let sub = Float32.sub value1 value2 in
+  Stack.push t.opstack (Float sub)
+
+let op_dsub t input =
+  let value2 = get_double @@ Stack.pop_exn t.opstack in
+  let value1 = get_double @@ Stack.pop_exn t.opstack in
+  let sub = value1 -. value2 in
+  Stack.push t.opstack (Double sub)
+
+let op_imul t input =
+  let value2 = get_int @@ Stack.pop_exn t.opstack in
+  let value1 = get_int @@ Stack.pop_exn t.opstack in
+  let sub = Caml.Int32.mul value1 value2 in
+  Stack.push t.opstack (Int sub)
+
+let op_lmul t input =
+  let value2 = get_long @@ Stack.pop_exn t.opstack in
+  let value1 = get_long @@ Stack.pop_exn t.opstack in
+  let sub = Caml.Int64.mul value1 value2 in
+  Stack.push t.opstack (Long sub)
+
+let op_fmul t input =
+  let value2 = get_float @@ Stack.pop_exn t.opstack in
+  let value1 = get_float @@ Stack.pop_exn t.opstack in
+  let sub = Float32.mul value1 value2 in
+  Stack.push t.opstack (Float sub)
+
+let op_dmul t input =
+  let value2 = get_double @@ Stack.pop_exn t.opstack in
+  let value1 = get_double @@ Stack.pop_exn t.opstack in
+  let sub = value1 *. value2 in
+  Stack.push t.opstack (Double sub)
+
+let op_idiv t input =
+  let value2 = get_int @@ Stack.pop_exn t.opstack in
+  let value1 = get_int @@ Stack.pop_exn t.opstack in
+  if Int32.equal value2 0l then raise ArithmeticException;
+  let sub = Caml.Int32.div value1 value2 in
+  Stack.push t.opstack (Int sub)
+
+let op_ldiv t input =
+  let value2 = get_long @@ Stack.pop_exn t.opstack in
+  let value1 = get_long @@ Stack.pop_exn t.opstack in
+  if Int64.equal value2 0L then raise ArithmeticException;
+  let sub = Caml.Int64.div value1 value2 in
+  Stack.push t.opstack (Long sub)
+
+let op_fdiv t input =
+  let value2 = get_float @@ Stack.pop_exn t.opstack in
+  let value1 = get_float @@ Stack.pop_exn t.opstack in
+  if Float32.equal value2 Float32.zero then raise ArithmeticException;
+  let sub = Float32.div value1 value2 in
+  Stack.push t.opstack (Float sub)
+
+let op_ddiv t input =
+  let value2 = get_double @@ Stack.pop_exn t.opstack in
+  let value1 = get_double @@ Stack.pop_exn t.opstack in
+  if value2 = 0. then raise ArithmeticException;
+  let sub = value1 /. value2 in
+  Stack.push t.opstack (Double sub)
+
+let op_irem t input =
+  let value2 = get_int @@ Stack.pop_exn t.opstack in
+  let value1 = get_int @@ Stack.pop_exn t.opstack in
+  let rem = Caml.Int32.rem value1 value2 in
+  Stack.push t.opstack (Int rem)
+
+let op_lrem t input =
+  let value2 = get_long @@ Stack.pop_exn t.opstack in
+  let value1 = get_long @@ Stack.pop_exn t.opstack in
+  let rem = Caml.Int64.rem value1 value2 in
+  Stack.push t.opstack (Long rem)
+
+let op_frem t input =
+  let value2 = get_float @@ Stack.pop_exn t.opstack in
+  let value1 = get_float @@ Stack.pop_exn t.opstack in
+  let rem = Float32.rem value1 value2 in
+  Stack.push t.opstack (Float rem)
+
+let op_drem t input =
+  let value2 = get_double @@ Stack.pop_exn t.opstack in
+  let value1 = get_double @@ Stack.pop_exn t.opstack in
+  let rem = Float.mod_float value1 value2 in
+  Stack.push t.opstack (Double rem)
+
+let op_ineg t input =
+  let value = get_int @@ Stack.pop_exn t.opstack in
+  Stack.push t.opstack (Int (Int32.neg value))
+
+let op_lneg t input =
+  let value = get_long @@ Stack.pop_exn t.opstack in
+  Stack.push t.opstack (Long (Int64.neg value))
+
+let op_fneg t input =
+  let value = get_float @@ Stack.pop_exn t.opstack in
+  Stack.push t.opstack (Float (Float32.neg value))
+
+let op_dneg t input =
+  let value = get_double @@ Stack.pop_exn t.opstack in
+  Stack.push t.opstack (Double (-. value))
+
+let op_ishl t input =
+  let value2 = get_int @@ Stack.pop_exn t.opstack in
+  let value1 = get_int @@ Stack.pop_exn t.opstack in
+  let shl = Int32.shift_left value1 (Caml.Int32.to_int value2) in
+  Stack.push t.opstack (Int shl)
+
+let op_lshl t input =
+  let value2 = get_long @@ Stack.pop_exn t.opstack in
+  let value1 = get_long @@ Stack.pop_exn t.opstack in
+  let shl = Int64.shift_left value1 (Caml.Int64.to_int value2) in
+  Stack.push t.opstack (Long shl)
+
+let op_ishr t input =
+  let value2 = get_int @@ Stack.pop_exn t.opstack in
+  let value1 = get_int @@ Stack.pop_exn t.opstack in
+  let shl = Int32.shift_right  value1 (Caml.Int32.to_int value2) in
+  Stack.push t.opstack (Int shl)
+
+let op_lshr t input =
+  let value2 = get_long @@ Stack.pop_exn t.opstack in
+  let value1 = get_long @@ Stack.pop_exn t.opstack in
+  let shl = Int64.shift_right value1 (Caml.Int64.to_int value2) in
+  Stack.push t.opstack (Long shl)
+
+let op_iushr t input =
+  let value2 = get_int @@ Stack.pop_exn t.opstack in
+  let value1 = get_int @@ Stack.pop_exn t.opstack in
+  let shl = Int32.shift_right_logical value1 (Caml.Int32.to_int value2) in
+  Stack.push t.opstack (Int shl)
+
+let op_lushr t input =
+  let value2 = get_long @@ Stack.pop_exn t.opstack in
+  let value1 = get_long @@ Stack.pop_exn t.opstack in
+  let shl = Int64.shift_right_logical value1 (Caml.Int64.to_int value2) in
+  Stack.push t.opstack (Long shl)
+
+let op_iand t input =
+  let value2 = get_int @@ Stack.pop_exn t.opstack in
+  let value1 = get_int @@ Stack.pop_exn t.opstack in
+  let result = Caml.Int32.logand value1 value2 in
+  Stack.push t.opstack (Int result)
+
+let op_land t input =
+  let value2 = get_long @@ Stack.pop_exn t.opstack in
+  let value1 = get_long @@ Stack.pop_exn t.opstack in
+  let result = Caml.Int64.logand value1 value2 in
+  Stack.push t.opstack (Long result)
+
+let op_ior t input =
+  let value2 = get_int @@ Stack.pop_exn t.opstack in
+  let value1 = get_int @@ Stack.pop_exn t.opstack in
+  let result = Caml.Int32.logor value1 value2 in
+  Stack.push t.opstack (Int result)
+
+let op_lor t input =
+  let value2 = get_long @@ Stack.pop_exn t.opstack in
+  let value1 = get_long @@ Stack.pop_exn t.opstack in
+  let result = Caml.Int64.logor value1 value2 in
+  Stack.push t.opstack (Long result)
+
+let op_ixor t input =
+  let value2 = get_int @@ Stack.pop_exn t.opstack in
+  let value1 = get_int @@ Stack.pop_exn t.opstack in
+  let result = Caml.Int32.logxor value1 value2 in
+  Stack.push t.opstack (Int result)
+
+let op_lxor t input =
+  let value2 = get_long @@ Stack.pop_exn t.opstack in
+  let value1 = get_long @@ Stack.pop_exn t.opstack in
+  let result = Caml.Int64.logxor value1 value2 in
+  Stack.push t.opstack (Long result)
+
 let op_iinc t input = ()
+
 let op_i2l t input = ()
 let op_i2f t input = ()
 let op_i2d t input = ()
+
 let op_l2i t input = ()
 let op_l2f t input = ()
 let op_l2d t input = ()
+
 let op_f2i t input = ()
 let op_f2l t input = ()
 let op_f2d t input = ()
+
 let op_d2i t input = ()
 let op_d2l t input = ()
 let op_d2f t input = ()
+
 let op_i2b t input = ()
 let op_i2c t input = ()
 let op_i2s t input = ()
+
 let op_lcmp t input = ()
 let op_fcmpl t input = ()
 let op_fcmpg t input = ()
 let op_dcmpl t input = ()
 let op_dcmpg t input = ()
+
 let op_ifeq t input = ()
 let op_ifne t input = ()
 let op_iflt t input = ()
 let op_ifge t input = ()
 let op_ifgt t input = ()
 let op_ifle t input = ()
+
 let op_if_icmpeq t input = ()
 let op_if_icmpne t input = ()
 let op_if_icmplt t input = ()
@@ -377,21 +569,25 @@ let op_if_icmpgt t input = ()
 let op_if_icmple t input = ()
 let op_if_acmpeq t input = ()
 let op_if_acmpne t input = ()
+
 let op_goto t input = ()
 let op_jsr t input = ()
 let op_ret t input = ()
 let op_tableswitch t input = ()
 let op_lookupswitch t input = ()
+
 let op_ireturn t input = ()
 let op_lreturn t input = ()
 let op_freturn t input = ()
 let op_dreturn t input = ()
 let op_areturn t input = ()
 let op_return t input = ()
+
 let op_getstatic t input = ()
 let op_putstatic t input = ()
 let op_getfield t input = ()
 let op_putfield t input = ()
+
 let op_invokevirtual t input = ()
 let op_invokespecial t input = ()
 let op_invokestatic t input = ()
