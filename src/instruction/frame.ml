@@ -28,13 +28,13 @@ let get_conspool t = Jclass.conspool @@ Jmethod.get_class t.jmethod
 let op_nop t input = ()
 let op_aconst_null t input = Stack.push t.opstack (Reference Jobject.Null)
 
-let op_iconst_m1 t input = Stack.push t.opstack (Int (Int32.of_int_exn (-1)))
-let op_iconst_0 t input = Stack.push t.opstack (Int (Int32.of_int_exn 0))
-let op_iconst_1 t input = Stack.push t.opstack (Int (Int32.of_int_exn 1))
-let op_iconst_2 t input = Stack.push t.opstack (Int (Int32.of_int_exn 2))
-let op_iconst_3 t input = Stack.push t.opstack (Int (Int32.of_int_exn 3))
-let op_iconst_4 t input = Stack.push t.opstack (Int (Int32.of_int_exn 4))
-let op_iconst_5 t input = Stack.push t.opstack (Int (Int32.of_int_exn 5))
+let op_iconst_m1 t input = Stack.push t.opstack (Int (Caml.Int32.of_int (-1)))
+let op_iconst_0 t input = Stack.push t.opstack (Int (Caml.Int32.of_int 0))
+let op_iconst_1 t input = Stack.push t.opstack (Int (Caml.Int32.of_int 1))
+let op_iconst_2 t input = Stack.push t.opstack (Int (Caml.Int32.of_int 2))
+let op_iconst_3 t input = Stack.push t.opstack (Int (Caml.Int32.of_int 3))
+let op_iconst_4 t input = Stack.push t.opstack (Int (Caml.Int32.of_int 4))
+let op_iconst_5 t input = Stack.push t.opstack (Int (Caml.Int32.of_int 5))
 
 let op_lconst_0 t input = Stack.push t.opstack (Long (Int64.of_int 0))
 let op_lconst_1 t input = Stack.push t.opstack (Long (Int64.of_int 1))
@@ -44,8 +44,8 @@ let op_fconst_2 t input = Stack.push t.opstack (Float (Float32.add Float32.one F
 let op_dconst_0 t input = Stack.push t.opstack (Double 0.0)
 let op_dconst_1 t input = Stack.push t.opstack (Double 1.0)
 
-let op_bipush t input = Stack.push t.opstack (Int (Int32.of_int_exn @@ read_byte input))
-let op_sipush t input = Stack.push t.opstack (Int (Int32.of_int_exn @@ read_i16 input))
+let op_bipush t input = Stack.push t.opstack (Int (Caml.Int32.of_int @@ read_byte input))
+let op_sipush t input = Stack.push t.opstack (Int (Caml.Int32.of_int @@ read_i16 input))
 
 let op_ldc t input = ()
 let op_ldc_w t input = ()
@@ -526,27 +526,92 @@ let op_lxor t input =
   let result = Caml.Int64.logxor value1 value2 in
   Stack.push t.opstack (Long result)
 
-let op_iinc t input = ()
+let op_iinc t input =
+  let index = read_byte input in
+  let value = get_int t.localvars.(index) in
+  let incre = Caml.Int32.of_int (read_signed_byte input) in
+  t.localvars.(index) <- Int (Caml.Int32.add value incre)
 
-let op_i2l t input = ()
-let op_i2f t input = ()
-let op_i2d t input = ()
+let op_i2l t input =
+  let value = get_int @@ Stack.pop_exn t.opstack in
+  let result = Caml.Int64.of_int32 value in
+  Stack.push t.opstack (Long result)
 
-let op_l2i t input = ()
-let op_l2f t input = ()
-let op_l2d t input = ()
+let op_i2f t input =
+  let value = get_int @@ Stack.pop_exn t.opstack in
+  let result = Float32.of_int32 value in
+  Stack.push t.opstack (Float result)
 
-let op_f2i t input = ()
-let op_f2l t input = ()
-let op_f2d t input = ()
+let op_i2d t input =
+  let value = get_int @@ Stack.pop_exn t.opstack in
+  let result = Caml.Int32.to_float value in
+  Stack.push t.opstack (Double result)
 
-let op_d2i t input = ()
-let op_d2l t input = ()
-let op_d2f t input = ()
+let op_l2i t input =
+  let value = get_long @@ Stack.pop_exn t.opstack in
+  let result = Caml.Int64.to_int32 value in
+  Stack.push t.opstack (Int result)
 
-let op_i2b t input = ()
-let op_i2c t input = ()
-let op_i2s t input = ()
+let op_l2f t input =
+  let value = get_long @@ Stack.pop_exn t.opstack in
+  let result = Float32.of_int64 value in
+  Stack.push t.opstack (Float result)
+
+let op_l2d t input =
+  let value = get_long @@ Stack.pop_exn t.opstack in
+  let result = Caml.Int64.to_float value in
+  Stack.push t.opstack (Double result)
+
+let op_f2i t input =
+  let value = get_float @@ Stack.pop_exn t.opstack in
+  let result = Float32.to_int32 value in
+  Stack.push t.opstack (Int result)
+
+let op_f2l t input =
+  let value = get_float @@ Stack.pop_exn t.opstack in
+  let result = Float32.to_int64 value in
+  Stack.push t.opstack (Long result)
+
+let op_f2d t input =
+  let value = get_float @@ Stack.pop_exn t.opstack in
+  let result = Float32.to_float64 value in
+  Stack.push t.opstack (Double result)
+
+let op_d2i t input =
+  let value = get_double @@ Stack.pop_exn t.opstack in
+  let result = Caml.Int32.of_float value in
+  Stack.push t.opstack (Int result)
+
+let op_d2l t input =
+  let value = get_double @@ Stack.pop_exn t.opstack in
+  let result = Caml.Int64.of_float value in
+  Stack.push t.opstack (Long result)
+
+let op_d2f t input =
+  let value = get_double @@ Stack.pop_exn t.opstack in
+  let result = Float32.of_float64 value in
+  Stack.push t.opstack (Float result)
+
+let op_i2b t input =
+  let value = get_int @@ Stack.pop_exn t.opstack in
+  let byte = Caml.Int32.logand 0xffl value in
+  let result = if Caml.Int32.equal (Caml.Int32.logand 0x80l byte) 0l
+    then byte else Caml.Int32.add 0xffffff00l byte
+  in
+  Stack.push t.opstack (Int result)
+
+let op_i2c t input =
+  let value = get_int @@ Stack.pop_exn t.opstack in
+  let result = Caml.Int32.logand 0xffl value in
+  Stack.push t.opstack (Int result)
+
+let op_i2s t input =
+  let value = get_int @@ Stack.pop_exn t.opstack in
+  let byte = Caml.Int32.logand 0xffffl value in
+  let result = if Caml.Int32.equal (Caml.Int32.logand 0x8000l byte) 0l
+    then byte else Caml.Int32.add 0xffff0000l byte
+  in
+  Stack.push t.opstack (Int result)
 
 let op_lcmp t input = ()
 let op_fcmpl t input = ()

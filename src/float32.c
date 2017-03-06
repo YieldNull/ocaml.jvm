@@ -29,18 +29,39 @@ float Float_val (value v) {
 	return *((float *) &Field(v, 0));
 }
 
-float float_of_bits(int32_t i) {
-  union { float f; int32_t i; } u;
-  u.i = i;
-  return u.f;
+value float32_bits_of_int32 (value v) {
+	union { float f; int32_t i; } u;
+  u.i = Int32_val(v);
+
+	return copy_float(u.f);
 }
 
 value float32_of_int32 (value v) {
-  float f = float_of_bits(Int32_val(v));
-	return copy_float(f);
+	int32_t int32 = Int32_val(v);
+	return copy_float((float) int32);
 }
 
-value float32_to_double (value v) {
+value float32_of_int64 (value v) {
+	int64_t int64 = Int64_val(v);
+	return copy_float((float) int64);
+}
+
+value float32_of_float64 (value v) {
+	double float64 = Double_val(v);
+	return copy_float((float) float64);
+}
+
+value float32_to_int32 (value v) {
+	float f = Float_val(v);
+	return copy_int32((int32_t) f);
+}
+
+value float32_to_int64 (value v) {
+	float f = Float_val(v);
+	return copy_int64((int64_t) f);
+}
+
+value float32_to_float64 (value v) {
 	return copy_double((double) Float_val(v));
 }
 

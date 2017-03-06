@@ -7,7 +7,7 @@ let () =
       let msg = match entry with
         | Utf8 str -> "Utf8: " ^ str
         | Integer i -> "Integer: " ^ Int32.to_string i
-        | Float f -> "Float: " ^ string_of_float (Float32.to_double f)
+        | Float f -> "Float: " ^ string_of_float (Float32.to_float64 f)
         | Long l -> "Long: " ^ Int64.to_string l
         | Double d -> "Double: " ^ string_of_float d
         | Class i -> "Class: " ^ string_of_int i
