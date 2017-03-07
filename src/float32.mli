@@ -9,6 +9,9 @@ external rem : float32 -> float32 -> float32 = "float32_rem"
 external equal : float32 -> float32 -> bool = "float32_equal"
 external neg : float32 -> float32 = "float32_neg"
 
+external is_nan : float32 -> bool = "float32_is_nan"
+external compare : float32 -> float32 -> int32 = "float32_compare"
+
 external to_int32 : float32 -> int32 = "float32_to_int32"
 external to_int64 : float32 -> int64 = "float32_to_int64"
 external to_float64 : float32 -> float = "float32_to_float64"

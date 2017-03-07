@@ -613,11 +613,48 @@ let op_i2s t input =
   in
   Stack.push t.opstack (Int result)
 
-let op_lcmp t input = ()
-let op_fcmpl t input = ()
-let op_fcmpg t input = ()
-let op_dcmpl t input = ()
-let op_dcmpg t input = ()
+let op_lcmp t input =
+  let value2 = get_long @@ Stack.pop_exn t.opstack in
+  let value1 = get_long @@ Stack.pop_exn t.opstack in
+  let result = Int64.compare value1 value2 in
+  let cmp = if result > 0 then 1l else if result < 0 then -1l else 0l in
+  Stack.push t.opstack (Int cmp)
+
+let op_fcmpl t input =
+  let value2 = get_float @@ Stack.pop_exn t.opstack in
+  let value1 = get_float @@ Stack.pop_exn t.opstack in
+  if Float32.is_nan value1 || Float32.is_nan value2 then
+    Stack.push t.opstack (Int (-1l))
+  else
+    Stack.push t.opstack (Int (Float32.compare value1 value2))
+
+let op_fcmpg t input =
+  let value2 = get_float @@ Stack.pop_exn t.opstack in
+  let value1 = get_float @@ Stack.pop_exn t.opstack in
+  if Float32.is_nan value1 || Float32.is_nan value2 then
+    Stack.push t.opstack (Int 1l)
+  else
+    Stack.push t.opstack (Int (Float32.compare value1 value2))
+
+let op_dcmpl t input =
+  let value2 = get_double @@ Stack.pop_exn t.opstack in
+  let value1 = get_double @@ Stack.pop_exn t.opstack in
+  if Float.is_nan value1 || Float.is_nan value2 then
+    Stack.push t.opstack (Int (-1l))
+  else
+    let result = compare value1 value2 in
+    let cmp = if result > 0 then 1l else if result < 0 then -1l else 0l in
+    Stack.push t.opstack (Int cmp)
+
+let op_dcmpg t input =
+  let value2 = get_double @@ Stack.pop_exn t.opstack in
+  let value1 = get_double @@ Stack.pop_exn t.opstack in
+  if Float.is_nan value1 || Float.is_nan value2 then
+    Stack.push t.opstack (Int 1l)
+  else
+    let result = compare value1 value2 in
+    let cmp = if result > 0 then 1l else if result < 0 then -1l else 0l in
+    Stack.push t.opstack (Int cmp)
 
 let op_ifeq t input = ()
 let op_ifne t input = ()

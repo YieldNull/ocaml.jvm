@@ -107,9 +107,22 @@ value float32_rem (value v1, value v2) {
 value float32_equal (value v1, value v2) {
 	float val1 = Float_val(v1);
 	float val2 = Float_val(v2);
-	return Bool_val(val1==val2);
+	return Val_bool(val1==val2);
 }
 
 value float32_neg (value v) {
 	return copy_float(- Float_val(v));
+}
+
+value float32_is_nan (value v) {
+	return Val_bool(isnan(Float_val(v)));
+}
+
+value float32_compare (value v1, value v2) {
+	float val1 = Float_val(v1);
+	float val2 = Float_val(v2);
+
+	int result = val1 > val2 ? 1 :
+							 val1 < val2 ? -1 : 0;
+	return copy_int32(result);
 }
