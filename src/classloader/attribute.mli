@@ -284,7 +284,7 @@ module Code : sig
 
   type t = { max_stack : int;
              max_locals : int;
-             code : string;
+             code : char array;
              exn_table : code_exn list;
              attributes : AttrCode.t list;
            }

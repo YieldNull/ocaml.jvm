@@ -2,6 +2,9 @@ open VMError
 include Classloader.InnPoolrt
 
 
+let get poolrt index =
+  poolrt.(index)
+
 let get_class poolrt index =
   match poolrt.(index) with
   | Class x -> x
