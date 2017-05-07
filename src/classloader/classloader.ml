@@ -137,7 +137,7 @@ end
 and InnField : sig
   type t =
     { jclass        : InnClass.t;
-      mid         : MemberID.t;
+      mid           : MemberID.t;
       access_flags  : int;
       attrs         : Attribute.AttrField.t list;
     }
@@ -146,7 +146,7 @@ and InnField : sig
 end = struct
   type t =
     { jclass        : InnClass.t;
-      mid         : MemberID.t;
+      mid           : MemberID.t;
       access_flags  : int;
       attrs         : Attribute.AttrField.t list;
     }
@@ -372,7 +372,8 @@ let rec load_from_bytecode loader binary_name =
     let descriptor = Poolbc.get_utf8 pool field.descriptor_index in
     let attrs = field.attributes in
     let open! InnField in
-    { jclass ; mid = { MemberID.name = name; MemberID.descriptor = descriptor};
+    { jclass;
+      mid = { MemberID.name = name; MemberID.descriptor = descriptor};
       access_flags; attrs;
     }
   in

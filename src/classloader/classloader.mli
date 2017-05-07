@@ -18,7 +18,7 @@ end
 and InnField: sig
   type t =
     { jclass        : InnClass.t;
-      mid         : MemberID.t;
+      mid           : MemberID.t;
       access_flags  : int;
       attrs         : Attribute.AttrField.t list;
     }
@@ -27,7 +27,7 @@ end
 and InnMethod : sig
   type t =
     { jclass        : InnClass.t;
-      mid         : MemberID.t;
+      mid           : MemberID.t;
       access_flags  : int;
       attrs         : Attribute.AttrMethod.t list;
     }

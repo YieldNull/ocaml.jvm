@@ -36,47 +36,47 @@ let op_aload_3 frame = Stack.push frame.opstack (Reference (get_reference frame.
 let op_iaload frame =
   let index = get_int @@ Stack.pop_exn frame.opstack in
   let arr = get_reference @@ Stack.pop_exn frame.opstack in
-  let value = get_int @@ Jobject.load arr index in
+  let value = get_int @@ Jarray.load arr index in
   Stack.push frame.opstack (Int value)
 
 let op_laload frame =
   let index = get_int @@ Stack.pop_exn frame.opstack in
   let arr = get_reference @@ Stack.pop_exn frame.opstack in
-  let value = get_long @@ Jobject.load arr index in
+  let value = get_long @@ Jarray.load arr index in
   Stack.push frame.opstack (Long value)
 
 let op_faload frame =
   let index = get_int @@ Stack.pop_exn frame.opstack in
   let arr = get_reference @@ Stack.pop_exn frame.opstack in
-  let value = get_float @@ Jobject.load arr index in
+  let value = get_float @@ Jarray.load arr index in
   Stack.push frame.opstack (Float value)
 
 let op_daload frame =
   let index = get_int @@ Stack.pop_exn frame.opstack in
   let arr = get_reference @@ Stack.pop_exn frame.opstack in
-  let value = get_double @@ Jobject.load arr index in
+  let value = get_double @@ Jarray.load arr index in
   Stack.push frame.opstack (Double value)
 
 let op_aaload frame =
   let index = get_int @@ Stack.pop_exn frame.opstack in
   let arr = get_reference @@ Stack.pop_exn frame.opstack in
-  let value = get_reference @@ Jobject.load arr index in
+  let value = get_reference @@ Jarray.load arr index in
   Stack.push frame.opstack (Reference value)
 
 let op_baload frame =
   let index = get_int @@ Stack.pop_exn frame.opstack in
   let arr = get_reference @@ Stack.pop_exn frame.opstack in
-  let value = get_byte @@ Jobject.load arr index in
+  let value = get_byte @@ Jarray.load arr index in
   Stack.push frame.opstack (Byte value)
 
 let op_caload frame =
   let index = get_int @@ Stack.pop_exn frame.opstack in
   let arr = get_reference @@ Stack.pop_exn frame.opstack in
-  let value = get_char @@ Jobject.load arr index in
+  let value = get_char @@ Jarray.load arr index in
   Stack.push frame.opstack (Char value)
 
 let op_saload frame =
   let index = get_int @@ Stack.pop_exn frame.opstack in
   let arr = get_reference @@ Stack.pop_exn frame.opstack in
-  let value = get_short @@ Jobject.load arr index in
+  let value = get_short @@ Jarray.load arr index in
   Stack.push frame.opstack (Short value)

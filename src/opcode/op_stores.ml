@@ -81,7 +81,7 @@ let op_iastore frame =
   let value = Stack.pop_exn frame.opstack in
   let index = get_int @@ Stack.pop_exn frame.opstack in
   let arr = get_reference @@ Stack.pop_exn frame.opstack in
-  Jobject.store arr index value
+  Jarray.store arr index value
 
 let op_lastore frame = op_iastore frame
 let op_fastore frame = op_iastore frame

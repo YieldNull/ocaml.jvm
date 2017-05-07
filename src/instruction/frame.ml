@@ -6,6 +6,7 @@ type t =
     codeattr : Code.t;
     codes : char array;
     jmethod : Jmethod.t;
+    conspool : Poolrt.t;
     localvars : Jvalue.t array;
     opstack : (Jvalue.t) Stack.t;
   }
@@ -18,11 +19,14 @@ let create jmethod ~f:localvar_initializer =
       | _ -> aux tail
   in
   let codeattr = aux jmethod.Jmethod.attrs in
+  let codes= codeattr.Code.code in
+  let conspool = Jclass.conspool @@ Jmethod.get_class jmethod in
   let localvars = Array.init codeattr.Code.max_locals ~f:localvar_initializer in
   let opstack = Stack.create () in
-  { pc = 0; codeattr; codes= codeattr.Code.code; jmethod; localvars; opstack; }
+  { pc = 0; codeattr; codes; jmethod; conspool; localvars; opstack; }
 
-let get_conspool t = Jclass.conspool @@ Jmethod.get_class t.jmethod
+
+let current_class frame = frame.jmethod.Jmethod.jclass
 
 let read_byte t =
   let value = Char.to_int t.codes.(t.pc) in

@@ -41,3 +41,43 @@ let get_reference value =
   match value with
   | Reference x -> x
   | _ -> raise VirtualMachineError
+
+let must_be_byte value =
+  match value with
+  | Byte _ -> ()
+  | _ -> raise VirtualMachineError
+
+let must_be_char value =
+  match value with
+  | Char _ -> ()
+  | _ -> raise VirtualMachineError
+
+let must_be_short value =
+  match value with
+  | Short _ -> ()
+  | _ -> raise VirtualMachineError
+
+let must_be_int value =
+  match value with
+  | Int _ -> ()
+  | _ -> raise VirtualMachineError
+
+let must_be_long value =
+  match value with
+  | Long _ -> ()
+  | _ -> raise VirtualMachineError
+
+let must_be_float value =
+  match value with
+  | Float _ -> ()
+  | _ -> raise VirtualMachineError
+
+let must_be_double value =
+  match value with
+  | Double _ -> ()
+  | _ -> raise VirtualMachineError
+
+let must_be_reference value =
+  match value with
+  | Reference _ -> ()
+  | _ -> raise VirtualMachineError
