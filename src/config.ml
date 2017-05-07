@@ -6,9 +6,8 @@ let runtime =
 
 let classpath =
   let lib = Filename.dirname runtime in
-  printf "%s\n" lib;
   ref [lib]
 
-let add_classpath item = classpath := !classpath @ [item]
+let add_classpath item = classpath := item :: !classpath
 
 let get_classpath () = !classpath

@@ -99,10 +99,10 @@ and parse input =
   }
 
 let load binary_name =
-  let load_from_file dir =
-    let file = Filename.concat dir (binary_name ^ ".class") in
+  let load_from_file file =
     match Sys.file_exists file with
-    | `Yes -> let input = BatFile.open_in file in
+    | `Yes when (Filename.basename file = binary_name ^ ".class") ->
+      let input = BatFile.open_in file in
       let bytecode = parse input in
       BatIO.close_in input; Some bytecode
     | _ -> None
@@ -125,13 +125,17 @@ let load binary_name =
     | hd :: tail -> let bytecode = match Sys.is_directory hd with
         | `Yes -> load_from_dir hd
         | `No -> if String.is_suffix hd ~suffix:".jar"
-                 && not @@ String.is_prefix hd ~prefix:"."
-          then load_from_jar hd else None
+        (* && not @@ String.is_prefix hd ~prefix:"." *)
+          then load_from_jar hd
+          else if String.is_suffix hd ~suffix:".class"
+          then load_from_file hd
+          else None
         | _ -> None
       in if Option.is_none bytecode then find tail else bytecode
     | [] -> None
   and load_from_dir dir =
-    match load_from_file dir with
+    let file = Filename.concat dir (binary_name ^ ".class") in
+    match load_from_file file with
     | Some code -> Some code
     | _ -> let dirs, files =
              Sys.readdir dir
