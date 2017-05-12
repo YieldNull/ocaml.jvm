@@ -47,24 +47,24 @@ let rec create_multiple jclass dimensions lens =
   else
     Arr { jclass = Some jclass; values = Array.empty () }
 
-let get_arr_exn obj =
-  match obj with
+let get_arr_exn objref =
+  match objref with
   | Arr arr -> arr
   | Null -> raise NullPointerException
   | _ -> raise VirtualMachineError
 
-let length obj =
-  let arr = get_arr_exn obj in
+let length objref =
+  let arr = get_arr_exn objref in
   Int32.of_int_exn (Array.length arr.values)
 
-let load obj i =
+let load objref i =
   let index = Int32.to_int_exn i in (* TODO catch exception *)
-  let arr = get_arr_exn obj in
+  let arr = get_arr_exn objref in
   check_bounds arr index;
   arr.values.(index)
 
-let store obj i value =
+let store objref i value =
   let index = Int32.to_int_exn i in (* TODO catch exception *)
-  let arr = get_arr_exn obj in
+  let arr = get_arr_exn objref in
   check_bounds arr index;
   arr.values.(index) <- value

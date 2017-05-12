@@ -16,16 +16,16 @@ let create jclass =
   Obj { jclass; fields }
 
 
-let get_obj_exn jobject =
-  match jobject with
+let get_obj_exn objref =
+  match objref with
   | Obj obj -> obj
   | Null -> raise NullPointerException
   | _ -> raise VirtualMachineError
 
-let get_field_value jobject jfield =
-  let obj = get_obj_exn jobject in
+let get_field_value objref jfield =
+  let obj = get_obj_exn objref in
   Hashtbl.find_exn obj.fields jfield.Jfield.mid
 
-let set_field_value jobject jfield value =
-  let obj = get_obj_exn jobject in
+let set_field_value objref jfield value =
+  let obj = get_obj_exn objref in
   Hashtbl.set obj.fields ~key:jfield.Jfield.mid ~data:value

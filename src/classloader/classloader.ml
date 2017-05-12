@@ -229,7 +229,7 @@ and InnPoolrt : sig
     | Long of int64
     | Double of float
     | Class of InnClass.t
-    | String of string
+    | String of (int) List.t
     | Fieldref of InnField.t
     | Methodref of InnMethod.t
     | InterfaceMethodref of InnMethod.t
@@ -248,7 +248,7 @@ end = struct
     | Long of int64
     | Double of float
     | Class of InnClass.t
-    | String of string
+    | String of (int) List.t
     | Fieldref of InnField.t
     | Methodref of InnMethod.t
     | InterfaceMethodref of InnMethod.t
@@ -566,7 +566,8 @@ and resovle_pool jclass poolbc =
         | Poolbc.Class i -> InnPoolrt.Class (
             resolve_class loader jclass.InnClass.name (Poolbc.get_utf8 poolbc i)
           )
-        | Poolbc.String i -> InnPoolrt.String (Poolbc.get_utf8 poolbc i)
+        | Poolbc.String i ->
+          InnPoolrt.String (Unicode.modified_utf8_to_unicode (Poolbc.get_utf8 poolbc i))
         | Poolbc.Fieldref (ci, nti) ->
           let class_name, mid = member_arg ci nti in
           let jfield = resolve_field jclass class_name mid in

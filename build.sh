@@ -1,7 +1,9 @@
+mkdir -p _build/src
+
 gcc -c -o _build/src/float32.o -I /usr/local/lib/ocaml src/float32.c
 
 corebuild -r -pkgs batteries,zip,yojson,fileutils \
--Is lib,src,src/classloader,src/opcode,src/instruction,tool,test,test/opcode \
+-Is lib,src,src/classloader,src/opcode,src/instruction,tool,test,test/opcode,test/ocaml \
 -lflags -custom,src/float32.o $*
 
 path="_build/${@: -1}"

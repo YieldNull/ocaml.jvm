@@ -24,14 +24,17 @@ let op_dconst_1 frame = Stack.push frame.opstack (Double 1.0)
 let op_bipush frame = Stack.push frame.opstack (Int (Caml.Int32.of_int @@ read_byte frame))
 let op_sipush frame = Stack.push frame.opstack (Int (Caml.Int32.of_int @@ read_i16 frame))
 
-let op_ldc frame = ()
-(* let index = read_byte frame in
-   match Poolrt.get (get_conspool t) index with
-   | Poolrt.Integer x -> Stack.push frame.opstack (Int x)
-   | Poolrt.Float f -> Stack.push frame.opstack (Float f)
-   | Poolrt.String s -> Stack.push frame.opstack (Reference )
-   | _ -> failwith "" *)
+let op_ldc frame =
+  let index = read_byte frame in
+  match load_conspool frame index with
+  | Poolrt.Integer x -> Stack.push frame.opstack (Int x)
+  | Poolrt.Float f -> Stack.push frame.opstack (Float f)
+  | Poolrt.String s -> Stack.push frame.opstack (Reference Jobject.Null)
+  | Poolrt.Class c -> ()
+  | Poolrt.MethodType mt -> () (* TODO *)
+  | Poolrt.MethodHandle mh -> () (* TODO *)
+  | _ -> failwith ""
 
 
-let op_ldc_w frame = ()
+let op_ldc_w frame = op_ldc frame
 let op_ldc2_w frame = ()

@@ -46,7 +46,7 @@ and InnPoolrt : sig
     | Long of int64
     | Double of float
     | Class of InnClass.t
-    | String of string
+    | String of (int) List.t
     | Fieldref of InnField.t
     | Methodref of InnMethod.t
     | InterfaceMethodref of InnMethod.t
