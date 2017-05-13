@@ -34,12 +34,18 @@ let op_putstatic frame =
        frame.jmethod.Jmethod.mid.MemberID.name <> "<clinit>" then
       raise IllegalAccessError
 
+let get_obj_exn objref =
+  match objref with
+  | Jobject.Obj obj -> obj
+  | Jobject.Null -> raise NullPointerException
+  | _ -> raise VirtualMachineError
+
 (* TODO field is protected *)
 let op_getfield frame =
   let jobject = get_reference @@ Stack.pop_exn frame.opstack in
   let index = read_ui16 frame in
   let jfield = Poolrt.get_field frame.conspool index in
-  let value = Jobject.get_field_value jobject jfield in
+  let value = Jobject.get_field_value_exn (get_obj_exn jobject) jfield.Jfield.mid in
   Stack.push frame.opstack value
 
 let op_putfield frame =
@@ -67,7 +73,7 @@ let op_putfield frame =
          frame.jmethod.Jmethod.mid.MemberID.name <> "<init>" then
         raise IllegalAccessError
   end;
-  Jobject.set_field_value jobject jfield value
+  Jobject.set_field_value_exn (get_obj_exn jobject) jfield.Jfield.mid value
 
 let op_invokevirtual frame = ()
 let op_invokespecial frame = ()
@@ -79,7 +85,7 @@ let op_new frame =
   let index = read_ui16 frame in
   let jclass = Poolrt.get_class frame.conspool index in
   let obj = Jobject.create jclass in
-  Stack.push frame.opstack (Reference obj)
+  Stack.push frame.opstack (Reference (Jobject.Obj obj))
 
 let op_newarray frame =
   let count = get_int @@ Stack.pop_exn frame.opstack in

@@ -29,8 +29,8 @@ let op_ldc frame =
   match load_conspool frame index with
   | Poolrt.Integer x -> Stack.push frame.opstack (Int x)
   | Poolrt.Float f -> Stack.push frame.opstack (Float f)
-  | Poolrt.String s -> Stack.push frame.opstack (Reference Jobject.Null)
-  | Poolrt.Class c -> ()
+  | Poolrt.String s -> Stack.push frame.opstack (Reference (Jobject.Obj (Jstring.find_or_create s)))
+  | Poolrt.Class c -> () (* TODO *)
   | Poolrt.MethodType mt -> () (* TODO *)
   | Poolrt.MethodHandle mh -> () (* TODO *)
   | _ -> failwith ""

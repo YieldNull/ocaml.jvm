@@ -13,19 +13,14 @@ let create jclass =
       if Jfield.is_static field then
         Hashtbl.add_exn fields ~key:memid ~data:(Jfield.default_value memid)
     );
-  Obj { jclass; fields }
+  { jclass; fields }
 
 
-let get_obj_exn objref =
-  match objref with
-  | Obj obj -> obj
-  | Null -> raise NullPointerException
-  | _ -> raise VirtualMachineError
+let get_field_value_exn objref memid =
+  Hashtbl.find_exn objref.fields memid
 
-let get_field_value objref jfield =
-  let obj = get_obj_exn objref in
-  Hashtbl.find_exn obj.fields jfield.Jfield.mid
+let set_field_value_exn objref memid value =
+  Hashtbl.set objref.fields ~key:memid ~data:value
 
-let set_field_value objref jfield value =
-  let obj = get_obj_exn objref in
-  Hashtbl.set obj.fields ~key:jfield.Jfield.mid ~data:value
+let get_jfield (objref:obj) memid =
+  Hashtbl.find objref.jclass.Jclass.fields memid
