@@ -46,7 +46,7 @@ and InnPoolrt : sig
     | Long of int64
     | Double of float
     | Class of InnClass.t
-    | String of (int) List.t
+    | String of string
     | Fieldref of InnField.t
     | Methodref of InnMethod.t
     | InterfaceMethodref of InnMethod.t
@@ -59,15 +59,24 @@ and InnPoolrt : sig
   type t = entry array
 end
 and InnValue : sig
+  type jbyte = int
+  type jshort = int
+  type jchar = int
+  type jint = int32
+  type jlong = int64
+  type jfloat = Float32.t
+  type jdouble = float
+  type jbool = bool
+
   type t =
-    | Byte of int
-    | Short of int
-    | Char of int
-    | Int of int32
-    | Float of Float32.t
-    | Long of int64
-    | Double of float
-    | Boolean of bool
+    | Byte of jbyte
+    | Short of jshort
+    | Char of jchar
+    | Int of jint
+    | Float of jfloat
+    | Long of jlong
+    | Double of jdouble
+    | Boolean of jbool
     | Reference of InnObject.t
     | ReturnAddress
 end

@@ -1,11 +1,8 @@
 open Core.Std
 open VMError
 
-let modified_utf8_to_unicode str =
-  let bytes_count = String.length str in
-  let length = ref 0 in
+let modified_utf8_to_codepoint str ~f =
   let counter = ref 0 in
-  let buffer = Array.create ~len:bytes_count 0 in
   let read_byte () =
     let byte = String.get str !counter in
     counter := 1 + !counter;
@@ -26,16 +23,41 @@ let modified_utf8_to_unicode str =
     if z lsr 6 <> 2 then raise VirtualMachineError;
     ((x land 0xF) lsl 12) + ((y land 0x3F) lsl 6) + (z land 0x3F)
   in
-  while !counter < bytes_count do
+  while !counter < String.length str do
     let byte = read_byte () in
     let head = byte lsr 4 in
-    let chr = match head with
+    let codepoint = match head with
       | x when x < 8 -> byte_one byte
       | (12 | 13)  -> byte_two byte
       | 14 -> byte_three byte
       | _ -> raise VirtualMachineError
     in
-    length := 1 + !length;
-    Array.set buffer (!length - 1) chr
-  done;
-  List.init !length ~f:(fun i -> Array.get buffer i)
+    f codepoint
+  done
+
+let modified_utf8_to_unicode str =
+  let bytes_count = String.length str in
+  let length = ref 0 in
+  let buffer = Array.create ~len:bytes_count 0 in
+  modified_utf8_to_codepoint str ~f:(fun codepoint ->
+      Array.set buffer !length codepoint;
+      length := 1 + !length;
+    );
+  String.init (!length * 2) ~f:(fun i ->
+      let codepoint = Array.get buffer (i / 2) in
+      let chr =
+        if i mod 2 = 0 then codepoint lsr 8 (* high *)
+        else codepoint land 0xFF (* low *)
+      in
+      Caml.Char.chr chr
+    )
+
+let modified_utf8_to_uchar_arr str =
+  let bytes_count = String.length str in
+  let length = ref 0 in
+  let buffer = Array.create ~len:bytes_count 0 in
+  modified_utf8_to_codepoint str ~f:(fun codepoint ->
+      Array.set buffer !length codepoint;
+      length := 1 + !length;
+    );
+  Array.sub buffer ~pos:0 ~len:!length

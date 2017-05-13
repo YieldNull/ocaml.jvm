@@ -229,7 +229,7 @@ and InnPoolrt : sig
     | Long of int64
     | Double of float
     | Class of InnClass.t
-    | String of (int) List.t
+    | String of string
     | Fieldref of InnField.t
     | Methodref of InnMethod.t
     | InterfaceMethodref of InnMethod.t
@@ -248,7 +248,7 @@ end = struct
     | Long of int64
     | Double of float
     | Class of InnClass.t
-    | String of (int) List.t
+    | String of string
     | Fieldref of InnField.t
     | Methodref of InnMethod.t
     | InterfaceMethodref of InnMethod.t
@@ -261,27 +261,45 @@ end = struct
   type t = entry array
 end
 and InnValue : sig
+  type jbyte = int
+  type jshort = int
+  type jchar = int
+  type jint = int32
+  type jlong = int64
+  type jfloat = Float32.t
+  type jdouble = float
+  type jbool = bool
+
   type t =
-    | Byte of int
-    | Short of int
-    | Char of int
-    | Int of int32
-    | Float of Float32.t
-    | Long of int64
-    | Double of float
-    | Boolean of bool
+    | Byte of jbyte
+    | Short of jshort
+    | Char of jchar
+    | Int of jint
+    | Float of jfloat
+    | Long of jlong
+    | Double of jdouble
+    | Boolean of jbool
     | Reference of InnObject.t
     | ReturnAddress
 end = struct
+  type jbyte = int
+  type jshort = int
+  type jchar = int
+  type jint = int32
+  type jlong = int64
+  type jfloat = Float32.t
+  type jdouble = float
+  type jbool = bool
+
   type t =
-    | Byte of int
-    | Short of int
-    | Char of int
-    | Int of int32
-    | Float of Float32.t
-    | Long of int64
-    | Double of float
-    | Boolean of bool
+    | Byte of jbyte
+    | Short of jshort
+    | Char of jchar
+    | Int of jint
+    | Float of jfloat
+    | Long of jlong
+    | Double of jdouble
+    | Boolean of jbool
     | Reference of InnObject.t
     | ReturnAddress
 end
@@ -566,8 +584,7 @@ and resovle_pool jclass poolbc =
         | Poolbc.Class i -> InnPoolrt.Class (
             resolve_class loader jclass.InnClass.name (Poolbc.get_utf8 poolbc i)
           )
-        | Poolbc.String i ->
-          InnPoolrt.String (Unicode.modified_utf8_to_unicode (Poolbc.get_utf8 poolbc i))
+        | Poolbc.String i -> InnPoolrt.String (Poolbc.get_utf8 poolbc i)
         | Poolbc.Fieldref (ci, nti) ->
           let class_name, mid = member_arg ci nti in
           let jfield = resolve_field jclass class_name mid in
