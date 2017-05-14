@@ -42,6 +42,16 @@ let get_reference value =
   | Reference x -> x
   | _ -> raise VirtualMachineError
 
+let get_reference_obj value =
+  match value with
+  | Reference (Classloader.InnObject.Obj x) -> x
+  | _ -> raise VirtualMachineError
+
+let get_reference_arr value =
+  match value with
+  | Reference (Classloader.InnObject.Arr x) -> x
+  | _ -> raise VirtualMachineError
+
 let must_be_byte value =
   match value with
   | Byte _ -> ()

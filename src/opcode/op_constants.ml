@@ -1,4 +1,5 @@
 open Core.Std
+open VMError
 open Jvalue
 open Frame
 
@@ -24,8 +25,7 @@ let op_dconst_1 frame = Stack.push frame.opstack (Double 1.0)
 let op_bipush frame = Stack.push frame.opstack (Int (Caml.Int32.of_int @@ read_byte frame))
 let op_sipush frame = Stack.push frame.opstack (Int (Caml.Int32.of_int @@ read_i16 frame))
 
-let op_ldc frame =
-  let index = read_byte frame in
+let ldc_common frame index =
   match load_conspool frame index with
   | Poolrt.Integer x -> Stack.push frame.opstack (Int x)
   | Poolrt.Float f -> Stack.push frame.opstack (Float f)
@@ -33,8 +33,15 @@ let op_ldc frame =
   | Poolrt.Class c -> () (* TODO *)
   | Poolrt.MethodType mt -> () (* TODO *)
   | Poolrt.MethodHandle mh -> () (* TODO *)
-  | _ -> failwith ""
+  | _ -> raise (ClassFormatError "Invalid index")
 
+let op_ldc frame = ldc_common frame (read_byte frame)
 
-let op_ldc_w frame = op_ldc frame
-let op_ldc2_w frame = ()
+let op_ldc_w frame = ldc_common frame (read_ui16 frame)
+
+let op_ldc2_w frame =
+  let index = read_ui16 frame in
+  match load_conspool frame index with
+  | Poolrt.Long l -> Stack.push frame.opstack (Long l)
+  | Poolrt.Double d -> Stack.push frame.opstack (Double d)
+  | _ -> raise (ClassFormatError "Invalid index")

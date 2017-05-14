@@ -68,3 +68,5 @@ let store objref i value =
   let arr = get_arr_exn objref in
   check_bounds arr index;
   arr.values.(index) <- value
+
+let get_values arrref = arrref.values

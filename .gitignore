@@ -3,3 +3,4 @@ _build
 *.byte
 .DS_Store
 lib
+*.class

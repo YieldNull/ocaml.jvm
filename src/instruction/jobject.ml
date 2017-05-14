@@ -1,7 +1,6 @@
 open Core.Std
 open VMError
 open Accflag
-open Jvalue
 
 include Classloader.InnObject
 
@@ -14,7 +13,6 @@ let create jclass =
         Hashtbl.add_exn fields ~key:memid ~data:(Jfield.default_value memid)
     );
   { jclass; fields }
-
 
 let get_field_value_exn objref memid =
   Hashtbl.find_exn objref.fields memid

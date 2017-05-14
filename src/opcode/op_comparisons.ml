@@ -15,7 +15,7 @@ let op_fcmpl frame =
   if Float32.is_nan value1 || Float32.is_nan value2 then
     Stack.push frame.opstack (Int (-1l))
   else
-    Stack.push frame.opstack (Int (Float32.compare value1 value2))
+    Stack.push frame.opstack (Int (Int32.of_int_exn (Float32.compare value1 value2)))
 
 let op_fcmpg frame =
   let value2 = get_float @@ Stack.pop_exn frame.opstack in
@@ -23,7 +23,7 @@ let op_fcmpg frame =
   if Float32.is_nan value1 || Float32.is_nan value2 then
     Stack.push frame.opstack (Int 1l)
   else
-    Stack.push frame.opstack (Int (Float32.compare value1 value2))
+    Stack.push frame.opstack (Int (Int32.of_int_exn (Float32.compare value1 value2)))
 
 let op_dcmpl frame =
   let value2 = get_double @@ Stack.pop_exn frame.opstack in

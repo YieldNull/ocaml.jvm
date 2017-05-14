@@ -1,4 +1,8 @@
 public class TestOpConstants {
+  Object op_aconst_null () {
+    return null;
+  }
+
   byte op_bipush () {
     return 127;
   }
@@ -72,10 +76,10 @@ public class TestOpConstants {
   }
 
   String op_ldc_string () {
-    return "Hello";
+    return "你好";
   }
 
-  Class op_ldc_class () {
+  Class op_ldc_class () { // TODO
     return Object.class;
   }
 
@@ -88,14 +92,14 @@ public class TestOpConstants {
   }
 
   float op_ldc_w_float () {
-    return 0.1f;
+    return 9f;
   }
 
   String op_ldc_w_string () {
-    return "World";
+    return "世界";
   }
 
-  Class op_ldc_w_class () {
+  Class op_ldc_w_class () { // TODO
     return Class.class;
   }
 

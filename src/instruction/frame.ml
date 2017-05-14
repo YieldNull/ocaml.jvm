@@ -28,6 +28,9 @@ let create jmethod ~f:localvar_initializer =
 
 let current_class frame = frame.jmethod.Jmethod.jclass
 
+let load_conspool frame index =
+  Poolrt.get frame.conspool index
+
 let read_byte t =
   let value = Char.to_int t.codes.(t.pc) in
   t.pc <- t.pc + 1;
