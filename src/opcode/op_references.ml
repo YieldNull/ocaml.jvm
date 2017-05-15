@@ -83,7 +83,8 @@ let op_invokedynamic frame = ()
 
 let op_new frame =
   let index = read_ui16 frame in
-  let jclass = Poolrt.get_class frame.conspool index in
+  let binary_name = Poolrt.get_class frame.conspool index in
+  let jclass = Classloader.load_class (current_loader frame) binary_name in
   let obj = Jobject.create jclass in
   Stack.push frame.opstack (Reference (Jobject.Obj obj))
 
@@ -95,7 +96,8 @@ let op_newarray frame =
 let op_anewarray frame =
   let index = read_ui16 frame in
   let count = get_int @@ Stack.pop_exn frame.opstack in
-  let jclass = Poolrt.get_class frame.conspool index in
+  let binary_name = Poolrt.get_class frame.conspool index in
+  let jclass = Classloader.load_class (current_loader frame) binary_name in
   let arr = Jarray.create_reference jclass count in
   Stack.push frame.opstack (Reference arr)
 

@@ -28,6 +28,10 @@ let create jmethod ~f:localvar_initializer =
 
 let current_class frame = frame.jmethod.Jmethod.jclass
 
+let current_loader frame =
+  let jclass = current_class frame in
+  jclass.Jclass.loader
+
 let load_conspool frame index =
   Poolrt.get frame.conspool index
 

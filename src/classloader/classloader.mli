@@ -45,7 +45,7 @@ and InnPoolrt : sig
     | Float of Float32.t
     | Long of int64
     | Double of float
-    | Class of InnClass.t
+    | Class of string
     | String of string
     | Fieldref of InnField.t
     | Methodref of InnMethod.t

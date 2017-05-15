@@ -228,7 +228,7 @@ and InnPoolrt : sig
     | Float of Float32.t
     | Long of int64
     | Double of float
-    | Class of InnClass.t
+    | Class of string
     | String of string
     | Fieldref of InnField.t
     | Methodref of InnMethod.t
@@ -247,7 +247,7 @@ end = struct
     | Float of Float32.t
     | Long of int64
     | Double of float
-    | Class of InnClass.t
+    | Class of string
     | String of string
     | Fieldref of InnField.t
     | Methodref of InnMethod.t
@@ -573,7 +573,6 @@ and resovle_pool jclass poolbc =
     let mid = { MemberID.name = name; MemberID.descriptor = descriptor } in
     class_name, mid
   in
-  let loader = jclass.InnClass.loader in
   Array.iteri poolbc ~f:(fun index entry ->
       let new_entry = match entry with
         | Poolbc.Utf8 x -> InnPoolrt.Utf8 x
@@ -581,9 +580,7 @@ and resovle_pool jclass poolbc =
         | Poolbc.Float x -> InnPoolrt.Float x
         | Poolbc.Long x -> InnPoolrt.Long x
         | Poolbc.Double x -> InnPoolrt.Double x
-        | Poolbc.Class i -> InnPoolrt.Class (
-            resolve_class loader jclass.InnClass.name (Poolbc.get_utf8 poolbc i)
-          )
+        | Poolbc.Class i -> InnPoolrt.Class (Poolbc.get_utf8 poolbc i)
         | Poolbc.String i -> InnPoolrt.String (Poolbc.get_utf8 poolbc i)
         | Poolbc.Fieldref (ci, nti) ->
           let class_name, mid = member_arg ci nti in
