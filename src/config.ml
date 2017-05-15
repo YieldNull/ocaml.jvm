@@ -22,7 +22,7 @@ let expand_wildcard wildcard =
 let classpath =
   let bootstrap = Filename.dirname runtime in
   let extension = FilePath.concat bootstrap "ext" in
-  let predefined = ["."; runtime;]
+  let predefined = ["."; ]
                    @ expand_wildcard (FilePath.concat bootstrap "*")
                    @ expand_wildcard (FilePath.concat extension "*")
   in
