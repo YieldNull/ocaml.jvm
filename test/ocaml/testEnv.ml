@@ -9,7 +9,7 @@ let compile file =
 let delete file = Sys.remove file
 
 let load_class class_file =
-  Config.add_classpath class_file;
+  Config.add_classpath @@ Filename.dirname class_file;
   let class_name = Filename.chop_extension @@ Filename.basename class_file in
   Classloader.load_class Classloader.bootstrap_loader class_name
 

@@ -50,25 +50,11 @@ type t =
     attributes    : Attribute.AttrClass.t list;
   }
 
-let runtime = Hashtbl.create ~hashable:String.hashable ()
+let loaded_bytecodes = Hashtbl.create ~hashable:String.hashable ()
 
-let rec cache_jar input =
-  let entries = Zip.entries input in
-  List.iter entries ~f:(fun entry ->
-      if Filename.check_suffix entry.Zip.filename ".class" then
-        let content = Zip.read_entry input entry in
-        let input = BatIO.input_string content in
-        let bytecode = load_from_stream input in
-        let key = String.chop_suffix_exn entry.Zip.filename ~suffix:".class" in
-        Hashtbl.add_exn runtime ~key:key ~data:bytecode;
-        BatIO.close_in input
-    );
-  Zip.close_in input;
+let jar_infiles = Hashtbl.create ~hashable:String.hashable ()
 
-and load_from_stream input =
-  parse input
-
-and parse input =
+let parse input =
   let check_magic input =
     if not (read_ui16 input = 0xCAFE && read_ui16 input = 0xBABE) then
       raise (ClassFormatError "Invalid magic")
@@ -98,57 +84,54 @@ and parse input =
     interfaces; fields; methods ; attributes
   }
 
+let load_from_stream input =
+  parse input
+
+let load_from_file binary_name file =
+  match Sys.file_exists file with
+  | `Yes when (Filename.basename file = binary_name ^ ".class") ->
+    let input = BatFile.open_in file in
+    let bytecode = parse input in
+    BatIO.close_in input; Some bytecode
+  | _ -> None
+
+let load_from_jar binary_name filename =
+  let load_from_infile in_file =
+    try
+      let entry = Zip.find_entry in_file (binary_name ^ ".class") in
+      let content = Zip.read_entry in_file entry in
+      let input = BatIO.input_string content in
+      Some (parse input)
+    with Not_found -> None
+  in
+  let infile = Hashtbl.find jar_infiles filename in
+  match infile with
+  | Some in_file -> load_from_infile in_file
+  | _ -> let in_file = Zip.open_in filename in
+    Hashtbl.add_exn jar_infiles ~key:filename ~data:in_file;
+    load_from_infile in_file
+
+(*
+  CLASSPATH: bar.zip foo.jar dir dir/*
+  http://docs.oracle.com/javase/8/docs/technotes/tools/unix/classpath.html#A1100592
+*)
+
+let rec find binary_name classpath =
+  match classpath with
+  | hd :: tail -> let bytecode = match Sys.is_directory hd with
+      | `Yes ->
+        let file = Filename.concat hd (binary_name ^ ".class") in
+        load_from_file binary_name file
+      | `No -> if Config.is_jar hd
+        then load_from_jar binary_name hd else None
+      | _ -> None
+    in if Option.is_none bytecode then find binary_name tail else bytecode
+  | [] -> None
+
 let load binary_name =
-  let load_from_file file =
-    match Sys.file_exists file with
-    | `Yes when (Filename.basename file = binary_name ^ ".class") ->
-      let input = BatFile.open_in file in
-      let bytecode = parse input in
-      BatIO.close_in input; Some bytecode
-    | _ -> None
-  in
-  let load_from_jar jar =
-    let jar_stream = Zip.open_in jar in
-    let bytecode =
-      try
-        let entry = Zip.find_entry jar_stream (binary_name ^ ".class") in
-        let content = Zip.read_entry jar_stream entry in
-        let input = BatIO.input_string content in
-        cache_jar jar_stream; (* load all bytecodes in the same jar file *)
-        Some (parse input)
-      with Not_found -> None
-    in
-    Zip.close_in jar_stream; bytecode
-  in
-  let rec find classpath =
-    match classpath with
-    | hd :: tail -> let bytecode = match Sys.is_directory hd with
-        | `Yes -> load_from_dir hd
-        | `No -> if String.is_suffix hd ~suffix:".jar"
-        (* && not @@ String.is_prefix hd ~prefix:"." *)
-          then load_from_jar hd
-          else if String.is_suffix hd ~suffix:".class"
-          then load_from_file hd
-          else None
-        | _ -> None
-      in if Option.is_none bytecode then find tail else bytecode
-    | [] -> None
-  and load_from_dir dir =
-    let file = Filename.concat dir (binary_name ^ ".class") in
-    match load_from_file file with
-    | Some code -> Some code
-    | _ -> let dirs, files =
-             Sys.readdir dir
-             |> Array.to_list
-             |> List.map ~f:(Filename.concat dir)
-             |> List.split_while
-               ~f:(fun file -> Sys.is_directory file = `Yes
-                               && not @@ String.is_prefix file ~prefix:".")
-      in find (files @ dirs)
-  in
-  let bc = Hashtbl.find runtime binary_name in
+  let bc = Hashtbl.find loaded_bytecodes binary_name in
   match bc with
   | Some code -> code
-  | _ -> match find @@ Config.get_classpath () with
-    | Some code -> code
+  | _ -> match find binary_name @@ Config.get_classpath () with
+    | Some code -> Hashtbl.add_exn loaded_bytecodes ~key:binary_name ~data:code;code
     | None -> raise (ClassNotFoundException binary_name)
