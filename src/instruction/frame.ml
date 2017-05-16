@@ -35,6 +35,9 @@ let current_loader frame =
 let load_conspool frame index =
   Poolrt.get frame.conspool index
 
+let set_conspool frame index value =
+  Poolrt.set frame.conspool index value
+
 let read_byte t =
   let value = Char.to_int t.codes.(t.pc) in
   t.pc <- t.pc + 1;

@@ -228,11 +228,16 @@ and InnPoolrt : sig
     | Float of Float32.t
     | Long of int64
     | Double of float
-    | Class of string
-    | String of string
+    | Class of InnObject.obj
+    | String of InnObject.obj
     | Fieldref of InnField.t
     | Methodref of InnMethod.t
     | InterfaceMethodref of InnMethod.t
+    | UnresolvedString of string
+    | UnresolvedClass of string
+    | UnresolvedFieldref of string * MemberID.t
+    | UnresolvedMethodref of string * MemberID.t
+    | UnresolvedInterfaceMethodref of string * MemberID.t
     | NameAndType of int * int
     | MethodHandle of string
     | MethodType of string
@@ -247,11 +252,16 @@ end = struct
     | Float of Float32.t
     | Long of int64
     | Double of float
-    | Class of string
-    | String of string
+    | Class of InnObject.obj
+    | String of InnObject.obj
     | Fieldref of InnField.t
     | Methodref of InnMethod.t
     | InterfaceMethodref of InnMethod.t
+    | UnresolvedString of string
+    | UnresolvedClass of string
+    | UnresolvedFieldref of string * MemberID.t
+    | UnresolvedMethodref of string * MemberID.t
+    | UnresolvedInterfaceMethodref of string * MemberID.t
     | NameAndType of int * int
     | MethodHandle of string
     | MethodType of string
@@ -435,7 +445,7 @@ let rec load_from_bytecode loader binary_name =
     | 0 -> if name <> java_lang_object then (* Only Object has no super class *)
         raise (ClassFormatError "Invalid superclass index")
       else None
-    | i -> let jclass = resolve_class loader name (Poolbc.get_class pool i) in
+    | i -> let jclass = resolve_class loader ~caller:name ~name:(Poolbc.get_class pool i) in
       (* interface's super class must be Object *)
       if is_interface access_flags && jclass.InnClass.name <> java_lang_object then
         raise (ClassFormatError "Invalid superclass index");
@@ -447,7 +457,7 @@ let rec load_from_bytecode loader binary_name =
   in
   let interfaces = List.map bytecode.interfaces ~f:(fun index ->
       let cls = Poolbc.get_class pool index in
-      let jclass = resolve_class loader name cls in
+      let jclass = resolve_class loader ~caller:name ~name:cls in
       (* must be interface *)
       if not @@ is_interface jclass.InnClass.access_flags then raise IncompatibleClassChangeError;
       (* interface can not be itself *)
@@ -483,7 +493,7 @@ and load_class loader binary_name =
   | Some jclass -> jclass
   | None -> load_from_bytecode loader binary_name
 
-and resolve_class loader src_class binary_name =
+and resolve_class loader ~caller:src_class ~name:binary_name =
   let is_primitive name =
     List.exists ["B";"C";"D";"F";"I";"J";"S";"Z"] ~f:((=) name)
   in
@@ -526,7 +536,9 @@ and resolve_class loader src_class binary_name =
   jclass
 
 and resolve_field src_class class_name mid =
-  let jclass = resolve_class src_class.InnClass.loader src_class.InnClass.name class_name in
+  let jclass = resolve_class src_class.InnClass.loader
+      ~caller:src_class.InnClass.name ~name:class_name
+  in
   let jfield = match InnClass.find_field jclass mid with
     | Some jfield -> jfield
     | None -> raise NoSuchFieldError
@@ -538,9 +550,14 @@ and resolve_field src_class class_name mid =
 and resolve_method_of_class src_class class_name mid =
   let resolve_polymorphic jclass mid =
     let classes = Descriptor.classes_of_method mid.MemberID.descriptor in
-    List.iter classes ~f:(fun cls -> let _ = resolve_class jclass.InnClass.loader cls in ())
+    List.iter classes ~f:(fun cls ->
+        let _ = resolve_class jclass.InnClass.loader 
+            ~caller:src_class.InnClass.name ~name:cls in ()
+      )
   in
-  let jclass = resolve_class src_class.InnClass.loader src_class.InnClass.name class_name in
+  let jclass = resolve_class src_class.InnClass.loader
+      ~caller:src_class.InnClass.name ~name:class_name
+  in
   if InnClass.is_interface jclass then raise IncompatibleClassChangeError;
   let jmethod = match InnMethod.is_polymorphic jclass mid with
     | Some m -> resolve_polymorphic jclass mid; m
@@ -555,7 +572,9 @@ and resolve_method_of_class src_class class_name mid =
   jmethod
 
 and resolve_method_of_interface src_class class_name mid =
-  let jclass = resolve_class src_class.InnClass.loader src_class.InnClass.name class_name in
+  let jclass = resolve_class src_class.InnClass.loader
+      ~caller:src_class.InnClass.name ~name:class_name
+  in
   if not @@ InnClass.is_interface jclass then raise IncompatibleClassChangeError;
   let jmethod = match InnClass.find_method_of_interface jclass mid with
     | Some jmethod -> jmethod
@@ -580,20 +599,17 @@ and resovle_pool jclass poolbc =
         | Poolbc.Float x -> InnPoolrt.Float x
         | Poolbc.Long x -> InnPoolrt.Long x
         | Poolbc.Double x -> InnPoolrt.Double x
-        | Poolbc.Class i -> InnPoolrt.Class (Poolbc.get_utf8 poolbc i)
-        | Poolbc.String i -> InnPoolrt.String (Poolbc.get_utf8 poolbc i)
+        | Poolbc.Class i -> InnPoolrt.UnresolvedClass (Poolbc.get_utf8 poolbc i)
+        | Poolbc.String i -> InnPoolrt.UnresolvedString (Poolbc.get_utf8 poolbc i)
         | Poolbc.Fieldref (ci, nti) ->
           let class_name, mid = member_arg ci nti in
-          let jfield = resolve_field jclass class_name mid in
-          InnPoolrt.Fieldref jfield
+          InnPoolrt.UnresolvedFieldref (class_name, mid)
         | Poolbc.Methodref (ci, nti) ->
           let class_name, mid = member_arg ci nti in
-          let jmethod = resolve_method_of_class jclass class_name mid in
-          InnPoolrt.Methodref jmethod
+          InnPoolrt.UnresolvedMethodref (class_name, mid)
         | Poolbc.InterfaceMethodref (ci, nti) ->
           let class_name, mid = member_arg ci nti in
-          let jmethod = resolve_method_of_interface jclass class_name mid in
-          InnPoolrt.InterfaceMethodref jmethod
+          InnPoolrt.UnresolvedInterfaceMethodref (class_name, mid)
         | _ -> InnPoolrt.Byte8Placeholder
       in jclass.InnClass.conspool.(index) <- new_entry
     )

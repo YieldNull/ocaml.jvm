@@ -13,9 +13,17 @@ let get pool index =
   else
     raise_index_error index
 
-let get_class poolrt index =
+let set pool index value =
+  let i = index - 1 in
+  if i < Array.length pool then
+    pool.(i) <- value
+  else
+    raise_index_error index
+
+
+let get_unresolved_class poolrt index =
   match poolrt.(index) with
-  | Class x -> x
+  | UnresolvedClass x -> x
   | _ -> raise VirtualMachineError
 
 let get_field poolrt index =

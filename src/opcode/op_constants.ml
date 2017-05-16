@@ -29,8 +29,13 @@ let ldc_common frame index =
   match load_conspool frame index with
   | Poolrt.Integer x -> Stack.push frame.opstack (Int x)
   | Poolrt.Float f -> Stack.push frame.opstack (Float f)
-  | Poolrt.String s -> Stack.push frame.opstack (Reference (Jobject.Obj (Jstring.find_or_create s)))
-  | Poolrt.Class c -> () (* TODO *)
+  | Poolrt.Class c -> Stack.push frame.opstack (Reference (Jobject.Obj c))
+  | Poolrt.String s -> Stack.push frame.opstack (Reference (Jobject.Obj s))
+  | Poolrt.UnresolvedString s ->
+    let strobj = Jstring.find_or_create s in
+    set_conspool frame index (Poolrt.String strobj);
+    Stack.push frame.opstack (Reference (Jobject.Obj (strobj)))
+  | Poolrt.UnresolvedClass c -> () (* TODO *)
   | Poolrt.MethodType mt -> () (* TODO *)
   | Poolrt.MethodHandle mh -> () (* TODO *)
   | _ -> raise (ClassFormatError "Invalid index")
