@@ -45,13 +45,11 @@ and InnPoolrt : sig
     | Float of Float32.t
     | Long of int64
     | Double of float
-    | Class of InnObject.obj
-    | String of InnObject.obj
+    | Class of string
+    | String of string
     | Fieldref of InnField.t
     | Methodref of InnMethod.t
     | InterfaceMethodref of InnMethod.t
-    | UnresolvedString of string
-    | UnresolvedClass of string
     | UnresolvedFieldref of string * MemberID.t
     | UnresolvedMethodref of string * MemberID.t
     | UnresolvedInterfaceMethodref of string * MemberID.t
@@ -73,6 +71,16 @@ and InnValue : sig
   type jdouble = float
   type jbool = bool
 
+  type jobject =
+    { jclass : InnClass.t;
+      fields : (MemberID.t, InnValue.t) Hashtbl.t;
+    }
+
+  type jarray =
+    { jclass : InnClass.t option;
+      values : (InnValue.t) Array.t;
+    }
+
   type t =
     | Byte of jbyte
     | Short of jshort
@@ -82,24 +90,10 @@ and InnValue : sig
     | Long of jlong
     | Double of jdouble
     | Boolean of jbool
-    | Reference of InnObject.t
-    | ReturnAddress
-end
-and InnObject : sig
-  type obj =
-    { jclass : InnClass.t;
-      fields : (MemberID.t, InnValue.t) Hashtbl.t;
-    }
-
-  type arr =
-    { jclass : InnClass.t option;
-      values : (InnValue.t) Array.t;
-    }
-
-  type t =
-    | Obj of obj
-    | Arr of arr
+    | Object of jobject
+    | Array of jarray
     | Null
+    | ReturnAddress
 end
 
 val bootstrap_loader : InnLoader.t

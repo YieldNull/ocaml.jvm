@@ -1,8 +1,7 @@
 open Core.Std
 open VMError
 open Accflag
-
-include Classloader.InnObject
+open Jvalue
 
 let create jclass =
   if FlagClass.is_set jclass.Jclass.access_flags FlagClass.Abstract
@@ -20,5 +19,5 @@ let get_field_value_exn objref memid =
 let set_field_value_exn objref memid value =
   Hashtbl.set objref.fields ~key:memid ~data:value
 
-let get_jfield (objref:obj) memid =
+let get_jfield (objref:jobject) memid =
   Hashtbl.find objref.jclass.Jclass.fields memid

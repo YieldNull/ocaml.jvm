@@ -27,18 +27,18 @@ let compare_f32 f1 f2 =
 
 let compare_string s1 s2 =
   let str1 = match s1 with
-    | Some (Reference Jobject.Obj obj) -> obj
+    | Some (Object obj) -> obj
     | _ -> failwith ""
   in
   let str2 = match s2 with
-    | Some (Reference Jobject.Obj obj) -> obj
+    | Some (Object obj) -> obj
     | _ -> failwith ""
   in
   Jstring.compare str1 str2 = 0
 
 let suite =
   "op_constants" >:::
-  [ "op_aconst_null" >:: (fun _ -> run "op_aconst_null" "()Ljava/lang/Object;" (Some (Reference Jobject.Null)));
+  [ "op_aconst_null" >:: (fun _ -> run "op_aconst_null" "()Ljava/lang/Object;" (Some Null));
     "op_bipush" >:: (fun _ -> run "op_bipush" "()B" (Some (Int 127l)));
     "op_sipush" >:: (fun _ -> run "op_sipush" "()S" (Some (Int 32767l)));
     "op_iconst_m1" >:: (fun _ -> run "op_iconst_m1" "()I" (Some (Int (-1l))));
@@ -59,13 +59,13 @@ let suite =
     "op_ldc_float" >:: (fun _ -> run ~cmp:compare_f32 "op_ldc_float" "()F" (Some (Float (Float32.of_int32 3l))));
     "op_ldc_string" >:: (fun _ ->
         let strobj = (Jstring.find_or_create (Unicode.uchar_arr_to_modified_utf8 [| Jvalue.Char 0x4f60; Jvalue.Char 0x597d|])) in
-        run ~cmp:compare_string "op_ldc_string" "()Ljava/lang/String;" (Some (Reference (Jobject.Obj strobj)))
+        run ~cmp:compare_string "op_ldc_string" "()Ljava/lang/String;" (Some (Object strobj))
       );
     "op_ldc_w_int" >:: (fun _ -> run "op_ldc_w_int" "()I" (Some (Int 2147483646l)));
     "op_ldc_w_float" >:: (fun _ -> run ~cmp:compare_f32 "op_ldc_w_float" "()F" (Some (Float (Float32.of_int32 9l))));
     "op_ldc_w_string" >:: (fun _ ->
         let strobj = (Jstring.find_or_create (Unicode.uchar_arr_to_modified_utf8 [| Jvalue.Char 0x4e16; Jvalue.Char 0x754c|])) in
-        run ~cmp:compare_string "op_ldc_w_string" "()Ljava/lang/String;" (Some (Reference (Jobject.Obj strobj)))
+        run ~cmp:compare_string "op_ldc_w_string" "()Ljava/lang/String;" (Some (Object strobj))
       );
     "op_ldc2_w_long" >:: (fun _ -> run "op_ldc2_w_long" "()J" (Some (Long 3L)));
     "op_ldc2_w_double" >:: (fun _ -> run "op_ldc2_w_double" "()D" (Some (Double 3.0)));

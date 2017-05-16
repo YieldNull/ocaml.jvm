@@ -161,7 +161,7 @@ end = struct
     | Descriptor.Long -> InnValue.Long Int64.zero
     | Descriptor.Double -> InnValue.Double 0.
     | Descriptor.Boolean -> InnValue.Boolean false
-    | Descriptor.Class _ -> InnValue.Reference InnObject.Null
+    | Descriptor.Class _ -> InnValue.Null
 end
 and InnMethod : sig
   type t =
@@ -228,13 +228,11 @@ and InnPoolrt : sig
     | Float of Float32.t
     | Long of int64
     | Double of float
-    | Class of InnObject.obj
-    | String of InnObject.obj
+    | Class of string
+    | String of string
     | Fieldref of InnField.t
     | Methodref of InnMethod.t
     | InterfaceMethodref of InnMethod.t
-    | UnresolvedString of string
-    | UnresolvedClass of string
     | UnresolvedFieldref of string * MemberID.t
     | UnresolvedMethodref of string * MemberID.t
     | UnresolvedInterfaceMethodref of string * MemberID.t
@@ -252,13 +250,11 @@ end = struct
     | Float of Float32.t
     | Long of int64
     | Double of float
-    | Class of InnObject.obj
-    | String of InnObject.obj
+    | Class of string
+    | String of string
     | Fieldref of InnField.t
     | Methodref of InnMethod.t
     | InterfaceMethodref of InnMethod.t
-    | UnresolvedString of string
-    | UnresolvedClass of string
     | UnresolvedFieldref of string * MemberID.t
     | UnresolvedMethodref of string * MemberID.t
     | UnresolvedInterfaceMethodref of string * MemberID.t
@@ -280,6 +276,16 @@ and InnValue : sig
   type jdouble = float
   type jbool = bool
 
+  type jobject =
+    { jclass : InnClass.t;
+      fields : (MemberID.t, InnValue.t) Hashtbl.t;
+    }
+
+  type jarray =
+    { jclass : InnClass.t option;
+      values : (InnValue.t) Array.t;
+    }
+
   type t =
     | Byte of jbyte
     | Short of jshort
@@ -289,8 +295,11 @@ and InnValue : sig
     | Long of jlong
     | Double of jdouble
     | Boolean of jbool
-    | Reference of InnObject.t
+    | Object of jobject
+    | Array of jarray
+    | Null
     | ReturnAddress
+
 end = struct
   type jbyte = int
   type jshort = int
@@ -301,6 +310,16 @@ end = struct
   type jdouble = float
   type jbool = bool
 
+  type jobject =
+    { jclass : InnClass.t;
+      fields : (MemberID.t, InnValue.t) Hashtbl.t;
+    }
+
+  type jarray =
+    { jclass : InnClass.t option;
+      values : (InnValue.t) Array.t;
+    }
+
   type t =
     | Byte of jbyte
     | Short of jshort
@@ -310,39 +329,10 @@ end = struct
     | Long of jlong
     | Double of jdouble
     | Boolean of jbool
-    | Reference of InnObject.t
+    | Object of jobject
+    | Array of jarray
+    | Null
     | ReturnAddress
-end
-and InnObject : sig
-  type obj =
-    { jclass : InnClass.t;
-      fields : (MemberID.t, InnValue.t) Hashtbl.t;
-    }
-
-  type arr =
-    { jclass : InnClass.t option;
-      values : (InnValue.t) Array.t;
-    }
-
-  type t =
-    | Obj of obj
-    | Arr of arr
-    | Null
-end = struct
-  type obj =
-    { jclass : InnClass.t;
-      fields : (MemberID.t, InnValue.t) Hashtbl.t;
-    }
-
-  type arr =
-    { jclass : InnClass.t option; (* two dimention at least makes it `Some`*)
-      values : (InnValue.t) Array.t;
-    }
-
-  type t =
-    | Obj of obj
-    | Arr of arr
-    | Null
 end
 
 let bootstrap_loader =
@@ -551,7 +541,7 @@ and resolve_method_of_class src_class class_name mid =
   let resolve_polymorphic jclass mid =
     let classes = Descriptor.classes_of_method mid.MemberID.descriptor in
     List.iter classes ~f:(fun cls ->
-        let _ = resolve_class jclass.InnClass.loader 
+        let _ = resolve_class jclass.InnClass.loader
             ~caller:src_class.InnClass.name ~name:cls in ()
       )
   in
@@ -599,8 +589,8 @@ and resovle_pool jclass poolbc =
         | Poolbc.Float x -> InnPoolrt.Float x
         | Poolbc.Long x -> InnPoolrt.Long x
         | Poolbc.Double x -> InnPoolrt.Double x
-        | Poolbc.Class i -> InnPoolrt.UnresolvedClass (Poolbc.get_utf8 poolbc i)
-        | Poolbc.String i -> InnPoolrt.UnresolvedString (Poolbc.get_utf8 poolbc i)
+        | Poolbc.Class i -> InnPoolrt.Class (Poolbc.get_utf8 poolbc i)
+        | Poolbc.String i -> InnPoolrt.String (Poolbc.get_utf8 poolbc i)
         | Poolbc.Fieldref (ci, nti) ->
           let class_name, mid = member_arg ci nti in
           InnPoolrt.UnresolvedFieldref (class_name, mid)

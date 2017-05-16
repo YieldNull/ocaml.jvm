@@ -26,17 +26,27 @@ let create jmethod ~f:localvar_initializer =
   { pc = 0; codeattr; codes; jmethod; conspool; localvars; opstack; }
 
 
-let current_class frame = frame.jmethod.Jmethod.jclass
+let stack_push t value = Stack.push t.opstack value
 
-let current_loader frame =
-  let jclass = current_class frame in
+let stack_pop_exn t = Stack.pop_exn t.opstack
+
+let stack_top_exn t = Stack.top_exn t.opstack
+
+let localvar_get t i = t.localvars.(i)
+
+let localvar_set t i v = t.localvars.(i) <- v
+
+let current_class t = t.jmethod.Jmethod.jclass
+
+let current_loader t =
+  let jclass = current_class t in
   jclass.Jclass.loader
 
-let load_conspool frame index =
-  Poolrt.get frame.conspool index
+let current_method t = t.jmethod
 
-let set_conspool frame index value =
-  Poolrt.set frame.conspool index value
+let current_method_name t = t.jmethod.Jmethod.mid.MemberID.name
+
+let conspool t = t.conspool
 
 let read_byte t =
   let value = Char.to_int t.codes.(t.pc) in

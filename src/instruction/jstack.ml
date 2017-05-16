@@ -1,5 +1,6 @@
 open Core.Std
 open Opcodes
+open Jvalue
 
 type t =
   { mutable current_frame : Frame.t;
@@ -8,7 +9,7 @@ type t =
   }
 
 let create jmethod =
-  let current_frame = Frame.create jmethod ~f:(fun _ -> Jvalue.Reference Jobject.Null) in
+  let current_frame = Frame.create jmethod ~f:(fun _ -> Null) in
   let frame_stack = Stack.create () in
   Stack.push frame_stack current_frame;
   { current_frame; frame_stack; return_value = None }
@@ -18,7 +19,7 @@ let handle_return t value =
   let former = Stack.pop t.frame_stack in
   match former with
   | Some frame -> begin match value with
-      | Some v -> Stack.push frame.Frame.opstack v
+      | Some v -> Frame.stack_push frame v
       | _ -> ()
     end
   | _ -> t.return_value <- value; ()

@@ -20,10 +20,9 @@ let set pool index value =
   else
     raise_index_error index
 
-
-let get_unresolved_class poolrt index =
+let get_class poolrt index =
   match poolrt.(index) with
-  | UnresolvedClass x -> x
+  | Class x -> x
   | _ -> raise VirtualMachineError
 
 let get_field poolrt index =

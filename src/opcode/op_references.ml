@@ -6,16 +6,16 @@ open VMError
 (* TODO initialize class *ALL* *)
 let op_getstatic frame =
   let index = read_ui16 frame in
-  let jfield = Poolrt.get_field frame.conspool index in
+  let jfield = Poolrt.get_field (conspool frame) index in
   let value = Jfield.get_static_value jfield in
-  Stack.push frame.opstack value
+  stack_push frame value
 
 (* TODO the value must be of a type that is assignment compatible (JLS §5.2)
    with the field descriptor type*)
 let op_putstatic frame =
   let index = read_ui16 frame in
-  let jfield = Poolrt.get_field frame.conspool index in
-  let value = Stack.pop_exn frame.opstack in begin
+  let jfield = Poolrt.get_field (conspool frame) index in
+  let value = stack_pop_exn frame in begin
     match Descriptor.type_of_field jfield.Jfield.mid.MemberID.descriptor with
       (Descriptor.Boolean
       | Descriptor.Byte
@@ -31,28 +31,22 @@ let op_putstatic frame =
   if Accflag.FlagField.is_set jfield.Jfield.access_flags Accflag.FlagField.Final then
     let jclass = jfield.Jfield.jclass in
     if jclass <> Frame.current_class frame ||
-       frame.jmethod.Jmethod.mid.MemberID.name <> "<clinit>" then
+       current_method_name frame <> "<clinit>" then
       raise IllegalAccessError
-
-let get_obj_exn objref =
-  match objref with
-  | Jobject.Obj obj -> obj
-  | Jobject.Null -> raise NullPointerException
-  | _ -> raise VirtualMachineError
 
 (* TODO field is protected *)
 let op_getfield frame =
-  let jobject = get_reference @@ Stack.pop_exn frame.opstack in
+  let jobject = get_object @@ stack_pop_exn frame in
   let index = read_ui16 frame in
-  let jfield = Poolrt.get_field frame.conspool index in
-  let value = Jobject.get_field_value_exn (get_obj_exn jobject) jfield.Jfield.mid in
-  Stack.push frame.opstack value
+  let jfield = Poolrt.get_field (conspool frame) index in
+  let value = Jobject.get_field_value_exn jobject jfield.Jfield.mid in
+  stack_push frame value
 
 let op_putfield frame =
   let index = read_ui16 frame in
-  let jfield = Poolrt.get_field frame.conspool index in
-  let value = Stack.pop_exn frame.opstack in
-  let jobject = get_reference @@ Stack.pop_exn frame.opstack in
+  let jfield = Poolrt.get_field (conspool frame) index in
+  let value = stack_pop_exn frame in
+  let jobject = get_object @@ stack_pop_exn frame in
   begin
     match Descriptor.type_of_field jfield.Jfield.mid.MemberID.descriptor with
       (Descriptor.Boolean
@@ -70,10 +64,10 @@ let op_putfield frame =
     if Accflag.FlagField.is_set jfield.Jfield.access_flags Accflag.FlagField.Final then
       let jclass = jfield.Jfield.jclass in
       if jclass <> Frame.current_class frame ||
-         frame.jmethod.Jmethod.mid.MemberID.name <> "<init>" then
+         current_method_name frame <> "<init>" then
         raise IllegalAccessError
   end;
-  Jobject.set_field_value_exn (get_obj_exn jobject) jfield.Jfield.mid value
+  Jobject.set_field_value_exn jobject jfield.Jfield.mid value
 
 let op_invokevirtual frame = ()
 let op_invokespecial frame = ()
@@ -83,28 +77,28 @@ let op_invokedynamic frame = ()
 
 let op_new frame =
   let index = read_ui16 frame in
-  let binary_name = Poolrt.get_unresolved_class frame.conspool index in
+  let binary_name = Poolrt.get_class (conspool frame) index in
   let jclass = Classloader.load_class (current_loader frame) binary_name in
   let obj = Jobject.create jclass in
-  Stack.push frame.opstack (Reference (Jobject.Obj obj))
+  stack_push frame (Object obj)
 
 let op_newarray frame =
-  let count = get_int @@ Stack.pop_exn frame.opstack in
+  let count = get_int @@ stack_pop_exn frame in
   let arr = Jarray.create_primitive count (read_byte frame) in
-  Stack.push frame.opstack (Reference arr)
+  stack_push frame (Array arr)
 
 let op_anewarray frame =
   let index = read_ui16 frame in
-  let count = get_int @@ Stack.pop_exn frame.opstack in
-  let binary_name = Poolrt.get_unresolved_class frame.conspool index in
+  let count = get_int @@ stack_pop_exn frame in
+  let binary_name = Poolrt.get_class (conspool frame) index in
   let jclass = Classloader.load_class (current_loader frame) binary_name in
   let arr = Jarray.create_reference jclass count in
-  Stack.push frame.opstack (Reference arr)
+  stack_push frame (Array arr)
 
 let op_arraylength frame =
-  let arr = get_reference @@ Stack.pop_exn frame.opstack in
+  let arr = get_array @@ stack_pop_exn frame in
   let len = Jarray.length arr in
-  Stack.push frame.opstack (Int len)
+  stack_push frame (Int len)
 
 let op_athrow frame = ()
 let op_checkcast frame = ()

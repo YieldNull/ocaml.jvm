@@ -15,27 +15,27 @@ let op_tableswitch frame = ()
 let op_lookupswitch frame = ()
 
 let op_ireturn frame =
-  let value = Stack.pop_exn frame.opstack in
+  let value = stack_pop_exn frame in
   Jvalue.must_be_int value;
   Some value
 
 let op_lreturn frame =
-  let value = Stack.pop_exn frame.opstack in
+  let value = stack_pop_exn frame in
   Jvalue.must_be_long value;
   Some value
 
 let op_freturn frame =
-  let value = Stack.pop_exn frame.opstack in
+  let value = stack_pop_exn frame in
   Jvalue.must_be_float value;
   Some value
 
 let op_dreturn frame =
-  let value = Stack.pop_exn frame.opstack in
+  let value = stack_pop_exn frame in
   Jvalue.must_be_double value;
   Some value
 
 let op_areturn frame =
-  let value = Stack.pop_exn frame.opstack in
+  let value = stack_pop_exn frame in
   Jvalue.must_be_reference value;
   Some value
 

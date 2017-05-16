@@ -39,17 +39,17 @@ let get_double value=
 
 let get_reference value =
   match value with
-  | Reference x -> x
+  | (Object _ | Array _ | Null) as x -> x
   | _ -> raise VirtualMachineError
 
-let get_reference_obj value =
+let get_object value =
   match value with
-  | Reference (Classloader.InnObject.Obj x) -> x
+  | Object x -> x
   | _ -> raise VirtualMachineError
 
-let get_reference_arr value =
+let get_array value =
   match value with
-  | Reference (Classloader.InnObject.Arr x) -> x
+  | Array x -> x
   | _ -> raise VirtualMachineError
 
 let must_be_byte value =
@@ -89,5 +89,5 @@ let must_be_double value =
 
 let must_be_reference value =
   match value with
-  | Reference _ -> ()
+  | (Object _ | Array _ | Null) -> ()
   | _ -> raise VirtualMachineError
