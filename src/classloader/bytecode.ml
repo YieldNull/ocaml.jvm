@@ -6,10 +6,6 @@ open BatIO.BigEndian
 (*
   When a jar file is first loaded, cache all the packages in it.
 
-  When a class file is first loaded,
-    load all the related classes in its constant_pool,
-    and cache all the loaded classes in the same jar file.
-
   When searching a class in classpath,
     find the jar files where the class may be defined by its package.
   If a jar file is cached but not in the jar files, just skip unziping it.
@@ -98,23 +94,24 @@ let package_in_jar = Hashtbl.create ~hashable:String.hashable ()
 
 let cached_jar = Hashtbl.create ~hashable:String.hashable ()
 
-let cache_jar filename in_file =
-  List.iter (Zip.entries in_file) ~f:(fun entry ->
-      if not entry.Zip.is_directory
-      && Filename.check_suffix entry.Zip.filename ".class"
+let cache_jar in_file =
+  let filename = in_file.Jar.if_filename in
+  List.iter (Jar.entries in_file) ~f:(fun entry ->
+      if not entry.Jar.is_directory
+      && Filename.check_suffix entry.Jar.filename ".class"
       then begin
-        let package = Filename.dirname entry.Zip.filename in
+        let package = Filename.dirname entry.Jar.filename in
         match Hashtbl.find package_in_jar package with
         | Some jarlist when Option.is_some @@ List.find jarlist ~f:((=) filename) -> ()
         | _ -> Hashtbl.add_multi package_in_jar ~key:package ~data:filename
       end
     );
-  Hashtbl.add_exn cached_jar ~key:filename ~data:()
+  Hashtbl.add_exn cached_jar ~key:filename ~data:in_file
 
 let load_from_infile binary_name in_file =
   try
-    let entry = Zip.find_entry in_file (binary_name ^ ".class") in
-    let content = Zip.read_entry in_file entry in
+    let entry = Jar.find_entry in_file (binary_name ^ ".class") in
+    let content = Jar.read_entry in_file entry in
     let input = BatIO.input_string content in
     Some (parse input)
   with Not_found -> None
@@ -138,18 +135,24 @@ let rec load_related_class in_file bytecode =
     )
 
 let load_from_jar binary_name filename =
-  let in_file = Zip.open_in filename in
-  let code = load_from_infile binary_name in_file in
-  if Option.is_none @@ Hashtbl.find cached_jar filename then
-    cache_jar filename in_file
-  ;
-  begin
-    match code with
-    | Some bytecode -> load_related_class in_file bytecode
-    | _ -> ()
-  end;
-  Zip.close_in in_file;
-  code
+  let aux () =
+    let in_file = match Hashtbl.find cached_jar filename with
+      | Some infile -> Jar.set_if_channel infile filename; infile 
+      | None -> let infile = Jar.open_in filename in
+        cache_jar infile; infile
+    in
+    let code = load_from_infile binary_name in_file in
+    (* begin
+       match code with
+       | Some bytecode -> load_related_class in_file bytecode
+       | _ -> ()
+       end; *)
+    Jar.close_in in_file;
+    code
+  in
+  match Sys.file_exists filename with
+  | `Yes -> aux ()
+  | _ -> None
 
 let load_from_stream input =
   parse input
