@@ -69,7 +69,7 @@ and InnValue : sig
   type jlong = int64
   type jfloat = Float32.t
   type jdouble = float
-  type jbool = bool
+  type jbool = int
 
   type jobject =
     { jclass : InnClass.t;

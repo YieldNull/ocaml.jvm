@@ -42,6 +42,11 @@ let get_reference value =
   | (Object _ | Array _ | Null) as x -> x
   | _ -> raise VirtualMachineError
 
+let get_reference_or_return_address value =
+  match value with
+  | (Object _ | Array _ | Null | ReturnAddress) as x -> x
+  | _ -> raise VirtualMachineError
+
 let get_object value =
   match value with
   | Object x -> x

@@ -160,7 +160,7 @@ end = struct
     | Descriptor.Float -> InnValue.Float Float32.zero
     | Descriptor.Long -> InnValue.Long Int64.zero
     | Descriptor.Double -> InnValue.Double 0.
-    | Descriptor.Boolean -> InnValue.Boolean false
+    | Descriptor.Boolean -> InnValue.Boolean 0
     | Descriptor.Class _ -> InnValue.Null
 end
 and InnMethod : sig
@@ -274,7 +274,7 @@ and InnValue : sig
   type jlong = int64
   type jfloat = Float32.t
   type jdouble = float
-  type jbool = bool
+  type jbool = int
 
   type jobject =
     { jclass : InnClass.t;
@@ -308,7 +308,7 @@ end = struct
   type jlong = int64
   type jfloat = Float32.t
   type jdouble = float
-  type jbool = bool
+  type jbool = int
 
   type jobject =
     { jclass : InnClass.t;

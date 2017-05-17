@@ -1,3 +1,5 @@
+open Jvalue
+
 let compile file =
   let dir = Filename.get_temp_dir_name () in
   let command = Printf.sprintf "javac -d %s %s" dir file in
@@ -21,3 +23,25 @@ let run_method jclass name descriptor =
   | Some m -> let jstack = Jstack.create m in
     Jstack.execute jstack
   | _ -> failwith ("Cannot resolve method " ^ (MemberID.to_string mid))
+
+let compare_f32 f1 f2 =
+  let ff1 = match f1 with
+    | Some (Float f) -> f
+    | _ -> failwith ""
+  in
+  let ff2 = match f2 with
+    | Some (Float f) -> f
+    | _ -> failwith ""
+  in
+  Float32.equal ff1 ff2
+
+let compare_string s1 s2 =
+  let str1 = match s1 with
+    | Some (Object obj) -> obj
+    | _ -> failwith ""
+  in
+  let str2 = match s2 with
+    | Some (Object obj) -> obj
+    | _ -> failwith ""
+  in
+  Jstring.compare str1 str2 = 0

@@ -1,4 +1,5 @@
 open Core.Std
+open VMError
 open Jvalue
 open Frame
 
@@ -66,17 +67,19 @@ let op_aaload frame =
 let op_baload frame =
   let index = get_int @@ stack_pop_exn frame in
   let arr = get_array @@ stack_pop_exn frame in
-  let value = get_byte @@ Jarray.load arr index in
-  stack_push frame (Byte value)
+  match Jarray.load arr index with
+  | Byte b -> stack_push frame (Int (Int32.of_int_exn b))
+  | Boolean b -> stack_push frame (Int (Int32.of_int_exn b))
+  | _ -> raise VirtualMachineError
 
 let op_caload frame =
   let index = get_int @@ stack_pop_exn frame in
   let arr = get_array @@ stack_pop_exn frame in
   let value = get_char @@ Jarray.load arr index in
-  stack_push frame (Char value)
+  stack_push frame (Int (Int32.of_int_exn value))
 
 let op_saload frame =
   let index = get_int @@ stack_pop_exn frame in
   let arr = get_array @@ stack_pop_exn frame in
   let value = get_short @@ Jarray.load arr index in
-  stack_push frame (Short value)
+  stack_push frame (Int (Int32.of_int_exn value))

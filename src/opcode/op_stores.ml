@@ -15,7 +15,7 @@ let op_dstore frame =
   localvar_set frame (read_byte frame) (Double (get_double @@ stack_pop_exn frame))
 
 let op_astore frame =
-  localvar_set frame (read_byte frame) (get_reference @@ stack_pop_exn frame)
+  localvar_set frame (read_byte frame) (get_reference_or_return_address @@ stack_pop_exn frame)
 
 let op_istore_0 frame =
   localvar_set frame 0 (Int (get_int @@ stack_pop_exn frame))
@@ -66,27 +66,61 @@ let op_dstore_3 frame =
   localvar_set frame 3 (Double (get_double @@ stack_pop_exn frame))
 
 let op_astore_0 frame =
-  localvar_set frame 0 (get_reference @@ stack_pop_exn frame)
+  localvar_set frame 0 (get_reference_or_return_address @@ stack_pop_exn frame)
 
 let op_astore_1 frame =
-  localvar_set frame 1 (get_reference @@ stack_pop_exn frame)
+  localvar_set frame 1 (get_reference_or_return_address @@ stack_pop_exn frame)
 
 let op_astore_2 frame =
-  localvar_set frame 2 (get_reference @@ stack_pop_exn frame)
+  localvar_set frame 2 (get_reference_or_return_address @@ stack_pop_exn frame)
 
 let op_astore_3 frame =
-  localvar_set frame 3 (get_reference @@ stack_pop_exn frame)
+  localvar_set frame 3 (get_reference_or_return_address @@ stack_pop_exn frame)
 
 let op_iastore frame =
-  let value = stack_pop_exn frame in
+  let value = get_int @@ stack_pop_exn frame in
+  let index = get_int @@ stack_pop_exn frame in
+  let arr = get_array @@ stack_pop_exn frame in
+  Jarray.store arr index (Int value)
+
+let op_lastore frame =
+  let value = get_long @@ stack_pop_exn frame in
+  let index = get_int @@ stack_pop_exn frame in
+  let arr = get_array @@ stack_pop_exn frame in
+  Jarray.store arr index (Long value)
+
+let op_fastore frame =
+  let value = get_float @@ stack_pop_exn frame in
+  let index = get_int @@ stack_pop_exn frame in
+  let arr = get_array @@ stack_pop_exn frame in
+  Jarray.store arr index (Float value)
+
+let op_dastore frame =
+  let value = get_double @@ stack_pop_exn frame in
+  let index = get_int @@ stack_pop_exn frame in
+  let arr = get_array @@ stack_pop_exn frame in
+  Jarray.store arr index (Double value)
+
+let op_aastore frame =
+  let value = get_reference @@ stack_pop_exn frame in
   let index = get_int @@ stack_pop_exn frame in
   let arr = get_array @@ stack_pop_exn frame in
   Jarray.store arr index value
 
-let op_lastore frame = op_iastore frame
-let op_fastore frame = op_iastore frame
-let op_dastore frame = op_iastore frame
-let op_aastore frame = op_iastore frame
-let op_bastore frame = op_iastore frame
-let op_castore frame = op_iastore frame
-let op_sastore frame = op_iastore frame
+let op_bastore frame =
+  let value = get_int @@ stack_pop_exn frame in
+  let index = get_int @@ stack_pop_exn frame in
+  let arr = get_array @@ stack_pop_exn frame in
+  Jarray.store arr index (Byte (Int32.to_int_exn value))
+
+let op_castore frame =
+  let value = get_int @@ stack_pop_exn frame in
+  let index = get_int @@ stack_pop_exn frame in
+  let arr = get_array @@ stack_pop_exn frame in
+  Jarray.store arr index (Char (Int32.to_int_exn value))
+
+let op_sastore frame =
+  let value = get_int @@ stack_pop_exn frame in
+  let index = get_int @@ stack_pop_exn frame in
+  let arr = get_array @@ stack_pop_exn frame in
+  Jarray.store arr index (Short (Int32.to_int_exn value))

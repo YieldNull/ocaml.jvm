@@ -11,7 +11,7 @@ let create_primitive len type_code =
   let len = Int32.to_int_exn len in
   if len < 0 then raise NegativeArraySizeException;
   let default = match type_code with
-    | 4 -> Boolean false
+    | 4 -> Boolean 0
     | 5 -> Char 0
     | 6 -> Float Float32.zero
     | 7 -> Double 0.0
