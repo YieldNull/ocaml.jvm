@@ -1,83 +1,63 @@
 open Jvalue
 open Frame
+open Prim
 
 let op_i2l frame =
-  let value = get_int @@ stack_pop_exn frame in
-  let result = Int64.of_int32 value in
-  stack_push frame (Long result)
+  let value = i2l @@ get_int @@ stack_pop_exn frame in
+  stack_push frame (Long value)
 
 let op_i2f frame =
-  let value = get_int @@ stack_pop_exn frame in
-  let result = Float32.of_int32 value in
-  stack_push frame (Float result)
+  let value = i2f @@ get_int @@ stack_pop_exn frame in
+  stack_push frame (Float value)
 
 let op_i2d frame =
-  let value = get_int @@ stack_pop_exn frame in
-  let result = Int32.to_float value in
-  stack_push frame (Double result)
+  let value = i2d @@ get_int @@ stack_pop_exn frame in
+  stack_push frame (Double value)
 
 let op_l2i frame =
-  let value = get_long @@ stack_pop_exn frame in
-  let result = Int64.to_int32 value in
-  stack_push frame (Int result)
+  let value = l2i @@ get_long @@ stack_pop_exn frame in
+  stack_push frame (Int value)
 
 let op_l2f frame =
-  let value = get_long @@ stack_pop_exn frame in
-  let result = Float32.of_int64 value in
-  stack_push frame (Float result)
+  let value = l2f @@ get_long @@ stack_pop_exn frame in
+  stack_push frame (Float value)
 
 let op_l2d frame =
-  let value = get_long @@ stack_pop_exn frame in
-  let result = Int64.to_float value in
-  stack_push frame (Double result)
+  let value = l2d @@ get_long @@ stack_pop_exn frame in
+  stack_push frame (Double value)
 
 let op_f2i frame =
-  let value = get_float @@ stack_pop_exn frame in
-  let result = Float32.to_int32 value in
-  stack_push frame (Int result)
+  let value = f2i @@ get_float @@ stack_pop_exn frame in
+  stack_push frame (Int value)
 
 let op_f2l frame =
-  let value = get_float @@ stack_pop_exn frame in
-  let result = Float32.to_int64 value in
-  stack_push frame (Long result)
+  let value = f2l @@ get_float @@ stack_pop_exn frame in
+  stack_push frame (Long value)
 
 let op_f2d frame =
-  let value = get_float @@ stack_pop_exn frame in
-  let result = Float32.to_float64 value in
-  stack_push frame (Double result)
+  let value = f2d @@ get_float @@ stack_pop_exn frame in
+  stack_push frame (Double value)
 
 let op_d2i frame =
-  let value = get_double @@ stack_pop_exn frame in
-  let result = Int32.of_float value in
-  stack_push frame (Int result)
+  let value = d2i @@ get_double @@ stack_pop_exn frame in
+  stack_push frame (Int value)
 
 let op_d2l frame =
-  let value = get_double @@ stack_pop_exn frame in
-  let result = Int64.of_float value in
-  stack_push frame (Long result)
+  let value = d2l @@ get_double @@ stack_pop_exn frame in
+  stack_push frame (Long value)
 
 let op_d2f frame =
-  let value = get_double @@ stack_pop_exn frame in
-  let result = Float32.of_float64 value in
-  stack_push frame (Float result)
+  let value = d2f @@ get_double @@ stack_pop_exn frame in
+  stack_push frame (Float value)
 
 let op_i2b frame =
-  let value = get_int @@ stack_pop_exn frame in
-  let byte = Int32.logand 0xffl value in
-  let result = if Int32.equal (Int32.logand 0x80l byte) 0l
-    then byte else Int32.add 0xffffff00l byte
-  in
-  stack_push frame (Int result)
+  let value = i2b @@ get_int @@ stack_pop_exn frame in
+  stack_push frame (Int value)
 
 let op_i2c frame =
-  let value = get_int @@ stack_pop_exn frame in
-  let result = Int32.logand 0xffl value in
-  stack_push frame (Int result)
+  let value = i2c @@ get_int @@ stack_pop_exn frame in
+  stack_push frame (Int value)
 
 let op_i2s frame =
-  let value = get_int @@ stack_pop_exn frame in
-  let byte = Int32.logand 0xffffl value in
-  let result = if Int32.equal (Int32.logand 0x8000l byte) 0l
-    then byte else Int32.add 0xffff0000l byte
-  in
-  stack_push frame (Int result)
+  let value = i2s @@ get_int @@ stack_pop_exn frame in
+  stack_push frame (Int value)

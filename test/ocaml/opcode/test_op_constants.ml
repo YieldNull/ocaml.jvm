@@ -8,7 +8,9 @@ let class_file =
   compile file
 
 let jclass =
-  load_class class_file
+  let cls = load_class class_file in
+  delete class_file;
+  cls
 
 let run ?(cmp = (=)) method_name method_descriptor result =
   let actual = run_method jclass method_name method_descriptor in
@@ -63,5 +65,4 @@ let suite =
   ]
 
 let () =
-  run_test_tt_main suite;
-  delete class_file
+  run_test_tt_main suite

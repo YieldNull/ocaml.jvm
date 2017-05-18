@@ -9,8 +9,9 @@ else
 fi
 
 corebuild -r -pkgs batteries,zip,yojson,fileutils,ounit \
--Is lib,src,src/classloader,src/opcode,src/instruction,tool,test,test/opcode,test/ocaml \
--lflags $ocamlc`pwd`/src/float32.c $*
+-Is lib,src,src/classloader,src/opcode,src/instruction,src/primitive,\
+tool,test,test/opcode,test/ocaml \
+-lflags $ocamlc`pwd`/src/primitive/float32.c $*
 
 if [[ "$path" =~ .*\.(byte|native)$ ]]; then
   name=`basename "$path"`

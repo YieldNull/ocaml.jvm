@@ -1,7 +1,7 @@
 [
   {
     "directory" : ".",
-    "command" : "clang -c -o _build/src/float32.o -I /usr/local/lib/ocaml",
-    "file" : "src/float32.c"
+    "command" : "clang -c -o _build/src/primitive/float32.o -I /usr/local/lib/ocaml",
+    "file" : "src/primitive/float32.c"
   }
 ]
