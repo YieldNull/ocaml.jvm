@@ -25,7 +25,7 @@ type t = elt array
 let parse input = function
   | 1  -> let len = read_ui16 input in Utf8 (nread input len)
   | 3  -> Integer (read_real_i32 input)
-  | 4  -> Float (Float32.bits_of_int32 (read_real_i32 input))
+  | 4  -> Float (Float32.of_int32_bits (read_real_i32 input))
   | 5  -> Long (read_i64 input)
   | 6  -> Double (read_double input)
   | 7  -> Class (read_ui16 input)

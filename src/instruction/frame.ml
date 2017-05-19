@@ -11,7 +11,7 @@ type t =
     opstack : (Jvalue.t) Stack.t;
   }
 
-let create jmethod ~f:localvar_initializer =
+let create jmethod args =
   let rec aux = function
     | [] -> failwith ""
     | hd :: tail -> match hd with
@@ -21,7 +21,12 @@ let create jmethod ~f:localvar_initializer =
   let codeattr = aux jmethod.Jmethod.attrs in
   let codes= codeattr.Code.code in
   let conspool = Jclass.conspool @@ Jmethod.get_class jmethod in
-  let localvars = Array.init codeattr.Code.max_locals ~f:localvar_initializer in
+  let arg_len = Array.length args in
+  let localvars = Array.init codeattr.Code.max_locals ~f:(fun i ->
+      if i < arg_len then args.(i)
+      else Jvalue.Null
+    )
+  in
   let opstack = Stack.create () in
   { pc = 0; codeattr; codes; jmethod; conspool; localvars; opstack; }
 

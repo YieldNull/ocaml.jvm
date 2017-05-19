@@ -3,51 +3,22 @@ open OUnit2
 open Jvalue
 open TestEnv
 
-let class_file =
-  let file = "test/java/opcode/TestOpConversions.java" in
-  compile file
-
-let jclass =
-  let cls = load_class class_file in
-  delete class_file;
-  cls
+let jclass = compile_jclass "test/java/opcode/TestOpConversions.java"
 
 let run ?(cmp = (=)) method_name method_descriptor result =
   let actual = run_method jclass method_name method_descriptor in
   assert_equal ~cmp actual (Some result)
 
-let compare_double_nan d1 d2 =
-  let v1 = match d1 with
-    | Some (Double dd) -> dd
-    | _ -> failwith ""
-  in
-  let v2 = match d2 with
-    | Some (Double dd) -> dd
-    | _ -> failwith ""
-  in
-  Float.is_nan v1 && Float.is_nan v2
-
-let compare_float_nan d1 d2 =
-  let v1 = match d1 with
-    | Some (Float dd) -> dd
-    | _ -> failwith ""
-  in
-  let v2 = match d2 with
-    | Some (Float dd) -> dd
-    | _ -> failwith ""
-  in
-  Float32.is_nan v1 && Float32.is_nan v2
-
 let suite =
   "op_conversions" >:::
   [ "op_i2l" >:: (fun _ -> run "op_i2l" "()J" (Long 0x7fffffffL));
     "op_i2f" >:: (fun _ -> run ~cmp:compare_f32 "op_i2f" "()F"
-                     (Float (Float32.bits_of_int32 0x4f000000l)));
+                     (Float (Float32.of_int32_bits 0x4f000000l)));
     "op_i2d" >:: (fun _ -> run "op_i2d" "()D" (Double (float_of_string "0x1.fffffffcp30")));
 
     "op_l2i" >:: (fun _ -> run "op_l2i" "()I" (Int (-1l)));
     "op_l2f" >:: (fun _ -> run ~cmp:compare_f32 "op_l2f" "()F"
-                     (Float (Float32.bits_of_int32 0x5f000000l)));
+                     (Float (Float32.of_int32_bits 0x5f000000l)));
     "op_l2d" >:: (fun _ -> run "op_l2d" "()D" (Double (float_of_string "0x1.0p63")));
 
     "op_f2i" >:: (fun _ -> run "op_f2i" "()I" (Int 314l));
@@ -70,12 +41,12 @@ let suite =
     "op_d2i" >:: (fun _ -> run "op_d2i" "()I" (Int 314l));
     "op_d2l" >:: (fun _ -> run "op_d2l" "()J" (Long 314L));
     "op_d2f" >:: (fun _ -> run ~cmp:compare_f32
-                     "op_d2f" "()F" (Float (Float32.bits_of_int32 0x439d1463l)));
+                     "op_d2f" "()F" (Float (Float32.of_int32_bits 0x439d1463l)));
 
     "op_d2i_nan" >:: (fun _ -> run "op_d2i_nan" "()I" (Int 0l));
     "op_d2l_nan" >:: (fun _ -> run "op_d2l_nan" "()J" (Long 0L));
     "op_d2f_nan" >:: (fun _ -> run ~cmp:compare_float_nan
-                         "op_d2f_nan" "()F" (Float (Float32.bits_of_int32 0x7f900000l)));
+                         "op_d2f_nan" "()F" (Float (Float32.nan)));
 
     "op_d2i_inf_pos" >:: (fun _ -> run "op_d2i_inf_pos" "()I" (Int 0x7fffffffl));
     "op_d2l_inf_pos" >:: (fun _ -> run "op_d2l_inf_pos" "()J" (Long 0x7fffffffffffffffL));

@@ -3,14 +3,7 @@ open OUnit2
 open Jvalue
 open TestEnv
 
-let class_file =
-  let file = "test/java/opcode/TestOpConstants.java" in
-  compile file
-
-let jclass =
-  let cls = load_class class_file in
-  delete class_file;
-  cls
+let jclass = compile_jclass "test/java/opcode/TestOpConstants.java"
 
 let run ?(cmp = (=)) method_name method_descriptor result =
   let actual = run_method jclass method_name method_descriptor in

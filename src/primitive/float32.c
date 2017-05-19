@@ -27,7 +27,7 @@ value copy_float(float f) {
 
 float Float_val(value v) { return *((float *)&Field(v, 0)); }
 
-value float32_bits_of_int32(value v) {
+value float32_of_int32_bits(value v) {
   union {
     float f;
     int32_t i;

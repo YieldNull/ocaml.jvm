@@ -17,7 +17,7 @@ external to_int32 : float32 -> int32 = "float32_to_int32"
 external to_int64 : float32 -> int64 = "float32_to_int64"
 external to_float64 : float32 -> float = "float32_to_float64"
 
-external bits_of_int32 : int32 -> float32 = "float32_bits_of_int32"
+external of_int32_bits : int32 -> float32 = "float32_of_int32_bits"
 external of_int32 : int32 -> float32 = "float32_of_int32"
 external of_int64 : int64 -> float32 = "float32_of_int64"
 external of_float64 : float -> float32 = "float32_of_float64"
@@ -25,6 +25,8 @@ external of_float64 : float -> float32 = "float32_of_float64"
 val one : float32
 
 val zero : float32
+
+val nan : float32
 
 val positive_infinity : float32
 

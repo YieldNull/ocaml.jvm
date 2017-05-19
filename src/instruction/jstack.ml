@@ -8,8 +8,8 @@ type t =
     mutable return_value : Jvalue.t option;
   }
 
-let create jmethod =
-  let current_frame = Frame.create jmethod ~f:(fun _ -> Null) in
+let create jmethod args =
+  let current_frame = Frame.create jmethod args in
   let frame_stack = Stack.create () in
   Stack.push frame_stack current_frame;
   { current_frame; frame_stack; return_value = None }

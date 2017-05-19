@@ -30,78 +30,78 @@ let op_dadd frame =
 let op_isub frame =
   let value2 = get_int @@ stack_pop_exn frame in
   let value1 = get_int @@ stack_pop_exn frame in
-  let sub = Caml.Int32.sub value1 value2 in
-  stack_push frame (Int sub)
+  let result = Caml.Int32.sub value1 value2 in
+  stack_push frame (Int result)
 
 let op_lsub frame =
   let value2 = get_long @@ stack_pop_exn frame in
   let value1 = get_long @@ stack_pop_exn frame in
-  let sub = Caml.Int64.sub value1 value2 in
-  stack_push frame (Long sub)
+  let result = Caml.Int64.sub value1 value2 in
+  stack_push frame (Long result)
 
 let op_fsub frame =
   let value2 = get_float @@ stack_pop_exn frame in
   let value1 = get_float @@ stack_pop_exn frame in
-  let sub = Float32.sub value1 value2 in
-  stack_push frame (Float sub)
+  let result = Float32.sub value1 value2 in
+  stack_push frame (Float result)
 
 let op_dsub frame =
   let value2 = get_double @@ stack_pop_exn frame in
   let value1 = get_double @@ stack_pop_exn frame in
-  let sub = value1 -. value2 in
-  stack_push frame (Double sub)
+  let result = value1 -. value2 in
+  stack_push frame (Double result)
 
 let op_imul frame =
   let value2 = get_int @@ stack_pop_exn frame in
   let value1 = get_int @@ stack_pop_exn frame in
-  let sub = Caml.Int32.mul value1 value2 in
-  stack_push frame (Int sub)
+  let result = Caml.Int32.mul value1 value2 in
+  stack_push frame (Int result)
 
 let op_lmul frame =
   let value2 = get_long @@ stack_pop_exn frame in
   let value1 = get_long @@ stack_pop_exn frame in
-  let sub = Caml.Int64.mul value1 value2 in
-  stack_push frame (Long sub)
+  let result = Caml.Int64.mul value1 value2 in
+  stack_push frame (Long result)
 
 let op_fmul frame =
   let value2 = get_float @@ stack_pop_exn frame in
   let value1 = get_float @@ stack_pop_exn frame in
-  let sub = Float32.mul value1 value2 in
-  stack_push frame (Float sub)
+  let result = Float32.mul value1 value2 in
+  stack_push frame (Float result)
 
 let op_dmul frame =
   let value2 = get_double @@ stack_pop_exn frame in
   let value1 = get_double @@ stack_pop_exn frame in
-  let sub = value1 *. value2 in
-  stack_push frame (Double sub)
+  let result = value1 *. value2 in
+  stack_push frame (Double result)
 
 let op_idiv frame =
   let value2 = get_int @@ stack_pop_exn frame in
   let value1 = get_int @@ stack_pop_exn frame in
   if Int32.equal value2 0l then raise ArithmeticException;
-  let sub = Caml.Int32.div value1 value2 in
-  stack_push frame (Int sub)
+  let result = Caml.Int32.div value1 value2 in
+  stack_push frame (Int result)
 
 let op_ldiv frame =
   let value2 = get_long @@ stack_pop_exn frame in
   let value1 = get_long @@ stack_pop_exn frame in
   if Int64.equal value2 0L then raise ArithmeticException;
-  let sub = Caml.Int64.div value1 value2 in
-  stack_push frame (Long sub)
+  let result =Caml.Int64.div value1 value2 in
+  stack_push frame (Long result)
 
 let op_fdiv frame =
   let value2 = get_float @@ stack_pop_exn frame in
   let value1 = get_float @@ stack_pop_exn frame in
   if Float32.equal value2 Float32.zero then raise ArithmeticException;
-  let sub = Float32.div value1 value2 in
-  stack_push frame (Float sub)
+  let result = Float32.div value1 value2 in
+  stack_push frame (Float result)
 
 let op_ddiv frame =
   let value2 = get_double @@ stack_pop_exn frame in
   let value1 = get_double @@ stack_pop_exn frame in
   if value2 = 0. then raise ArithmeticException;
-  let sub = value1 /. value2 in
-  stack_push frame (Double sub)
+  let result = value1 /. value2 in
+  stack_push frame (Double result)
 
 let op_irem frame =
   let value2 = get_int @@ stack_pop_exn frame in
@@ -150,9 +150,9 @@ let op_ishl frame =
   stack_push frame (Int shl)
 
 let op_lshl frame =
-  let value2 = get_long @@ stack_pop_exn frame in
+  let value2 = Caml.Int32.to_int @@ get_int @@ stack_pop_exn frame in
   let value1 = get_long @@ stack_pop_exn frame in
-  let shl = Int64.shift_left value1 (Caml.Int64.to_int value2) in
+  let shl = Int64.shift_left value1 value2 in
   stack_push frame (Long shl)
 
 let op_ishr frame =
@@ -162,9 +162,9 @@ let op_ishr frame =
   stack_push frame (Int shl)
 
 let op_lshr frame =
-  let value2 = get_long @@ stack_pop_exn frame in
+  let value2 = Caml.Int32.to_int @@ get_int @@ stack_pop_exn frame in
   let value1 = get_long @@ stack_pop_exn frame in
-  let shl = Int64.shift_right value1 (Caml.Int64.to_int value2) in
+  let shl = Int64.shift_right value1 value2 in
   stack_push frame (Long shl)
 
 let op_iushr frame =
@@ -174,9 +174,9 @@ let op_iushr frame =
   stack_push frame (Int shl)
 
 let op_lushr frame =
-  let value2 = get_long @@ stack_pop_exn frame in
+  let value2 = Caml.Int32.to_int @@ get_int @@ stack_pop_exn frame in
   let value1 = get_long @@ stack_pop_exn frame in
-  let shl = Int64.shift_right_logical value1 (Caml.Int64.to_int value2) in
+  let shl = Int64.shift_right_logical value1 value2 in
   stack_push frame (Long shl)
 
 let op_iand frame =

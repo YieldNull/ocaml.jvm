@@ -3,7 +3,7 @@ open Attribute
 
 type t
 
-val create : Jmethod.t -> f:(int -> Jvalue.t) -> t
+val create : Jmethod.t -> Jvalue.t array -> t
 
 val stack_push : t -> Jvalue.t -> unit
 
