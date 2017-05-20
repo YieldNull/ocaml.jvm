@@ -13,6 +13,8 @@ let create jclass =
     );
   { jclass; fields }
 
+let equal obj1 obj2 = phys_equal obj1 obj2
+
 let get_field_value_exn objref memid =
   Hashtbl.find_exn objref.fields memid
 

@@ -3,6 +3,8 @@ open VMError
 open Accflag
 open Jvalue
 
+let equal arr1 arr2 = phys_equal arr1 arr2
+
 let check_bounds arr index =
   if index < 0 || index >= Array.length arr.values
   then raise ArrayIndexOutOfBoundsException

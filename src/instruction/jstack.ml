@@ -15,10 +15,12 @@ let create jmethod args =
   { current_frame; frame_stack; return_value = None }
 
 let handle_return t value =
-  let _ = Stack.pop_exn t.frame_stack in
-  let former = Stack.pop t.frame_stack in
+  let current = Stack.pop_exn t.frame_stack in
+  Frame.set_end_of_codes current;
+  let former = Stack.top t.frame_stack in
   match former with
-  | Some frame -> begin match value with
+  | Some frame -> begin
+      match value with
       | Some v -> Frame.stack_push frame v
       | _ -> ()
     end
@@ -45,7 +47,7 @@ let run_opcode t frame =
 let execute t =
   while not (Stack.is_empty t.frame_stack) do
     let frame = Stack.top_exn t.frame_stack in
-    while not (Frame.end_of_codes frame) do
+    while not (Frame.is_end_of_codes frame) do
       run_opcode t frame
     done
   done;

@@ -1,5 +1,6 @@
 open Core.Std
 open Attribute
+open VMError
 
 type t =
   { mutable pc : int;
@@ -79,6 +80,17 @@ let read_i16 t =
   t.pc <- t.pc + 2;
   value
 
-let set_pc_offset t offset = t.pc <- t.pc + offset
+(* ensure The target address must be
+   that of an opcode of an instruction
+   within the method that contains this if<cond> instruction *)
 
-let end_of_codes t = t.pc = Array.length t.codes
+let set_pc_offset t offset =
+  let target = t.pc + offset in
+  if target < 0 || target > Array.length t.codes - 1 then
+    raise VirtualMachineError
+  else
+    t.pc <- target
+
+let is_end_of_codes t = t.pc = Array.length t.codes
+
+let set_end_of_codes t = t.pc <- Array.length t.codes

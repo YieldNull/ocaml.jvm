@@ -35,4 +35,6 @@ val read_i16 : t -> int
 
 val set_pc_offset : t -> int -> unit
 
-val end_of_codes : t -> bool
+val is_end_of_codes : t -> bool
+
+val set_end_of_codes : t -> unit
