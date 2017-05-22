@@ -14,3 +14,4 @@ exception ArrayIndexOutOfBoundsException
 exception InstantiationError
 exception NegativeArraySizeException
 exception ArithmeticException
+exception AbstractMethodError

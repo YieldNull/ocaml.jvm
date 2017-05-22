@@ -19,9 +19,9 @@ let create jmethod args =
       | AttrMethod.Code code -> code
       | _ -> aux tail
   in
-  let codeattr = aux jmethod.Jmethod.attrs in
+  let codeattr = aux (Jmethod.attrs jmethod) in
   let codes= codeattr.Code.code in
-  let conspool = Jclass.conspool @@ Jmethod.get_class jmethod in
+  let conspool = Jclass.conspool @@ Jmethod.jclass jmethod in
   let arg_len = Array.length args in
   let localvars = Array.init codeattr.Code.max_locals ~f:(fun i ->
       if i < arg_len then args.(i)
@@ -42,7 +42,7 @@ let localvar_get t i = t.localvars.(i)
 
 let localvar_set t i v = t.localvars.(i) <- v
 
-let current_class t = t.jmethod.Jmethod.jclass
+let current_class t = Jmethod.jclass t.jmethod
 
 let current_loader t =
   let jclass = current_class t in
@@ -50,7 +50,7 @@ let current_loader t =
 
 let current_method t = t.jmethod
 
-let current_method_name t = t.jmethod.Jmethod.mid.MemberID.name
+let current_method_name t = Jmethod.name t.jmethod
 
 let conspool t = t.conspool
 

@@ -2,25 +2,18 @@ open VMError
 
 include Classloader.InnValue
 
-let get_byte value =
-  match value with
-  | Byte x -> x
-  | _ -> raise VirtualMachineError
-
-let get_char value =
-  match value with
-  | Char x -> x
-  | _ -> raise VirtualMachineError
-
-let get_short value =
-  match value with
-  | Short x -> x
-  | _ -> raise VirtualMachineError
-
 let get_int value =
   match value with
   | Int x -> x
   | _ -> raise VirtualMachineError
+
+let get_short value = Int32.to_int @@ get_int value
+
+let get_byte value = Int32.to_int @@ get_int value
+
+let get_char value = Int32.to_int @@ get_int value
+
+let get_boolean value = Int32.to_int @@ get_int value
 
 let get_long value =
   match value with
@@ -55,21 +48,6 @@ let get_object value =
 let get_array value =
   match value with
   | Array x -> x
-  | _ -> raise VirtualMachineError
-
-let must_be_byte value =
-  match value with
-  | Byte _ -> ()
-  | _ -> raise VirtualMachineError
-
-let must_be_char value =
-  match value with
-  | Char _ -> ()
-  | _ -> raise VirtualMachineError
-
-let must_be_short value =
-  match value with
-  | Short _ -> ()
   | _ -> raise VirtualMachineError
 
 let must_be_int value =

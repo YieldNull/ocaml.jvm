@@ -9,7 +9,7 @@ let check_bounds arr index =
   if index < 0 || index >= Array.length arr.values
   then raise ArrayIndexOutOfBoundsException
 
-let create_primitive len type_code =
+let create_primitive jclass len type_code =
   let len = Int32.to_int_exn len in
   if len < 0 then raise NegativeArraySizeException;
   let default = match type_code with
@@ -23,12 +23,12 @@ let create_primitive len type_code =
     | 11 -> Long 0L
     | _ -> raise VirtualMachineError
   in
-  { jclass = None; values = Array.create ~len default }
+  { jclass = Classloader.root_class jclass; values = Array.create ~len default }
 
 let create_reference jclass len =
   let len = Int32.to_int_exn len in
   if len < 0 then raise NegativeArraySizeException;
-  { jclass = Some jclass; values = Array.create ~len Null }
+  { jclass; values = Array.create ~len Null }
 
 let rec create_multiple jclass dimensions lens =
   if dimensions <= 0 then raise VirtualMachineError;
@@ -43,9 +43,9 @@ let rec create_multiple jclass dimensions lens =
       else
         Jfield.default_value {MemberID.name = ""; MemberID.descriptor = subname}
     in
-    { jclass = Some jclass; values = Array.create ~len component }
+    { jclass; values = Array.create ~len component }
   else
-    { jclass = Some jclass; values = Array.empty () }
+    { jclass; values = Array.empty () }
 
 let length arr =
   Int32.of_int_exn (Array.length arr.values)

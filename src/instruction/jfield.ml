@@ -6,6 +6,10 @@ include Classloader.InnField
 
 let is_static jfield = FlagField.is_set jfield.access_flags FlagField.Static
 
+let is_final jfield = FlagField.is_set jfield.access_flags FlagField.Final
+
+let is_protected jfield = FlagField.is_set jfield.access_flags FlagField.Protected
+
 let get_static_value jfield =
   let static_fields = jfield.jclass.Jclass.static_fields in
   if is_static jfield then

@@ -14,6 +14,12 @@ module rec InnClass : sig
       loader  : InnLoader.t;
       static_fields : (MemberID.t, InnValue.t) Hashtbl.t;
     }
+
+  val package_rt_equal : t -> t -> bool
+  val is_subclass : sub:t -> super:t -> bool
+  val is_interface : t -> bool
+  val find_method_in_interfaces : t -> MemberID.t -> InnMethod.t option
+  val find_method_in_java_long_object : t -> MemberID.t -> InnMethod.t option
 end
 and InnField: sig
   type t =
@@ -77,7 +83,7 @@ and InnValue : sig
     }
 
   type jarray =
-    { jclass : InnClass.t option;
+    { jclass : InnClass.t;
       values : (InnValue.t) Array.t;
     }
 
@@ -112,3 +118,5 @@ val resolve_method_of_class : InnClass.t -> string -> MemberID.t -> InnMethod.t
 
 (* resolve a method of interface in constant_pool *)
 val resolve_method_of_interface : InnClass.t -> string -> MemberID.t -> InnMethod.t
+
+val root_class : InnClass.t -> InnClass.t

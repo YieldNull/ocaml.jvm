@@ -28,6 +28,8 @@ module rec InnClass : sig
   val contains_field : t -> MemberID.t -> bool
   val contains_method : t -> MemberID.t -> bool
   val find_field : t -> MemberID.t -> InnField.t option
+  val find_method_in_interfaces : t -> MemberID.t -> InnMethod.t option
+  val find_method_in_java_long_object : t -> MemberID.t -> InnMethod.t option
   val find_method_of_class : t -> MemberID.t -> InnMethod.t option
   val find_method_of_interface : t -> MemberID.t -> InnMethod.t option
 end = struct
@@ -123,14 +125,18 @@ end = struct
       | Some m -> Some m
       | None -> find_method_in_interfaces jclass mid
 
+  let find_method_in_java_long_object jclass mid =
+    let cls = InnLoader.find_class_exn jclass.loader java_lang_object in
+    match Hashtbl.find cls.methods mid with
+    | Some m -> if FlagMethod.is_set m.InnMethod.access_flags FlagMethod.Public
+                && FlagMethod.is_not_set m.InnMethod.access_flags FlagMethod.Static
+      then Some m else None
+    | _ -> None
+
   let find_method_of_interface jclass mid =
-    let find_in_object jclass mid =
-      let cls = InnLoader.find_class_exn jclass.loader java_lang_object in
-      Hashtbl.find cls.methods mid
-    in
     match Hashtbl.find jclass.methods mid with
     | Some m -> Some m
-    | None -> match find_in_object jclass mid with
+    | None -> match find_method_in_java_long_object jclass mid with
       | Some m -> Some m
       | None -> find_method_in_interfaces jclass mid
 end
@@ -282,7 +288,7 @@ and InnValue : sig
     }
 
   type jarray =
-    { jclass : InnClass.t option;
+    { jclass : InnClass.t;
       values : (InnValue.t) Array.t;
     }
 
@@ -316,7 +322,7 @@ end = struct
     }
 
   type jarray =
-    { jclass : InnClass.t option;
+    { jclass : InnClass.t;
       values : (InnValue.t) Array.t;
     }
 
@@ -603,3 +609,6 @@ and resovle_pool jclass poolbc =
         | _ -> InnPoolrt.Byte8Placeholder
       in jclass.InnClass.conspool.(index) <- new_entry
     )
+
+let root_class jclass =
+  InnLoader.find_class_exn jclass.InnClass.loader java_lang_object
