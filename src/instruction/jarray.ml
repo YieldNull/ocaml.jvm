@@ -23,7 +23,7 @@ let create_primitive jclass len type_code =
     | 11 -> Long 0L
     | _ -> raise VirtualMachineError
   in
-  { jclass = Classloader.root_class jclass; values = Array.create ~len default }
+  { jclass = Classloader.root_class (); values = Array.create ~len default }
 
 let create_reference jclass len =
   let len = Int32.to_int_exn len in

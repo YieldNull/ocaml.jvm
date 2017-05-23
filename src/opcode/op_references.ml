@@ -31,7 +31,7 @@ let get_class_method frame index =
   | Poolrt.Methodref x -> Some x
   | Poolrt.UnresolvedMethodref(cls,mid) ->
     if mid.MemberID.name = "<init>" || mid.MemberID.name = "<cinit>" then
-      raise (NoSuchMethodError "");
+      raise NoSuchMethodError;
     let jmethod = Classloader.resolve_method_of_class (current_class frame) cls mid in
     Poolrt.set pool index (Poolrt.Methodref jmethod);
     Some jmethod
@@ -48,7 +48,7 @@ let get_interface_method frame index =
   | Poolrt.InterfaceMethodref x -> Some x
   | Poolrt.UnresolvedInterfaceMethodref(cls,mid) ->
     if mid.MemberID.name = "<init>" || mid.MemberID.name = "<cinit>" then
-      raise (NoSuchMethodError "");
+      raise NoSuchMethodError;
     let jmethod = Classloader.resolve_method_of_interface (current_class frame) cls mid in
     Poolrt.set pool index (Poolrt.InterfaceMethodref jmethod);
     Some jmethod
@@ -76,7 +76,7 @@ let validate_protected_field frame objcls jfield =
     if Jclass.is_member_of_supper current jfield.Jfield.mid
     && not (Jclass.package_rt_equal current jfield.Jfield.jclass)
     then
-      if not (Jclass.is_same_class objcls current ||
+      if not (Jclass.equal objcls current ||
               Jclass.is_subclass ~sub:objcls ~super:current)
       then
         raise IllegalAccessError
@@ -87,10 +87,26 @@ let validate_protected_method frame objcls jmethod =
     if Jclass.is_member_of_supper current (Jmethod.memid jmethod)
     && not (Jclass.package_rt_equal current (Jmethod.jclass jmethod))
     then
-      if not (Jclass.is_same_class objcls current ||
+      if not (Jclass.equal objcls current ||
               Jclass.is_subclass ~sub:objcls ~super:current)
       then
         raise IllegalAccessError
+
+let find_instance_method jclass mid =
+  match Jclass.find_method jclass mid with
+  | Some m -> if Jmethod.is_static m then None else Some m
+  | _ -> None
+
+let find_in_mss_methods jclass jmethod =
+  let mss_methods = Jclass.find_mss_methods jclass (Jmethod.memid jmethod) in
+  let candidates = List.filter mss_methods ~f:(fun m ->
+      FlagMethod.is_not_set (Jmethod.access_flags jmethod) FlagMethod.Abstract
+    )
+  in
+  if List.length candidates = 1 then
+    List.hd_exn candidates
+  else
+    raise IncompatibleClassChangeError
 
 let create_args frame jmethod =
   let byte8_count, types = Descriptor.args_of_method (Jmethod.descriptor jmethod) in
@@ -183,20 +199,87 @@ let op_putfield frame =
   end;
   Jobject.set_field_value_exn jobject jfield.Jfield.mid value
 
-let op_invokevirtual frame = ()
+let op_invokevirtual frame =
+  let index = read_ui16 frame in
+  let jmethod = get_class_method_exn frame index in
+  if Jmethod.is_static jmethod then raise IncompatibleClassChangeError;
+  let args = create_args frame jmethod in
+  let jclass =
+    match stack_pop_exn frame with
+    | Array a ->
+      validate_protected_method frame a.Jvalue.jclass jmethod;
+      Array.set args 0 (Array a); a.Jvalue.jclass
+    | Object o ->
+      validate_protected_method frame o.Jvalue.jclass jmethod;
+      Array.set args 0 (Object o); o.Jvalue.jclass
+    | _ -> raise VirtualMachineError
+  in
+  let rec has_override jclass jmethod =
+    match find_instance_method jclass (Jmethod.memid jmethod) with
+    | Some m -> if Jmethod.equal m jmethod then false, Some m
+      else if not (Jmethod.is_private m)
+           && Jclass.is_subclass ~sub:jclass ~super:(Jmethod.jclass jmethod)
+      then
+        if (Jmethod.is_public jmethod || Jmethod.is_protected jmethod
+            || (not (Jmethod.is_private jmethod)
+                && Jclass.package_rt_equal jclass (Jmethod.jclass jmethod))
+           )
+        then false, Some m
+        else true, Some m
+      else false, None
+    | None -> false, None
+  in
+  let rec find_directly jclass jmethod =
+    match has_override jclass jmethod with
+    | false, Some m -> Some m
+    | _, _ -> match Jclass.super_class jclass with
+      | Some super -> find_directly super jmethod
+      | _ -> None
+  in
+  let rec find_indirectly jclass jmethod =
+    match has_override jclass jmethod with
+    | false, Some m -> Some m
+    | false, None -> begin
+        match Jclass.super_class jclass with
+        | Some super -> find_indirectly super jmethod
+        | _ -> None
+      end
+    | true, Some m -> begin (* indirect override *)
+        match Jclass.super_class jclass with
+        | Some super ->
+          (* find the method where increase the visibility of jmethod to at least Protected *)
+          if Option.is_some @@ find_directly super jmethod
+          then Some m else None
+        | None -> None
+      end
+    | _, _ -> raise VirtualMachineError
+  in
+  let mth = match find_indirectly jclass jmethod with
+    | Some m -> m
+    | None -> find_in_mss_methods jclass jmethod
+  in
+  Frame.create mth args
 
 let op_invokespecial frame =
   let index = read_ui16 frame in
   let jmethod = get_special_method_exn frame index in
+  if Jmethod.is_static jmethod then raise IncompatibleClassChangeError;
   let args = create_args frame jmethod in
-  let objref = get_object @@ stack_pop_exn frame in
-  Array.set args 0 (Object objref);
-  Frame.create jmethod args
-
-let op_invokeinterface frame =
-  let index = read_ui16 frame in
-  let jmethod = get_special_method_exn frame index in
-  let args = create_args frame jmethod in
+  begin
+    match stack_pop_exn frame with
+    | Array a ->
+      validate_protected_method frame a.Jvalue.jclass jmethod;
+      Array.set args 0 (Array a)
+    | Object o ->
+      validate_protected_method frame o.Jvalue.jclass jmethod;
+      Array.set args 0 (Object o)
+    | _ -> raise VirtualMachineError
+  end;
+  let rec find_method_in_supper jclass memid =
+    match Jclass.super_class jclass with
+    | Some supper -> find_method_in_supper supper memid
+    | _ -> None
+  in
   let cls =
     let jclass = Jmethod.jclass jmethod in
     if Jmethod.name jmethod <> "<init>"
@@ -213,36 +296,53 @@ let op_invokeinterface frame =
   let mth =
     match Jclass.find_method cls memid with
     | Some m -> m
-    | _ -> let m = if not (Jclass.is_interface cls)
-             then Jclass.find_method_in_supper cls memid
-             else None
+    | _ ->
+      let m = if not (Jclass.is_interface cls)
+        then find_method_in_supper cls memid
+        else None
       in match m with
       | Some m -> m
-      | _ -> match Jclass.find_method_in_java_long_object cls memid with
+      | _ -> match Jclass.find_method (Classloader.root_class ()) memid with
         | Some m -> m
-        | _ -> match Jclass.find_method_in_interfaces cls memid with
-          | Some m -> m
-          | _ -> raise AbstractMethodError
+        | _ -> find_in_mss_methods cls jmethod
   in
-  begin
-    match stack_pop_exn frame with
-    | Array a ->
-      validate_protected_method frame a.Jvalue.jclass mth;
-      Array.set args 0 (Array a);
-    | Object o ->
-      validate_protected_method frame o.Jvalue.jclass mth;
-      Array.set args 0 (Object o);
-    | _ -> raise VirtualMachineError
-  end;
   Frame.create mth args
 
-let op_invokedynamic frame = () (* TODO *)
+let op_invokeinterface frame =
+  let index = read_ui16 frame in
+  ignore @@ read_byte frame;
+  if read_byte frame <> 0 then raise (ClassFormatError "");
+  let jmethod = get_interface_method_exn frame index in
+  if Jmethod.is_static jmethod || Jmethod.is_private jmethod
+  then raise IncompatibleClassChangeError;
+  let args = create_args frame jmethod in
+  let jclass = match stack_pop_exn frame with
+    | Array a ->
+      Array.set args 0 (Array a); a.Jvalue.jclass
+    | Object o ->
+      Array.set args 0 (Object o); o.Jvalue.jclass
+    | _ -> raise VirtualMachineError
+  in
+  let rec find_in_class jclass mid =
+    match find_instance_method jclass mid with
+    | Some m -> Some m
+    | _ -> match Jclass.super_class jclass with
+      | Some super -> find_in_class super mid
+      | _ -> None
+  in
+  let mth = match find_in_class jclass (Jmethod.memid jmethod) with
+    | Some m -> m
+    | _ -> find_in_mss_methods jclass jmethod
+  in
+  Frame.create mth args
 
 let op_invokestatic frame =
   let index = read_ui16 frame in
   let jmethod = get_static_method_exn frame index in
   let args = create_args frame jmethod in
   Frame.create jmethod args
+
+let op_invokedynamic frame = () (* TODO *)
 
 let op_new frame =
   let index = read_ui16 frame in

@@ -21,17 +21,13 @@ module rec InnClass : sig
     }
 
   val component : char list -> string
-  val package_of_class : string -> string
+  val package_name : string -> string
   val package_rt_equal : t -> t -> bool
   val is_subclass : sub:t -> super:t -> bool
   val is_interface : t -> bool
-  val contains_field : t -> MemberID.t -> bool
-  val contains_method : t -> MemberID.t -> bool
   val find_field : t -> MemberID.t -> InnField.t option
-  val find_method_in_interfaces : t -> MemberID.t -> InnMethod.t option
-  val find_method_in_java_long_object : t -> MemberID.t -> InnMethod.t option
-  val find_method_of_class : t -> MemberID.t -> InnMethod.t option
-  val find_method_of_interface : t -> MemberID.t -> InnMethod.t option
+  val find_method : t -> MemberID.t -> InnMethod.t option
+  val find_mss_methods : t -> MemberID.t -> InnMethod.t list
 end = struct
   type t =
     { name : string;
@@ -46,12 +42,18 @@ end = struct
       static_fields : (MemberID.t, InnValue.t) Hashtbl.t;
     }
 
+  let find_method jclass mid = Hashtbl.find jclass.methods mid
+
+  let find_field jclass mid = Hashtbl.find jclass.fields mid
+
+  let find_mss_methods jclass mid = []
+
   let rec component = function
     | '['::tail -> component tail
     | 'L'::tail -> String.of_char_list @@ List.slice tail 0 (List.length tail - 1)
     | chrs -> String.of_char_list chrs
 
-  let package_of_class name =
+  let package_name name =
     let cls = component (String.to_list name) in
     let slash = String.rfindi cls ~f:(fun _ c -> c = '/') in
     match slash with
@@ -60,13 +62,7 @@ end = struct
 
   let package_rt_equal class1 class2 =
     InnLoader.equal class1.loader class2.loader &&
-    package_of_class class1.name = package_of_class class2.name
-
-  let contains_field jclass mid =
-    Option.is_some @@ Hashtbl.find jclass.fields mid
-
-  let contains_method jclass mid =
-    Option.is_some @@ Hashtbl.find jclass.methods mid
+    package_name class1.name = package_name class2.name
 
   let rec is_subclass ~sub ~super =
     sub.name = super.name ||
@@ -77,68 +73,6 @@ end = struct
   let is_interface jclass =
     FlagClass.is_set jclass.access_flags FlagClass.Interface
 
-  let rec find_field jclass mid =
-    let find_in_interfaces jclass mid =
-      let rec aux = function
-        | [] -> None
-        | head :: tail -> match find_field head mid with
-          | Some jfield -> Some jfield
-          | None -> aux tail
-      in aux jclass.interfaces
-    in
-    let find_in_superclass jclass mid =
-      match jclass.super_class with
-      | Some cls -> find_field cls mid
-      | None -> None
-    in
-    match Hashtbl.find jclass.fields mid with
-    | Some f -> Some f
-    | None -> match find_in_interfaces jclass mid with
-      | Some f -> Some f
-      | None -> match find_in_superclass jclass mid with
-        | Some f -> Some f
-        | None -> None
-
-  let find_method_in_interfaces jclass mid =
-    let check_acc jmethod =
-      FlagMethod.is_not_set_list jmethod.InnMethod.access_flags
-        [FlagMethod.Private; FlagMethod.Static]
-    in
-    let rec aux = function
-      | [] -> None
-      | hd :: tail -> match Hashtbl.find hd.InnClass.methods mid with
-        | Some jmethod when check_acc jmethod -> Some jmethod
-        | _ -> match aux hd.InnClass.interfaces with
-          | Some jmethod when check_acc jmethod -> Some jmethod
-          | _ -> aux tail
-    in aux jclass.InnClass.interfaces
-
-  let rec find_method_of_class jclass mid =
-    let find_in_superclass jclass mid =
-      match jclass.super_class with
-      | Some cls -> find_method_of_class cls mid
-      | None -> None
-    in
-    match Hashtbl.find jclass.methods mid with
-    | Some m -> Some m
-    | None -> match find_in_superclass jclass mid with
-      | Some m -> Some m
-      | None -> find_method_in_interfaces jclass mid
-
-  let find_method_in_java_long_object jclass mid =
-    let cls = InnLoader.find_class_exn jclass.loader java_lang_object in
-    match Hashtbl.find cls.methods mid with
-    | Some m -> if FlagMethod.is_set m.InnMethod.access_flags FlagMethod.Public
-                && FlagMethod.is_not_set m.InnMethod.access_flags FlagMethod.Static
-      then Some m else None
-    | _ -> None
-
-  let find_method_of_interface jclass mid =
-    match Hashtbl.find jclass.methods mid with
-    | Some m -> Some m
-    | None -> match find_method_in_java_long_object jclass mid with
-      | Some m -> Some m
-      | None -> find_method_in_interfaces jclass mid
 end
 and InnField : sig
   type t =
@@ -346,43 +280,8 @@ let bootstrap_loader =
     InnLoader.classes = Hashtbl.create ~hashable:String.hashable ()
   }
 
-let is_field_accessible src_class jfield =
-  let mid = jfield.InnField.mid in
-  let target_class = jfield.InnField.jclass in
-  let check_private () =
-    if InnClass.contains_field src_class mid then true else false
-  in
-  let check_default () =
-    InnClass.package_rt_equal src_class target_class
-  in
-  let check_protected () =
-    if InnClass.is_subclass ~sub:src_class ~super:target_class then true
-    else check_default ()
-  in
-  let flags = jfield.InnField.access_flags in
-  if FlagField.is_set flags FlagField.Public then true
-  else if FlagField.is_set flags FlagField.Private then check_private ()
-  else if FlagField.is_set flags FlagField.Protected then check_protected ()
-  else check_default ()
-
-let is_method_accessible src_class jmethod =
-  let mid = jmethod.InnMethod.mid in
-  let target_class = jmethod.InnMethod.jclass in
-  let check_private () =
-    if InnClass.contains_method src_class mid then true else false
-  in
-  let check_default () =
-    InnClass.package_rt_equal src_class target_class
-  in
-  let check_protected () =
-    if InnClass.is_subclass ~sub:src_class ~super:target_class then true
-    else check_default ()
-  in
-  let flags = jmethod.InnMethod.access_flags in
-  if FlagMethod.is_set flags FlagMethod.Public then true
-  else if FlagMethod.is_set flags FlagMethod.Private then check_private ()
-  else if FlagMethod.is_set flags FlagMethod.Protected then check_protected ()
-  else check_default ()
+let root_class () =
+  InnLoader.find_class_exn bootstrap_loader java_lang_object
 
 (* load a none array class from file System *)
 let rec load_from_bytecode loader binary_name =
@@ -522,65 +421,14 @@ and resolve_class loader ~caller:src_class ~name:binary_name =
     | None -> let cls = resolve () in InnLoader.add_class loader cls; cls
   in
   let acc = jclass.InnClass.access_flags in
-  let referer_package = InnClass.package_of_class src_class in
+  let referer_package = InnClass.package_name src_class in
   if FlagClass.is_not_set acc FlagClass.Public then begin
-    let pkg_target = InnClass.package_of_class jclass.InnClass.name in
+    let pkg_target = InnClass.package_name jclass.InnClass.name in
     if not @@ InnLoader.equal loader jclass.InnClass.loader || referer_package <> pkg_target then
       if not @@ String.contains binary_name '$' then (* inner class access bug? *)
         raise IllegalAccessError
   end;
   jclass
-
-and resolve_field src_class class_name mid =
-  let jclass = resolve_class src_class.InnClass.loader
-      ~caller:src_class.InnClass.name ~name:class_name
-  in
-  let jfield = match InnClass.find_field jclass mid with
-    | Some jfield -> jfield
-    | None -> raise NoSuchFieldError
-  in
-  if not @@ is_field_accessible src_class jfield then
-    raise IllegalAccessError;
-  jfield
-
-and resolve_method_of_class src_class class_name mid =
-  let resolve_polymorphic jclass mid =
-    let classes = Descriptor.classes_of_method mid.MemberID.descriptor in
-    List.iter classes ~f:(fun cls ->
-        let _ = resolve_class jclass.InnClass.loader
-            ~caller:src_class.InnClass.name ~name:cls in ()
-      )
-  in
-  let jclass = resolve_class src_class.InnClass.loader
-      ~caller:src_class.InnClass.name ~name:class_name
-  in
-  if InnClass.is_interface jclass then raise IncompatibleClassChangeError;
-  let jmethod = match InnMethod.is_polymorphic jclass mid with
-    | Some m -> resolve_polymorphic jclass mid; m
-    | None -> match InnClass.find_method_of_class jclass mid with
-      | Some m -> m
-      | None -> let msg = sprintf "No such method{%s} in class{%s}"
-                    (MemberID.to_string mid) class_name
-        in raise (NoSuchMethodError msg)
-  in
-  if not @@ is_method_accessible src_class jmethod then
-    raise IllegalAccessError;
-  jmethod
-
-and resolve_method_of_interface src_class class_name mid =
-  let jclass = resolve_class src_class.InnClass.loader
-      ~caller:src_class.InnClass.name ~name:class_name
-  in
-  if not @@ InnClass.is_interface jclass then raise IncompatibleClassChangeError;
-  let jmethod = match InnClass.find_method_of_interface jclass mid with
-    | Some jmethod -> jmethod
-    | None -> let msg = sprintf "No such method{%s} in class{%s}"
-                  (MemberID.to_string mid) class_name
-      in raise (NoSuchMethodError msg)
-  in
-  if not @@ is_method_accessible src_class jmethod then
-    raise IllegalAccessError;
-  jmethod
 
 and resovle_pool jclass poolbc =
   let member_arg ci nti =
@@ -610,5 +458,138 @@ and resovle_pool jclass poolbc =
       in jclass.InnClass.conspool.(index) <- new_entry
     )
 
-let root_class jclass =
-  InnLoader.find_class_exn jclass.InnClass.loader java_lang_object
+let is_field_accessible src_class jfield =
+  let mid = jfield.InnField.mid in
+  let target_class = jfield.InnField.jclass in
+  let check_private () =
+    Option.is_some @@ InnClass.find_field src_class mid
+  in
+  let check_default () =
+    InnClass.package_rt_equal src_class target_class
+  in
+  let check_protected () =
+    if InnClass.is_subclass ~sub:src_class ~super:target_class then true
+    else check_default ()
+  in
+  let flags = jfield.InnField.access_flags in
+  if FlagField.is_set flags FlagField.Public then true
+  else if FlagField.is_set flags FlagField.Private then check_private ()
+  else if FlagField.is_set flags FlagField.Protected then check_protected ()
+  else check_default ()
+
+let is_method_accessible src_class jmethod =
+  let mid = jmethod.InnMethod.mid in
+  let target_class = jmethod.InnMethod.jclass in
+  let check_private () =
+    Option.is_some @@ InnClass.find_method src_class mid
+  in
+  let check_default () =
+    InnClass.package_rt_equal src_class target_class
+  in
+  let check_protected () =
+    if InnClass.is_subclass ~sub:src_class ~super:target_class then true
+    else check_default ()
+  in
+  let flags = jmethod.InnMethod.access_flags in
+  if FlagMethod.is_set flags FlagMethod.Public then true
+  else if FlagMethod.is_set flags FlagMethod.Private then check_private ()
+  else if FlagMethod.is_set flags FlagMethod.Protected then check_protected ()
+  else check_default ()
+
+let rec find_field jclass mid =
+  let find_in_interfaces jclass mid =
+    let rec aux = function
+      | [] -> None
+      | head :: tail -> match find_field head mid with
+        | Some jfield -> Some jfield
+        | None -> aux tail
+    in aux jclass.InnClass.interfaces
+  in
+  let find_in_superclass jclass mid =
+    match jclass.InnClass.super_class with
+    | Some cls -> find_field cls mid
+    | None -> None
+  in
+  match InnClass.find_field jclass mid with
+  | Some f -> Some f
+  | None -> match find_in_interfaces jclass mid with
+    | Some f -> Some f
+    | None -> match find_in_superclass jclass mid with
+      | Some f -> Some f
+      | None -> None
+
+let find_method_in_interfaces jclass mid =
+  let mss_methods = InnClass.find_mss_methods jclass mid in
+  let candidates = List.filter mss_methods ~f:(fun m ->
+      FlagMethod.is_not_set m.InnMethod.access_flags FlagMethod.Abstract
+    )
+  in
+  if List.length candidates = 1 then
+    Some (List.hd_exn candidates)
+  else if List.length mss_methods > 0 then
+    Some (List.hd_exn mss_methods)
+  else None
+
+let resolve_field src_class class_name mid =
+  let jclass = resolve_class src_class.InnClass.loader
+      ~caller:src_class.InnClass.name ~name:class_name
+  in
+  let jfield = match find_field jclass mid with
+    | Some jfield -> jfield
+    | None -> raise NoSuchFieldError
+  in
+  if not @@ is_field_accessible src_class jfield then
+    raise IllegalAccessError;
+  jfield
+
+let resolve_method_of_class src_class class_name mid =
+  let resolve_polymorphic jclass mid =
+    let classes = Descriptor.classes_of_method mid.MemberID.descriptor in
+    List.iter classes ~f:(fun cls ->
+        let _ = resolve_class jclass.InnClass.loader
+            ~caller:src_class.InnClass.name ~name:cls in ()
+      )
+  in
+  let rec find_method_in_classes jclass mid =
+    match InnMethod.is_polymorphic jclass mid with
+    | Some m -> resolve_polymorphic jclass mid; Some m
+    | _ -> match InnClass.find_method jclass mid with
+      | Some m -> Some m
+      | _ -> match jclass.InnClass.super_class with
+        | Some super -> find_method_in_classes super mid
+        | _ -> None
+  in
+  let jclass = resolve_class src_class.InnClass.loader
+      ~caller:src_class.InnClass.name ~name:class_name
+  in
+  if InnClass.is_interface jclass then raise IncompatibleClassChangeError;
+  let jmethod =
+    match find_method_in_classes jclass mid with
+    | Some m -> m
+    | _ -> match find_method_in_interfaces jclass mid with
+      | Some m -> m
+      | _ -> raise NoSuchMethodError
+  in
+  if not @@ is_method_accessible src_class jmethod then
+    raise IllegalAccessError;
+  jmethod
+
+let resolve_method_of_interface src_class class_name mid =
+  let jclass = resolve_class src_class.InnClass.loader
+      ~caller:src_class.InnClass.name ~name:class_name
+  in
+  if not @@ InnClass.is_interface jclass then raise IncompatibleClassChangeError;
+  let jmethod = match InnClass.find_method jclass mid with
+    | Some m -> m
+    | _ -> match InnClass.find_method (root_class ()) mid with
+      | Some m when
+          FlagMethod.is_set m.InnMethod.access_flags FlagMethod.Public
+          && FlagMethod.is_not_set m.InnMethod.access_flags FlagMethod.Static
+        -> m
+      | _ -> match find_method_in_interfaces jclass mid with
+        | Some m -> m
+        | _ -> raise NoSuchMethodError
+  in
+  if not @@ is_method_accessible src_class jmethod then
+    raise IllegalAccessError;
+  jmethod

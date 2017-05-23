@@ -7,7 +7,7 @@ exception NoClassdefFoundError
 exception IncompatibleClassChangeError
 exception ClassCircularityError
 exception NoSuchFieldError
-exception NoSuchMethodError of string
+exception NoSuchMethodError
 exception VirtualMachineError
 exception NullPointerException
 exception ArrayIndexOutOfBoundsException

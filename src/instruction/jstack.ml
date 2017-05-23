@@ -40,7 +40,7 @@ let run_opcode t frame =
   | 0xaf -> handle_return t @@ op_dreturn frame
   | 0xb0 -> handle_return t @@ op_areturn frame
   | 0xb1 -> handle_return t @@ op_return frame
-  (* | 0xb6 -> handle_new_frame t @@ op_invokevirtual frame *)
+  | 0xb6 -> handle_new_frame t @@ op_invokevirtual frame
   | 0xb7 -> handle_new_frame t @@ op_invokespecial frame
   | 0xb8 -> handle_new_frame t @@ op_invokestatic frame
   (* | 0xb9 -> handle_new_frame t @@ op_invokeinterface frame *)
