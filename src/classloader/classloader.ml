@@ -365,7 +365,7 @@ let rec load_from_bytecode loader binary_name =
   let methods = MemberID.hashtbl () in
   let conspool = Array.create ~len:(Array.length pool) InnPoolrt.Byte8Placeholder in
   let attributes = bytecode.attributes in
-  let static_fields = create_static_fields bytecode in
+  let static_fields = create_static_fields bytecode in (* 5.4.2 Preparation *)
   let jclass = { name; access_flags; super_class; interfaces;
                  fields; methods; conspool; attributes;
                  loader; static_fields} (* record as defining loader*)

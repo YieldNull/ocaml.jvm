@@ -183,20 +183,20 @@ let opcode_to_func = function
   | 0xaa -> op_tableswitch
   | 0xab -> op_lookupswitch
   (* | 0xac -> op_ireturn
-  | 0xad -> op_lreturn
-  | 0xae -> op_freturn
-  | 0xaf -> op_dreturn
-  | 0xb0 -> op_areturn
-  | 0xb1 -> op_return *)
+     | 0xad -> op_lreturn
+     | 0xae -> op_freturn
+     | 0xaf -> op_dreturn
+     | 0xb0 -> op_areturn
+     | 0xb1 -> op_return *)
   | 0xb2 -> op_getstatic
   | 0xb3 -> op_putstatic
   | 0xb4 -> op_getfield
   | 0xb5 -> op_putfield
-  (* | 0xb6 -> op_invokevirtual
+  | 0xb6 -> op_invokevirtual
   | 0xb7 -> op_invokespecial
   | 0xb8 -> op_invokestatic
   | 0xb9 -> op_invokeinterface
-  | 0xba -> op_invokedynamic *)
+  | 0xba -> op_invokedynamic
   | 0xbb -> op_new
   | 0xbc -> op_newarray
   | 0xbd -> op_anewarray
@@ -213,6 +213,6 @@ let opcode_to_func = function
   | 0xc8 -> op_goto_w
   | 0xc9 -> op_jsr_w
   (* | 0xca -> op_breakpoint
-  | 0xfe -> op_impdep1
-  | 0xff -> op_impdep2 *)
+     | 0xfe -> op_impdep1
+     | 0xff -> op_impdep2 *)
   | _ -> failwith ""

@@ -4,6 +4,14 @@ open Frame
 open VMError
 open Accflag
 
+exception MethodInvokeException of Frame.t
+
+let get_object_or_array frame =
+  match stack_pop_exn frame with
+  | Array a -> a.Jvalue.jclass, Array a
+  | Object o -> o.Jvalue.jclass, Object o
+  | _ -> raise VirtualMachineError
+
 (* TODO initialize class *)
 let get_field frame index =
   let pool = conspool frame in
@@ -17,13 +25,19 @@ let get_field frame index =
 
 let get_special_method_exn frame index =
   let pool = conspool frame in
-  match Poolrt.get pool index with
-  | Poolrt.Methodref x -> x
-  | Poolrt.UnresolvedMethodref(cls,mid) ->
-    let jmethod = Classloader.resolve_method_of_class (current_class frame) cls mid in
-    Poolrt.set pool index (Poolrt.Methodref jmethod);
-    jmethod
-  | _ -> raise VirtualMachineError
+  let jmethod = match Poolrt.get pool index with
+    | Poolrt.Methodref x -> x
+    | Poolrt.UnresolvedMethodref(cls,mid) ->
+      let mth = Classloader.resolve_method_of_class (current_class frame) cls mid in
+      Poolrt.set pool index (Poolrt.Methodref mth);
+      mth
+    | _ -> raise VirtualMachineError
+  in
+  if Jmethod.name jmethod = "<init>" &&
+     not (Jclass.equal (Jmethod.jclass jmethod) (current_class frame))
+  then raise NoSuchMethodError;
+  if Jmethod.is_static jmethod then raise IncompatibleClassChangeError;
+  jmethod
 
 let get_class_method frame index =
   let pool = conspool frame in
@@ -38,9 +52,12 @@ let get_class_method frame index =
   | _ -> None
 
 let get_class_method_exn frame index =
-  match get_class_method frame index with
-  | Some m -> m
-  | _ -> raise VirtualMachineError
+  let jmethod = match get_class_method frame index with
+    | Some m -> m
+    | _ -> raise VirtualMachineError
+  in
+  if Jmethod.is_static jmethod then raise IncompatibleClassChangeError;
+  jmethod
 
 let get_interface_method frame index =
   let pool = conspool frame in
@@ -55,9 +72,15 @@ let get_interface_method frame index =
   | _ -> raise VirtualMachineError
 
 let get_interface_method_exn frame index =
-  match get_interface_method frame index with
-  | Some m -> m
-  | _ -> raise VirtualMachineError
+  let jmethod = match get_interface_method frame index with
+    | Some m -> m
+    | _ -> raise VirtualMachineError
+  in
+  if Jmethod.is_static jmethod || Jmethod.is_private jmethod
+  then raise IncompatibleClassChangeError;
+  if not (Jmethod.is_public jmethod) then
+    raise IllegalAccessError;
+  jmethod
 
 let get_static_method_exn frame index =
   let check_acc jmethod =
@@ -103,10 +126,10 @@ let find_in_mss_methods jclass jmethod =
       FlagMethod.is_not_set (Jmethod.access_flags jmethod) FlagMethod.Abstract
     )
   in
-  if List.length candidates = 1 then
-    List.hd_exn candidates
-  else
-    raise IncompatibleClassChangeError
+  match List.length candidates with
+  | 1 -> List.hd_exn candidates
+  | 0 -> raise AbstractMethodError
+  | _ -> raise IncompatibleClassChangeError
 
 let create_args frame jmethod =
   let byte8_count, types = Descriptor.args_of_method (Jmethod.descriptor jmethod) in
@@ -131,9 +154,13 @@ let create_args frame jmethod =
     );
   args
 
+let initialize_class frame jclass =
+  ()
+
 let op_getstatic frame =
   let index = read_ui16 frame in
   let jfield = get_field frame index in
+  initialize_class frame (jfield.Jfield.jclass);
   let value = Jfield.get_static_value jfield in
   stack_push frame value
 
@@ -142,6 +169,7 @@ let op_getstatic frame =
 let op_putstatic frame =
   let index = read_ui16 frame in
   let jfield = get_field frame index in
+  initialize_class frame (jfield.Jfield.jclass);
   let value = stack_pop_exn frame in
   begin
     match Descriptor.type_of_field jfield.Jfield.mid.MemberID.descriptor with
@@ -202,18 +230,10 @@ let op_putfield frame =
 let op_invokevirtual frame =
   let index = read_ui16 frame in
   let jmethod = get_class_method_exn frame index in
-  if Jmethod.is_static jmethod then raise IncompatibleClassChangeError;
   let args = create_args frame jmethod in
-  let jclass =
-    match stack_pop_exn frame with
-    | Array a ->
-      validate_protected_method frame a.Jvalue.jclass jmethod;
-      Array.set args 0 (Array a); a.Jvalue.jclass
-    | Object o ->
-      validate_protected_method frame o.Jvalue.jclass jmethod;
-      Array.set args 0 (Object o); o.Jvalue.jclass
-    | _ -> raise VirtualMachineError
-  in
+  let jclass, value = get_object_or_array frame in
+  validate_protected_method frame jclass jmethod;
+  Array.set args 0 value;
   let rec has_override jclass jmethod =
     match find_instance_method jclass (Jmethod.memid jmethod) with
     | Some m -> if Jmethod.equal m jmethod then false, Some m
@@ -258,23 +278,15 @@ let op_invokevirtual frame =
     | Some m -> m
     | None -> find_in_mss_methods jclass jmethod
   in
-  Frame.create mth args
+  raise (MethodInvokeException (Frame.create mth args))
 
 let op_invokespecial frame =
   let index = read_ui16 frame in
   let jmethod = get_special_method_exn frame index in
-  if Jmethod.is_static jmethod then raise IncompatibleClassChangeError;
   let args = create_args frame jmethod in
-  begin
-    match stack_pop_exn frame with
-    | Array a ->
-      validate_protected_method frame a.Jvalue.jclass jmethod;
-      Array.set args 0 (Array a)
-    | Object o ->
-      validate_protected_method frame o.Jvalue.jclass jmethod;
-      Array.set args 0 (Object o)
-    | _ -> raise VirtualMachineError
-  end;
+  let vclass, value = get_object_or_array frame in
+  validate_protected_method frame vclass jmethod;
+  Array.set args 0 value;
   let rec find_method_in_supper jclass memid =
     match Jclass.super_class jclass with
     | Some supper -> find_method_in_supper supper memid
@@ -306,23 +318,16 @@ let op_invokespecial frame =
         | Some m -> m
         | _ -> find_in_mss_methods cls jmethod
   in
-  Frame.create mth args
+  raise (MethodInvokeException (Frame.create mth args))
 
 let op_invokeinterface frame =
   let index = read_ui16 frame in
   ignore @@ read_byte frame;
   if read_byte frame <> 0 then raise (ClassFormatError "");
   let jmethod = get_interface_method_exn frame index in
-  if Jmethod.is_static jmethod || Jmethod.is_private jmethod
-  then raise IncompatibleClassChangeError;
   let args = create_args frame jmethod in
-  let jclass = match stack_pop_exn frame with
-    | Array a ->
-      Array.set args 0 (Array a); a.Jvalue.jclass
-    | Object o ->
-      Array.set args 0 (Object o); o.Jvalue.jclass
-    | _ -> raise VirtualMachineError
-  in
+  let jclass, value = get_object_or_array frame in
+  Array.set args 0 value;
   let rec find_in_class jclass mid =
     match find_instance_method jclass mid with
     | Some m -> Some m
@@ -334,13 +339,14 @@ let op_invokeinterface frame =
     | Some m -> m
     | _ -> find_in_mss_methods jclass jmethod
   in
-  Frame.create mth args
+  raise (MethodInvokeException (Frame.create mth args))
 
 let op_invokestatic frame =
   let index = read_ui16 frame in
   let jmethod = get_static_method_exn frame index in
+  initialize_class frame (Jmethod.jclass jmethod);
   let args = create_args frame jmethod in
-  Frame.create jmethod args
+  raise (MethodInvokeException (Frame.create jmethod args))
 
 let op_invokedynamic frame = () (* TODO *)
 
@@ -351,6 +357,7 @@ let op_new frame =
   let jclass = Classloader.resolve_class (current_loader frame)
       ~caller:current.Jclass.name ~name:binary_name
   in
+  initialize_class frame jclass;
   let obj = Jobject.create jclass in
   stack_push frame (Object obj)
 

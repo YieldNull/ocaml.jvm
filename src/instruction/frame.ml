@@ -19,6 +19,7 @@ let create jmethod args =
       | AttrMethod.Code code -> code
       | _ -> aux tail
   in
+  if Jmethod.is_abstract jmethod then raise AbstractMethodError;
   let codeattr = aux (Jmethod.attrs jmethod) in
   let codes= codeattr.Code.code in
   let conspool = Jclass.conspool @@ Jmethod.jclass jmethod in

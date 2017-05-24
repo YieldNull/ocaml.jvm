@@ -13,6 +13,7 @@ module rec InnClass : sig
       attributes : Attribute.AttrClass.t list;
       loader  : InnLoader.t;
       static_fields : (MemberID.t, InnValue.t) Hashtbl.t;
+      mutable initialized : bool;
     }
 
   val package_rt_equal : t -> t -> bool
