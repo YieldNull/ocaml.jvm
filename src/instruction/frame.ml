@@ -4,34 +4,39 @@ open VMError
 
 type t =
   { mutable pc : int;
-    codeattr : Code.t;
     codes : char array;
     jmethod : Jmethod.t;
     conspool : Poolrt.t;
     localvars : Jvalue.t array;
     opstack : (Jvalue.t) Stack.t;
+    is_native : bool;
   }
 
 let create jmethod args =
   let rec aux = function
-    | [] -> failwith ""
+    | [] -> raise AbstractMethodError
     | hd :: tail -> match hd with
       | AttrMethod.Code code -> code
       | _ -> aux tail
   in
   if Jmethod.is_abstract jmethod then raise AbstractMethodError;
-  let codeattr = aux (Jmethod.attrs jmethod) in
-  let codes= codeattr.Code.code in
   let conspool = Jclass.conspool @@ Jmethod.jclass jmethod in
-  let arg_len = Array.length args in
-  let localvars = Array.init codeattr.Code.max_locals ~f:(fun i ->
-      if i < arg_len then args.(i)
-      else Jvalue.Null
-    )
-  in
   let opstack = Stack.create () in
-  { pc = 0; codeattr; codes; jmethod; conspool; localvars; opstack; }
+  if not (Jmethod.is_native jmethod) then
+    let codeattr = aux (Jmethod.attrs jmethod) in
+    let codes = codeattr.Code.code in
+    let arg_len = Array.length args in
+    let localvars = Array.init codeattr.Code.max_locals ~f:(fun i ->
+        if i < arg_len then args.(i)
+        else Jvalue.Null
+      )
+    in { pc = 0; codes; jmethod; conspool;
+         localvars; opstack; is_native = false; }
+  else
+    { pc = 0; codes = [||]; jmethod; conspool;
+      localvars = [||]; opstack; is_native = true }
 
+let is_native frame = frame.is_native
 
 let stack_push t value = Stack.push t.opstack value
 

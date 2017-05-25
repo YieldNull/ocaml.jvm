@@ -1,6 +1,7 @@
 open Core.Std
 open Accflag
 open VMError
+open Attribute
 
 include Classloader.InnField
 
@@ -23,3 +24,16 @@ let set_static_value jfield value =
     Hashtbl.set static_fields ~key:jfield.mid ~data:value
   else
     raise IncompatibleClassChangeError
+
+let constant_value jfield =
+  let attrs = List.filter_map jfield.attrs ~f:(fun attr ->
+      match attr with
+      | AttrField.ConstantValue index -> Some index
+      | _ -> None
+    )
+  in
+  match List.length attrs  with
+  | 1 -> Some (List.hd_exn attrs)
+  | _ -> None
+
+let descriptor jfield = jfield.mid.MemberID.descriptor

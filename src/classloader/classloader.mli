@@ -2,6 +2,11 @@ open Core.Std
 open Accflag
 
 module rec InnClass : sig
+  type state =
+    | Uninitialized
+    | Initialing
+    | Initialized
+
   type t =
     { name : string;
       access_flags : int;
@@ -13,7 +18,7 @@ module rec InnClass : sig
       attributes : Attribute.AttrClass.t list;
       loader  : InnLoader.t;
       static_fields : (MemberID.t, InnValue.t) Hashtbl.t;
-      mutable initialized : bool;
+      mutable initialized : state;
     }
 
   val package_rt_equal : t -> t -> bool

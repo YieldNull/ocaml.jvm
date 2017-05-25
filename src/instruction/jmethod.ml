@@ -24,5 +24,7 @@ let is_private jmethod = FlagMethod.is_set jmethod.access_flags FlagMethod.Priva
 
 let is_public jmethod = FlagMethod.is_set jmethod.access_flags FlagMethod.Public
 
+let is_native jmethod = FlagMethod.is_set jmethod.access_flags FlagMethod.Native
+
 let equal m1 m2 =
   Jclass.equal m1.jclass m2.jclass && m1.mid = m2.mid

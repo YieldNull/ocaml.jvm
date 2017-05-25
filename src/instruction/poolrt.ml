@@ -29,3 +29,28 @@ let get_method poolrt index =
   match poolrt.(index) with
   | Methodref x -> x
   | _ -> raise VirtualMachineError
+
+let get_int poolrt index =
+  match poolrt.(index) with
+  | Integer x -> x
+  | _ -> raise VirtualMachineError
+
+let get_float poolrt index =
+  match poolrt.(index) with
+  | Float x -> x
+  | _ -> raise VirtualMachineError
+
+let get_long poolrt index =
+  match poolrt.(index) with
+  | Long x -> x
+  | _ -> raise VirtualMachineError
+
+let get_double poolrt index =
+  match poolrt.(index) with
+  | Double x -> x
+  | _ -> raise VirtualMachineError
+
+let get_string poolrt index =
+  match poolrt.(index) with
+  | String x -> x
+  | _ -> raise VirtualMachineError

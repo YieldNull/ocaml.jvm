@@ -7,6 +7,11 @@ let major_version = 52
 let java_lang_object = "java/lang/Object"
 
 module rec InnClass : sig
+  type state =
+    | Uninitialized
+    | Initialing
+    | Initialized
+
   type t =
     { name : string;
       access_flags : int;
@@ -18,6 +23,7 @@ module rec InnClass : sig
       attributes : Attribute.AttrClass.t list;
       loader  : InnLoader.t;
       static_fields : (MemberID.t, InnValue.t) Hashtbl.t;
+      mutable initialized : state;
     }
 
   val component : char list -> string
@@ -29,6 +35,11 @@ module rec InnClass : sig
   val find_method : t -> MemberID.t -> InnMethod.t option
   val find_mss_methods : t -> MemberID.t -> InnMethod.t list
 end = struct
+  type state =
+    | Uninitialized
+    | Initialing
+    | Initialized
+
   type t =
     { name : string;
       access_flags : int;
@@ -40,6 +51,7 @@ end = struct
       attributes : Attribute.AttrClass.t list;
       loader  : InnLoader.t;
       static_fields : (MemberID.t, InnValue.t) Hashtbl.t;
+      mutable initialized : state;
     }
 
   let find_method jclass mid = Hashtbl.find jclass.methods mid
@@ -368,7 +380,9 @@ let rec load_from_bytecode loader binary_name =
   let static_fields = create_static_fields bytecode in (* 5.4.2 Preparation *)
   let jclass = { name; access_flags; super_class; interfaces;
                  fields; methods; conspool; attributes;
-                 loader; static_fields} (* record as defining loader*)
+                 loader; static_fields;
+                 initialized = Uninitialized;
+               } (* record as defining loader*)
   in
   List.iter bytecode.fields ~f:(fun field ->
       let jfield = create_field jclass field bytecode.constant_pool in
@@ -402,7 +416,8 @@ and resolve_class loader ~caller:src_class ~name:binary_name =
           interfaces = []; fields = MemberID.hashtbl ();
           methods = MemberID.hashtbl (); attributes = [];
           conspool = [||]; loader = bootstrap_loader;
-          static_fields = MemberID.hashtbl ()
+          static_fields = MemberID.hashtbl ();
+          initialized = Initialized;
         }
       else
         let cmpnt_class = load_class loader cmpnt in
@@ -411,7 +426,8 @@ and resolve_class loader ~caller:src_class ~name:binary_name =
           interfaces = []; fields = MemberID.hashtbl ();
           methods = MemberID.hashtbl (); attributes = [];
           conspool = [||]; loader = cmpnt_class.loader;
-          static_fields = MemberID.hashtbl ()
+          static_fields = MemberID.hashtbl ();
+          initialized = Initialized;
         }
     else
       load_class loader binary_name

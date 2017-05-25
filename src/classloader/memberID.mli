@@ -5,3 +5,5 @@ include Hashable.S with type t := t
 
 val hashtbl : unit -> (t,'b) Hashtbl.t
 val to_string : t -> string
+
+val cinit : t

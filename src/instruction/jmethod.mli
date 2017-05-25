@@ -24,4 +24,6 @@ val is_private : t -> bool
 
 val is_public : t -> bool
 
+val is_native : t -> bool
+
 val equal : t -> t -> bool

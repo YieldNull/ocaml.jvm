@@ -12,3 +12,5 @@ let to_string t =
   sprintf "%s:%s" t.name t.descriptor
 
 let hashtbl () = Hashtbl.create ~hashable:hashable ()
+
+let cinit = { name = "<clinit>"; descriptor = "()V" }

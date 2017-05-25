@@ -11,7 +11,8 @@ let run ?(cmp = (=)) method_name method_descriptor result =
 
 let suite =
   "op_references" >:::
-  [ "op_getstatic" >:: (fun _ -> run "op_getstatic" "()I" (Int 0l));
+  [
+    "op_getstatic" >:: (fun _ -> run "op_getstatic" "()I" (Int 1000l));
     "op_putstatic" >:: (fun _ -> run "op_putstatic" "()I" (Int 2l));
     "op_invokestatic" >:: (fun _ -> run "op_invokestatic" "()J" (Long 699359257085L));
   ]

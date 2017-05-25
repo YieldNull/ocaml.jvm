@@ -4,8 +4,6 @@ open Frame
 open VMError
 open Accflag
 
-exception MethodInvokeException of Frame.t
-
 let get_object_or_array frame =
   match stack_pop_exn frame with
   | Array a -> a.Jvalue.jclass, Array a
@@ -44,7 +42,7 @@ let get_class_method frame index =
   match Poolrt.get pool index with
   | Poolrt.Methodref x -> Some x
   | Poolrt.UnresolvedMethodref(cls,mid) ->
-    if mid.MemberID.name = "<init>" || mid.MemberID.name = "<cinit>" then
+    if mid.MemberID.name = "<init>" || mid.MemberID.name = "<clinit>" then
       raise NoSuchMethodError;
     let jmethod = Classloader.resolve_method_of_class (current_class frame) cls mid in
     Poolrt.set pool index (Poolrt.Methodref jmethod);
@@ -64,7 +62,7 @@ let get_interface_method frame index =
   match Poolrt.get pool index with
   | Poolrt.InterfaceMethodref x -> Some x
   | Poolrt.UnresolvedInterfaceMethodref(cls,mid) ->
-    if mid.MemberID.name = "<init>" || mid.MemberID.name = "<cinit>" then
+    if mid.MemberID.name = "<init>" || mid.MemberID.name = "<clinit>" then
       raise NoSuchMethodError;
     let jmethod = Classloader.resolve_method_of_interface (current_class frame) cls mid in
     Poolrt.set pool index (Poolrt.InterfaceMethodref jmethod);
@@ -154,22 +152,13 @@ let create_args frame jmethod =
     );
   args
 
-let initialize_class frame jclass =
-  ()
-
-let op_getstatic frame =
-  let index = read_ui16 frame in
-  let jfield = get_field frame index in
-  initialize_class frame (jfield.Jfield.jclass);
+let op_getstatic frame jfield =
   let value = Jfield.get_static_value jfield in
   stack_push frame value
 
 (* TODO the value must be of a type that is assignment compatible (JLS §5.2)
    with the field descriptor type*)
-let op_putstatic frame =
-  let index = read_ui16 frame in
-  let jfield = get_field frame index in
-  initialize_class frame (jfield.Jfield.jclass);
+let op_putstatic frame jfield =
   let value = stack_pop_exn frame in
   begin
     match Descriptor.type_of_field jfield.Jfield.mid.MemberID.descriptor with
@@ -278,7 +267,7 @@ let op_invokevirtual frame =
     | Some m -> m
     | None -> find_in_mss_methods jclass jmethod
   in
-  raise (MethodInvokeException (Frame.create mth args))
+  Frame.create mth args
 
 let op_invokespecial frame =
   let index = read_ui16 frame in
@@ -318,7 +307,7 @@ let op_invokespecial frame =
         | Some m -> m
         | _ -> find_in_mss_methods cls jmethod
   in
-  raise (MethodInvokeException (Frame.create mth args))
+  Frame.create mth args
 
 let op_invokeinterface frame =
   let index = read_ui16 frame in
@@ -339,25 +328,15 @@ let op_invokeinterface frame =
     | Some m -> m
     | _ -> find_in_mss_methods jclass jmethod
   in
-  raise (MethodInvokeException (Frame.create mth args))
+  Frame.create mth args
 
-let op_invokestatic frame =
-  let index = read_ui16 frame in
-  let jmethod = get_static_method_exn frame index in
-  initialize_class frame (Jmethod.jclass jmethod);
+let op_invokestatic frame jmethod =
   let args = create_args frame jmethod in
-  raise (MethodInvokeException (Frame.create jmethod args))
+  Frame.create jmethod args
 
 let op_invokedynamic frame = () (* TODO *)
 
-let op_new frame =
-  let index = read_ui16 frame in
-  let binary_name = Poolrt.get_class (conspool frame) index in
-  let current = current_class frame in
-  let jclass = Classloader.resolve_class (current_loader frame)
-      ~caller:current.Jclass.name ~name:binary_name
-  in
-  initialize_class frame jclass;
+let op_new frame jclass =
   let obj = Jobject.create jclass in
   stack_push frame (Object obj)
 

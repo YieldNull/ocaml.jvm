@@ -1,10 +1,17 @@
 public class TestOpReferences {
   static int i;
 
+  // static final String str = "Hello";
+
   static long foo (long z, int p, long q) {
     int i = 10 * p;
     long r = i * 1024 + q;
     return r * z;
+  }
+
+  static {
+    i = 100;
+    i = i * 10;
   }
 
   int op_getstatic () {

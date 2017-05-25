@@ -188,16 +188,16 @@ let opcode_to_func = function
      | 0xaf -> op_dreturn
      | 0xb0 -> op_areturn
      | 0xb1 -> op_return *)
-  | 0xb2 -> op_getstatic
-  | 0xb3 -> op_putstatic
+  (* | 0xb2 -> op_getstatic
+     | 0xb3 -> op_putstatic *)
   | 0xb4 -> op_getfield
   | 0xb5 -> op_putfield
-  | 0xb6 -> op_invokevirtual
-  | 0xb7 -> op_invokespecial
-  | 0xb8 -> op_invokestatic
-  | 0xb9 -> op_invokeinterface
-  | 0xba -> op_invokedynamic
-  | 0xbb -> op_new
+  (* | 0xb6 -> op_invokevirtual
+     | 0xb7 -> op_invokespecial
+     | 0xb8 -> op_invokestatic
+     | 0xb9 -> op_invokeinterface
+     | 0xba -> op_invokedynamic *)
+  (* | 0xbb -> op_new *)
   | 0xbc -> op_newarray
   | 0xbd -> op_anewarray
   | 0xbe -> op_arraylength

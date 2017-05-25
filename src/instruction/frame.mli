@@ -5,6 +5,8 @@ type t
 
 val create : Jmethod.t -> Jvalue.t array -> t
 
+val is_native : t -> bool
+
 val stack_push : t -> Jvalue.t -> unit
 
 val stack_pop_exn : t -> Jvalue.t
