@@ -35,10 +35,10 @@ let rec create_multiple jclass dimensions lens =
   let len = Int32.to_int_exn (List.hd_exn lens) in
   if len < 0 then raise NegativeArraySizeException;
   if len > 0 then
-    let name = jclass.Jclass.name in
+    let name = Jclass.name jclass in
     let subname = String.sub name ~pos:1 ~len:(String.length name - 1) in
     let component = if dimensions > 1 then
-        let subclass = Classloader.load_class jclass.Jclass.loader subname in
+        let subclass = Classloader.load_class (Jclass.loader jclass) subname in
         Array (create_multiple subclass (dimensions - 1) (List.tl_exn lens))
       else
         Jfield.default_value {MemberID.name = ""; MemberID.descriptor = subname}

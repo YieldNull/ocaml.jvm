@@ -19,7 +19,7 @@ val localvar_set : t -> int -> Jvalue.t -> unit
 
 val current_class : t -> Jclass.t
 
-val current_loader : t -> Classloader.InnLoader.t
+val current_loader : t -> Types.InnLoader.t
 
 val current_method : t -> Jmethod.t
 

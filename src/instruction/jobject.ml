@@ -4,10 +4,9 @@ open Accflag
 open Jvalue
 
 let create jclass =
-  if FlagClass.is_set jclass.Jclass.access_flags FlagClass.Abstract
-  then raise InstantiationError;
+  if Jclass.is_abstract jclass then raise InstantiationError;
   let fields = Hashtbl.create ~hashable:MemberID.hashable () in
-  Hashtbl.iteri jclass.Jclass.fields ~f:(fun ~key:memid ~data:field ->
+  Hashtbl.iteri (Jclass.fields jclass) ~f:(fun ~key:memid ~data:field ->
       if Jfield.is_static field then
         Hashtbl.add_exn fields ~key:memid ~data:(Jfield.default_value memid)
     );
@@ -24,4 +23,4 @@ let set_field_value_exn objref memid value =
   Hashtbl.set objref.fields ~key:memid ~data:value
 
 let get_jfield (objref:jobject) memid =
-  Hashtbl.find objref.jclass.Jclass.fields memid
+  Hashtbl.find (Jclass.fields objref.jclass) memid

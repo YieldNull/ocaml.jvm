@@ -52,7 +52,7 @@ let current_class t = Jmethod.jclass t.jmethod
 
 let current_loader t =
   let jclass = current_class t in
-  jclass.Jclass.loader
+  Jclass.loader jclass
 
 let current_method t = t.jmethod
 

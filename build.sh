@@ -9,7 +9,7 @@ else
 fi
 
 corebuild -r -pkgs batteries,zip,yojson,fileutils,ounit \
--Is lib,src,src/classloader,src/opcode,src/instruction,src/primitive,\
+-Is lib,src,src/bytecode,src/opcode,src/instruction,src/primitive,\
 tool,test,test/opcode,test/ocaml \
 -lflags $ocamlc`pwd`/src/primitive/float32.c $*
 

@@ -1,7 +1,7 @@
 open Core.Std
 open VMError
 
-type field =
+type t =
   | Byte
   | Short
   | Char
@@ -11,20 +11,6 @@ type field =
   | Double
   | Boolean
   | Class of string
-
-let type_of_field descriptor =
-  match String.get descriptor 0 with
-  | 'B' -> Byte
-  | 'S' -> Short
-  | 'C' -> Char
-  | 'I' -> Int
-  | 'F' -> Float
-  | 'J' -> Long
-  | 'D' -> Double
-  | 'Z' -> Boolean
-  | 'L' -> Class (String.sub descriptor ~pos:1 ~len:(String.length descriptor - 2))
-  | _ -> Class descriptor (* array *)
-
 
 let rec parse_class lst =
   match lst with
@@ -77,3 +63,23 @@ let args_of_method descriptor =
   in
   let c, lst = parse (String.to_list descriptor) in
   c, List.rev lst
+
+let type_of_field descriptor =
+  match String.get descriptor 0 with
+  | 'B' -> Byte
+  | 'S' -> Short
+  | 'C' -> Char
+  | 'I' -> Int
+  | 'F' -> Float
+  | 'J' -> Long
+  | 'D' -> Double
+  | 'Z' -> Boolean
+  | 'L' -> Class (String.sub descriptor ~pos:1 ~len:(String.length descriptor - 2))
+  | _ -> Class descriptor (* array *)
+
+let component_of_class descriptor =
+  let rec aux = function
+    | '['::tail -> aux tail
+    | 'L'::tail -> String.of_char_list @@ List.slice tail 0 (List.length tail - 1)
+    | chrs -> String.of_char_list chrs
+  in aux @@ String.to_list descriptor

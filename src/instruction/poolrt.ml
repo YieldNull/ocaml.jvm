@@ -1,7 +1,7 @@
 open Core.Std
 open VMError
 
-include Classloader.InnPoolrt
+include Types.InnPoolrt
 
 let raise_index_error index =
   raise (ClassFormatError (sprintf "Invalid constant pool index %d" index))

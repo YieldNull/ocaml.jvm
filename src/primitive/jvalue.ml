@@ -1,6 +1,6 @@
 open VMError
 
-include Classloader.InnValue
+include Types.InnValue
 
 let get_int value =
   match value with

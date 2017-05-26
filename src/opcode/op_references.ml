@@ -94,8 +94,8 @@ let get_static_method_exn frame index =
 let validate_protected_field frame objcls jfield =
   if Jfield.is_protected jfield then
     let current = current_class frame in
-    if Jclass.is_member_of_supper current jfield.Jfield.mid
-    && not (Jclass.package_rt_equal current jfield.Jfield.jclass)
+    if Jclass.is_member_of_supper current (Jfield.mid jfield)
+    && not (Jclass.package_rt_equal current (Jfield.jclass jfield))
     then
       if not (Jclass.equal objcls current ||
               Jclass.is_subclass ~sub:objcls ~super:current)
@@ -105,7 +105,7 @@ let validate_protected_field frame objcls jfield =
 let validate_protected_method frame objcls jmethod =
   if Jmethod.is_protected jmethod then
     let current = current_class frame in
-    if Jclass.is_member_of_supper current (Jmethod.memid jmethod)
+    if Jclass.is_member_of_supper current (Jmethod.mid jmethod)
     && not (Jclass.package_rt_equal current (Jmethod.jclass jmethod))
     then
       if not (Jclass.equal objcls current ||
@@ -119,7 +119,7 @@ let find_instance_method jclass mid =
   | _ -> None
 
 let find_in_mss_methods jclass jmethod =
-  let mss_methods = Jclass.find_mss_methods jclass (Jmethod.memid jmethod) in
+  let mss_methods = Jclass.find_mss_methods jclass (Jmethod.mid jmethod) in
   let candidates = List.filter mss_methods ~f:(fun m ->
       FlagMethod.is_not_set (Jmethod.access_flags jmethod) FlagMethod.Abstract
     )
@@ -161,7 +161,7 @@ let op_getstatic frame jfield =
 let op_putstatic frame jfield =
   let value = stack_pop_exn frame in
   begin
-    match Descriptor.type_of_field jfield.Jfield.mid.MemberID.descriptor with
+    match Descriptor.type_of_field @@ Jfield.descriptor jfield with
       (Descriptor.Boolean
       | Descriptor.Byte
       | Descriptor.Char
@@ -175,7 +175,7 @@ let op_putstatic frame jfield =
   end;
   Jfield.set_static_value jfield value;
   if Jfield.is_final jfield then
-    let jclass = jfield.Jfield.jclass in
+    let jclass = Jfield.jclass jfield in
     if jclass <> Frame.current_class frame ||
        current_method_name frame <> "<clinit>" then
       raise IllegalAccessError
@@ -185,7 +185,7 @@ let op_getfield frame =
   let index = read_ui16 frame in
   let jfield = get_field frame index in
   validate_protected_field frame (Jobject.jclass jobject) jfield;
-  let value = Jobject.get_field_value_exn jobject jfield.Jfield.mid in
+  let value = Jobject.get_field_value_exn jobject (Jfield.mid jfield) in
   stack_push frame value
 
 let op_putfield frame =
@@ -194,7 +194,7 @@ let op_putfield frame =
   let value = stack_pop_exn frame in
   let jobject = get_object @@ stack_pop_exn frame in
   begin
-    match Descriptor.type_of_field jfield.Jfield.mid.MemberID.descriptor with
+    match Descriptor.type_of_field @@ Jfield.descriptor jfield with
       (Descriptor.Boolean
       | Descriptor.Byte
       | Descriptor.Char
@@ -207,14 +207,14 @@ let op_putfield frame =
     | Descriptor.Class _ -> must_be_reference value
   end;
   validate_protected_field frame (Jobject.jclass jobject) jfield;
-  if Accflag.FlagField.is_set jfield.Jfield.access_flags Accflag.FlagField.Final
+  if Jfield.is_final jfield
   then begin
-    let jclass = jfield.Jfield.jclass in
+    let jclass = Jfield.jclass jfield in
     if jclass <> Frame.current_class frame ||
        current_method_name frame <> "<init>" then
       raise IllegalAccessError
   end;
-  Jobject.set_field_value_exn jobject jfield.Jfield.mid value
+  Jobject.set_field_value_exn jobject (Jfield.mid jfield) value
 
 let op_invokevirtual frame =
   let index = read_ui16 frame in
@@ -224,7 +224,7 @@ let op_invokevirtual frame =
   validate_protected_method frame jclass jmethod;
   Array.set args 0 value;
   let rec has_override jclass jmethod =
-    match find_instance_method jclass (Jmethod.memid jmethod) with
+    match find_instance_method jclass (Jmethod.mid jmethod) with
     | Some m -> if Jmethod.equal m jmethod then false, Some m
       else if not (Jmethod.is_private m)
            && Jclass.is_subclass ~sub:jclass ~super:(Jmethod.jclass jmethod)
@@ -285,15 +285,15 @@ let op_invokespecial frame =
     let jclass = Jmethod.jclass jmethod in
     if Jmethod.name jmethod <> "<init>"
     && not (Jclass.is_interface jclass)
-    && FlagClass.is_set jclass.Jclass.access_flags FlagClass.Super then
+    && FlagClass.is_set (Jclass.access_flags jclass) FlagClass.Super then
       let current = current_class frame in
-      match current.Jclass.super_class with
+      match (Jclass.super_class current) with
       | Some s -> s
       | _ -> raise VirtualMachineError
     else
       jclass
   in
-  let memid = Jmethod.memid jmethod in
+  let memid = Jmethod.mid jmethod in
   let mth =
     match Jclass.find_method cls memid with
     | Some m -> m
@@ -324,7 +324,7 @@ let op_invokeinterface frame =
       | Some super -> find_in_class super mid
       | _ -> None
   in
-  let mth = match find_in_class jclass (Jmethod.memid jmethod) with
+  let mth = match find_in_class jclass (Jmethod.mid jmethod) with
     | Some m -> m
     | _ -> find_in_mss_methods jclass jmethod
   in

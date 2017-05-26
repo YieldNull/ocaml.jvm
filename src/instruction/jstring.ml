@@ -8,7 +8,9 @@ let value_memid = { MemberID.name = "value"; MemberID.descriptor = "[C" }
 
 (* create a String object and init field "char[] value" in java.lang.String*)
 let create str uchars =
-  let strobj = Jobject.create @@ Classloader.load_class Classloader.bootstrap_loader "java/lang/String" in
+  let strobj = Jobject.create @@
+    Classloader.load_class Jloader.bootstrap_loader "java/lang/String"
+  in
   let jclass = Classloader.root_class () in
   let arr = { jclass; values = uchars } in
   Jobject.set_field_value_exn strobj value_memid (Array arr);

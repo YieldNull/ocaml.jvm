@@ -1,5 +1,6 @@
 open Core.Std
 open Accflag
+open Attribute
 
 module rec InnClass : sig
   type state =
@@ -9,49 +10,43 @@ module rec InnClass : sig
 
   type t =
     { name : string;
-      access_flags : int;
-      super_class  : t option;
-      interfaces   : t list;
-      fields : (MemberID.t, InnField.t) Hashtbl.t;
-      methods : (MemberID.t, InnMethod.t) Hashtbl.t;
-      conspool : InnPoolrt.t;
-      attributes : Attribute.AttrClass.t list;
-      loader  : InnLoader.t;
+      access_flags  : int;
+      super_class   : t option;
+      interfaces    : t list;
+      fields        : (MemberID.t, InnField.t) Hashtbl.t;
+      methods       : (MemberID.t, InnMethod.t) Hashtbl.t;
+      conspool      : InnPoolrt.t;
+      attributes    : AttrClass.t list;
+      loader        : InnLoader.t;
       static_fields : (MemberID.t, InnValue.t) Hashtbl.t;
-      mutable initialized : state;
+      mutable initialize_state : state;
     }
-
-  val package_rt_equal : t -> t -> bool
-  val is_subclass : sub:t -> super:t -> bool
-  val is_interface : t -> bool
-  val find_method : t -> MemberID.t -> InnMethod.t option
-  val find_field : t -> MemberID.t -> InnField.t option
-  val find_mss_methods : t -> MemberID.t -> InnMethod.t list
 end
-and InnField: sig
+and InnField : sig
   type t =
     { jclass        : InnClass.t;
       mid           : MemberID.t;
       access_flags  : int;
-      attrs         : Attribute.AttrField.t list;
+      attrs         : AttrField.t list;
     }
-  val default_value : MemberID.t -> InnValue.t
 end
+
 and InnMethod : sig
   type t =
     { jclass        : InnClass.t;
-      mid           : MemberID.t;
+      mid         : MemberID.t;
       access_flags  : int;
-      attrs         : Attribute.AttrMethod.t list;
+      attrs         : AttrMethod.t list;
     }
-  val is_polymorphic : InnClass.t -> MemberID.t -> t option
 end
+
 and InnLoader : sig
   type t =
     { name : string;
       classes : (string, InnClass.t) Hashtbl.t;
     }
 end
+
 and InnPoolrt : sig
   type entry =
     | Utf8 of string
@@ -75,6 +70,7 @@ and InnPoolrt : sig
 
   type t = entry array
 end
+
 and InnValue : sig
   type jbyte = int
   type jshort = int
@@ -109,22 +105,3 @@ and InnValue : sig
     | Null
     | ReturnAddress
 end
-
-val bootstrap_loader : InnLoader.t
-
-val root_class : unit -> InnClass.t
-
-(* load a class from bytecode. do not use it for resolving entries in constant_pool *)
-val load_class : InnLoader.t -> string -> InnClass.t
-
-(* resolve a class in constant_pool *)
-val resolve_class : InnLoader.t -> caller:string -> name:string -> InnClass.t
-
-(* resolve a field in constant_pool *)
-val resolve_field : InnClass.t -> string -> MemberID.t -> InnField.t
-
-(* resolve a method of class in constant_pool *)
-val resolve_method_of_class : InnClass.t -> string -> MemberID.t -> InnMethod.t
-
-(* resolve a method of interface in constant_pool *)
-val resolve_method_of_interface : InnClass.t -> string -> MemberID.t -> InnMethod.t

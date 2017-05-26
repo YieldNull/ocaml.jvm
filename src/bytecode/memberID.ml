@@ -8,6 +8,12 @@ end
 include T
 include Hashable.Make(T)
 
+let create name descriptor = { name; descriptor; }
+
+let name t = t.name
+
+let descriptor t = t.descriptor
+
 let to_string t =
   sprintf "%s:%s" t.name t.descriptor
 

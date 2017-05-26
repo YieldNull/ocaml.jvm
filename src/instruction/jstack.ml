@@ -35,8 +35,8 @@ let handle_invoke t frame =
 
 let rec initialize_class jclass =
   let init_final jclass =
-    Hashtbl.iter_vals (Jclass.static_fields jclass) ~f:(fun jfield ->
-        if Jfield.is_final jfield then
+    Hashtbl.iter_vals (Jclass.fields jclass) ~f:(fun jfield ->
+        if Jfield.is_final jfield && Jfield.is_static jfield then
           let i = Jfield.constant_value jfield in
           match i with
           | None -> ()
@@ -76,15 +76,13 @@ let rec initialize_class jclass =
         then initialize_class inter
       )
   in
-  if Jclass.uninitialized jclass then
+  if Jclass.is_uninitialized jclass then
     begin
-      (* printf "\n%s:%d\n" jclass.Jclass.name (Obj.magic jclass); *)
       Jclass.set_initializing jclass;
       init_final jclass;
       init_super jclass;
       execute_clinit jclass;
       Jclass.set_initialized jclass;
-      (* printf "\n%s:%B\n" jclass.Jclass.name (Jclass.uninitialized jclass); *)
     end
 
 and run_opcode t frame =
@@ -93,7 +91,7 @@ and run_opcode t frame =
     let binary_name = Poolrt.get_class (Frame.conspool frame) index in
     let current = Frame.current_class frame in
     let jclass = Classloader.resolve_class (Frame.current_loader frame)
-        ~caller:current.Jclass.name ~name:binary_name
+        ~caller:(Jclass.name current) ~name:binary_name
     in
     initialize_class jclass;
     jclass
@@ -108,7 +106,7 @@ and run_opcode t frame =
   let initialize_from_field t frame =
     let index = Frame.read_ui16 frame in
     let jfield = get_field frame index in
-    let jclass = jfield.Jfield.jclass in
+    let jclass = Jfield.jclass jfield in
     initialize_class jclass;
     jfield
   in

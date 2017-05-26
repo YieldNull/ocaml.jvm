@@ -13,7 +13,7 @@ let delete file = Sys.remove file
 let load_class class_file =
   Config.add_classpath @@ Filename.dirname class_file;
   let class_name = Filename.chop_extension @@ Filename.basename class_file in
-  Classloader.load_class Classloader.bootstrap_loader class_name
+  Classloader.load_class Jloader.bootstrap_loader class_name
 
 let compile_jclass filename =
   let class_file = compile filename in
@@ -24,7 +24,7 @@ let compile_jclass filename =
 let run_method_with_args jclass name descriptor args =
   let open Core.Std in
   let mid = { MemberID.name = name; MemberID.descriptor = descriptor } in
-  let jmethod = Hashtbl.find jclass.Jclass.methods mid in
+  let jmethod = Jclass.find_method jclass mid in
   match jmethod with
   | Some m -> let jstack = Jstack.create m args in
     Jstack.execute jstack
