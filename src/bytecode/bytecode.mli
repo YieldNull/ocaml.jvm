@@ -1,17 +1,15 @@
 module Field : sig
   type t =
-    { name_index          : int;
+    { mid                 : MemberID.t;
       access_flags        : int;
-      descriptor_index    : int;
       attributes          : Attribute.AttrField.t list;
     }
 end
 
 module Method : sig
   type t =
-    { name_index          : int;
+    { mid                 : MemberID.t;
       access_flags        : int;
-      descriptor_index    : int;
       attributes          : Attribute.AttrMethod.t list;
     }
 end
@@ -24,9 +22,12 @@ type t =
     this_class    : int;
     super_class   : int;
     interfaces    : int list;
-    fields        : Field.t list;
-    methods       : Method.t list;
     attributes    : Attribute.AttrClass.t list;
+    fields        : Field.t list;
+    static_fields : Field.t list;
+    static_methods  : Method.t list;
+    virtual_methods : Method.t list;
+    special_methods : Method.t list;
   }
 
 val load : string -> t

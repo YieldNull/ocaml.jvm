@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 
 let runtime =
   let pwd = Filename.realpath Sys.executable_name

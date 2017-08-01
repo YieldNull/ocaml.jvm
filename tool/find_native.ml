@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Yojson
 
 (* Find native methods of a jar file.

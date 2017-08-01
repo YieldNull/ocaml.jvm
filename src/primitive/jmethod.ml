@@ -3,7 +3,7 @@ open Accflag
 include Types.InnMethod
 
 let create jclass mid access_flags attrs =
-  { jclass; mid; access_flags; attrs }
+  { jclass; mid; access_flags; attrs; table_index = -1; }
 
 let jclass jmethod = jmethod.jclass
 
@@ -17,11 +17,17 @@ let access_flags jmethod = jmethod.access_flags
 
 let attrs jmethod = jmethod.attrs
 
+let table_index jmethod = jmethod.table_index
+
 let is_static jmethod = FlagMethod.is_set jmethod.access_flags FlagMethod.Static
 
 let is_public jmethod = FlagMethod.is_set jmethod.access_flags FlagMethod.Public
 
 let is_protected jmethod = FlagMethod.is_set jmethod.access_flags FlagMethod.Protected
+
+let is_default jmethod =
+  FlagMethod.is_not_set_list jmethod.access_flags
+    [FlagMethod.Public; FlagMethod.Protected; FlagMethod.Private]
 
 let is_private jmethod = FlagMethod.is_set jmethod.access_flags FlagMethod.Private
 

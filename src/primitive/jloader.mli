@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Types
 
 type t = Types.InnLoader.t

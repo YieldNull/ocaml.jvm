@@ -1,7 +1,8 @@
 open VMError
-open Core.Std
+open Core
 open BatIO
 open BatIO.BigEndian
+open Accflag
 
 (*
   When a jar file is first loaded, cache all the packages in it.
@@ -13,36 +14,36 @@ open BatIO.BigEndian
 
 module Field = struct
   type t =
-    { name_index          : int;
+    { mid                 : MemberID.t;
       access_flags        : int;
-      descriptor_index    : int;
       attributes          : Attribute.AttrField.t list;
     }
 
   let parse input pool =
     let access_flags = read_ui16 input in
-    let name_index = read_ui16 input in
-    let descriptor_index = read_ui16 input in
+    let name = Poolbc.get_string pool (read_ui16 input) in
+    let descriptor = Poolbc.get_string pool (read_ui16 input) in
+    let mid = MemberID.create name descriptor in
     let attributes = List.init (read_ui16 input) ~f:(fun _ ->
         Attribute.AttrField.parse input pool) in
-    { name_index; access_flags; descriptor_index; attributes}
+    { mid; access_flags; attributes}
 end
 
 module Method = struct
   type t =
-    { name_index          : int;
+    { mid                 : MemberID.t;
       access_flags        : int;
-      descriptor_index    : int;
       attributes          : Attribute.AttrMethod.t list;
     }
 
   let parse input pool =
     let access_flags = read_ui16 input in
-    let name_index = read_ui16 input in
-    let descriptor_index = read_ui16 input in
+    let name = Poolbc.get_string pool (read_ui16 input) in
+    let descriptor = Poolbc.get_string pool (read_ui16 input) in
+    let mid = MemberID.create name descriptor in
     let attributes = List.init (read_ui16 input) ~f:(fun _ ->
         Attribute.AttrMethod.parse input pool) in
-    { name_index; access_flags; descriptor_index; attributes}
+    { mid; access_flags; attributes}
 end
 
 type t =
@@ -53,10 +54,41 @@ type t =
     this_class    : int;
     super_class   : int;
     interfaces    : int list;
-    fields        : Field.t list;
-    methods       : Method.t list;
     attributes    : Attribute.AttrClass.t list;
+    fields        : Field.t list;
+    static_fields : Field.t list;
+    static_methods  : Method.t list;
+    virtual_methods : Method.t list;
+    special_methods : Method.t list;
   }
+
+let read_methods input pool =
+  let open Method in
+  List.fold (List.range 0 (read_ui16 input)) ~init: ([], [], [])
+    ~f:(fun acc _ ->
+        let statics, virtuals, specials = acc in
+        let m = parse input pool in
+        if FlagMethod.is_set m.access_flags FlagMethod.Static then
+          m :: statics, virtuals, specials
+        else if MemberID.name m.mid = "<init>"
+             || MemberID.name m.mid = "<clinit>"
+             || FlagMethod.is_set m.access_flags FlagMethod.Private then
+          statics, virtuals, m :: specials
+        else
+          statics, m :: virtuals, specials
+      )
+
+let read_fields input pool =
+  let open Field in
+  List.fold (List.range 0 (read_ui16 input)) ~init:([], [])
+    ~f:(fun acc _ ->
+        let f = parse input pool in
+        let static, normal = acc in
+        if FlagField.is_set f.access_flags FlagField.Static then
+          f :: static, normal
+        else
+          static, f :: normal
+      )
 
 let parse input =
   let check_magic input =
@@ -78,14 +110,15 @@ let parse input =
   let this_class = read_ui16 input in
   let super_class = read_ui16 input in
   let interfaces = List.init (read_ui16 input) ~f:(fun _ -> read_ui16 input) in
-  let fields = List.init (read_ui16 input) ~f:(fun _ -> Field.parse input pool) in
-  let methods = List.init (read_ui16 input) ~f:(fun _ -> Method.parse input pool) in
+  let static_fields, fields = read_fields input pool in
+  let static_methods, virtual_methods, special_methods = read_methods input pool in
   let attributes = List.init (read_ui16 input) ~f:(fun _ ->
       Attribute.AttrClass.parse input pool) in
   check_end input;
   { minor_version; major_version; constant_pool = pool;
     access_flags; this_class; super_class;
-    interfaces; fields; methods ; attributes
+    interfaces; attributes; fields; static_fields; static_methods;
+    virtual_methods; special_methods;
   }
 
 let loaded_bytecodes = Hashtbl.create ~hashable:String.hashable ()
@@ -137,7 +170,7 @@ let rec load_related_class in_file bytecode =
 let load_from_jar binary_name filename =
   let aux () =
     let in_file = match Hashtbl.find cached_jar filename with
-      | Some infile -> Jar.set_if_channel infile filename; infile 
+      | Some infile -> Jar.set_if_channel infile filename; infile
       | None -> let infile = Jar.open_in filename in
         cache_jar infile; infile
     in

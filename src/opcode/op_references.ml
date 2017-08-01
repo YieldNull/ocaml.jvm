@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Jvalue
 open Frame
 open VMError

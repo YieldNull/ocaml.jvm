@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 
 let test_mutf_to_unicode () =
   let chars = [| 0xED; 0xA0; 0x81; 0xED; 0xB0; 0x80 |] in (* 0xEDA0 81ED B080 *)

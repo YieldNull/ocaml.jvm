@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 
 type t = { name: string; descriptor : string; }
 include Hashable.S with type t := t

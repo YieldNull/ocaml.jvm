@@ -22,7 +22,7 @@ let compile_jclass filename =
   cls
 
 let run_method_with_args jclass name descriptor args =
-  let open Core.Std in
+  let open Core in
   let mid = { MemberID.name = name; MemberID.descriptor = descriptor } in
   let jmethod = Jclass.find_method jclass mid in
   match jmethod with
@@ -64,7 +64,7 @@ let compare_double_nan d1 d2 =
     | Some (Double dd) -> dd
     | _ -> failwith ""
   in
-  Core.Std.Float.is_nan v1 && Core.Std.Float.is_nan v2
+  Core.Float.is_nan v1 && Core.Float.is_nan v2
 
 let compare_float_nan f1 f2 =
   let v1 = match f1 with

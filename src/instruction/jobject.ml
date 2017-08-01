@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open VMError
 open Accflag
 open Jvalue

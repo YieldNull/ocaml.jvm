@@ -1,5 +1,5 @@
 open VMError
-open Core.Std
+open Core
 open Accflag
 
 let major_version = 52
@@ -12,37 +12,66 @@ let root_class () =
 let is_interface access_flags =
   FlagClass.is_set access_flags FlagClass.Interface
 
-let create_field jclass field pool =
+let create_field jclass field =
   let open! Bytecode.Field in
-  let name = Poolbc.get_utf8 pool field.name_index in
+  let mid = field.mid in
   let access_flags = field.access_flags in
-  let descriptor = Poolbc.get_utf8 pool field.descriptor_index in
   let attrs = field.attributes in
-  let mid = MemberID.create name descriptor in
   Jfield.create jclass mid access_flags attrs
 
-let create_method jclass mth pool =
+let create_method jclass mth =
   let open! Bytecode.Method in
-  let name = Poolbc.get_utf8 pool mth.name_index in
+  let mid = mth.mid in
   let access_flags = mth.access_flags in
-  let descriptor = Poolbc.get_utf8 pool mth.descriptor_index in
   let attrs = mth.attributes in
-  let mid = MemberID.create name descriptor in
   Jmethod.create jclass mid access_flags attrs
 
 let create_static_fields bytecode =
   let open! Bytecode in
   let statics = MemberID.hashtbl () in
-  let pool = bytecode.constant_pool in
-  List.iter bytecode.fields ~f:(fun field ->
-      let name = Poolbc.get_utf8 pool field.Field.name_index in
-      let descriptor = Poolbc.get_utf8 pool field.Field.descriptor_index in
-      if FlagField.is_set field.Field.access_flags FlagField.Static then
-        let mid = { MemberID.name = name; MemberID.descriptor = descriptor } in
-        let value = Jfield.default_value mid in
-        Hashtbl.add_exn statics ~key:mid ~data:value
+  List.iter bytecode.static_fields ~f:(fun field ->
+      let mid = field.Field.mid in
+      let value = Jfield.default_value mid in
+      Hashtbl.add_exn statics ~key:mid ~data:value
     );
   statics
+
+let build_vtable jclass =
+  let open! Jclass in
+  match super_class jclass with
+  | None -> ()
+  | Some super -> let super_vmethods = virtual_methods super in
+    let vtable_copy = Array.copy @@ Jclass.vtable super in
+    let own = Hashtbl.fold (virtual_methods jclass)
+        ~init:[]
+        ~f:(fun ~key ~data:m acc ->
+            if Option.is_some @@ Hashtbl.find super_vmethods (Jmethod.mid m) then
+              if not (Jmethod.is_default m) then
+                acc (* override public or protected *)
+              else if package_rt_equal jclass super then
+                acc (* override package private *)
+              else
+                (* new package private with the same signatrue of parent *)
+                (AccessibleVMethod m) :: acc
+            else
+              (AccessibleVMethod m) :: acc (* totally new virtual method *)
+          )
+    in
+    let vtable = Array.append vtable_copy (Array.of_list own) in
+    Array.iter vtable ~f:(function
+        | InaccessibleVMethod -> ()
+        | AccessibleVMethod m ->
+          if Jmethod.is_default m && not (package_rt_equal jclass super) then
+            (* package private methods of parent class may become inaccessible *)
+            vtable.(Jmethod.table_index m) <- InaccessibleVMethod
+          else (* update virtual_methods of current class
+                  including all accessible virtual methods
+               *)
+            Hashtbl.set (virtual_methods jclass) ~key:(Jmethod.mid m) ~data:m
+      )
+
+
+let build_itable jclass = ()
 
 (* load a none array class from file System *)
 let rec load_from_bytecode loader binary_name =
@@ -81,27 +110,40 @@ let rec load_from_bytecode loader binary_name =
       jclass
     )
   in
-  let fields = MemberID.hashtbl () in
-  let methods = MemberID.hashtbl () in
+  let static_fields = create_static_fields bytecode in (* 5.4.2 Preparation *)
   let conspool = Array.create ~len:(Array.length pool) Poolrt.Byte8Placeholder in
   let attributes = bytecode.attributes in
-  let static_fields = create_static_fields bytecode in (* 5.4.2 Preparation *)
-  let jclass = { Jclass.name = name; Jclass.access_flags = access_flags;
-                 Jclass.super_class = super_class; Jclass.interfaces = interfaces;
-                 Jclass.fields = fields; Jclass.methods = methods;
-                 Jclass.conspool = conspool; Jclass.attributes = attributes;
-                 Jclass.loader = loader; Jclass.static_fields = static_fields;
-                 Jclass.initialize_state = Jclass.Uninitialized;
-               } (* record as defining loader*)
+  let jclass =
+    { Jclass.name = name; Jclass.access_flags = access_flags;
+      Jclass.super_class = super_class; Jclass.interfaces = interfaces;
+      Jclass.conspool = conspool; Jclass.attributes = attributes;
+      Jclass.loader = loader;
+      Jclass.static_fields = static_fields;
+      Jclass.fields =  MemberID.hashtbl ();
+      Jclass.static_methods = MemberID.hashtbl ();
+      Jclass.virtual_methods = MemberID.hashtbl ();
+      Jclass.special_methods = MemberID.hashtbl ();
+      Jclass.initialize_state = Jclass.Uninitialized;
+      Jclass.vtable = [||];
+      Jclass.itables = Hashtbl.create ~hashable:String.hashable ();
+    } (* record as defining loader*)
   in
   List.iter bytecode.fields ~f:(fun field ->
-      let jfield = create_field jclass field bytecode.constant_pool in
+      let jfield = create_field jclass field in
       Hashtbl.add_exn (Jclass.fields jclass) ~key:(Jfield.mid jfield) ~data:jfield
     );
-  List.iter bytecode.methods ~f:(fun mth ->
-      let jmethod = create_method jclass mth bytecode.constant_pool in
-      Hashtbl.add_exn (Jclass.methods jclass) ~key:(Jmethod.mid jmethod) ~data:jmethod
+  List.iter bytecode.static_methods ~f:(fun mth ->
+      let jmethod = create_method jclass mth in
+      Hashtbl.add_exn (Jclass.static_methods jclass)
+        ~key:(Jmethod.mid jmethod) ~data:jmethod
     );
+  List.iter bytecode.special_methods ~f:(fun mth ->
+      let jmethod = create_method jclass mth in
+      Hashtbl.add_exn (Jclass.special_methods jclass)
+        ~key:(Jmethod.mid jmethod) ~data:jmethod
+    );
+  build_vtable jclass;
+  build_vtable jclass;
   Jloader.add_class loader jclass; (* record as initiating loader*)
   resovle_pool jclass bytecode.Bytecode.constant_pool;
   jclass

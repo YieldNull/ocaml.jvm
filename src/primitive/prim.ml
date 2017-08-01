@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 
 (* https://github.com/dmlloyd/openjdk/blob/jdk8u/jdk8u/hotspot/src/share/vm/runtime/sharedRuntime.cpp#L333 *)
 

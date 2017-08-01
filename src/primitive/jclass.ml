@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Accflag
 open Types
 
@@ -8,10 +8,15 @@ let create_array loader name access_flags =
   { name; access_flags;
     super_class = Jloader.find_class loader "java/lang/Object";
     interfaces = []; fields = MemberID.hashtbl ();
-    methods = MemberID.hashtbl (); attributes = [];
-    conspool = [||]; loader;
+    static_methods = MemberID.hashtbl ();
+    special_methods = MemberID.hashtbl ();
+    virtual_methods = MemberID.hashtbl ();
+    clinit_method = None;
+    attributes = []; conspool = [||]; loader;
     static_fields = MemberID.hashtbl ();
     initialize_state = Initialized;
+    vtable = [||];
+    itables = Hashtbl.create ~hashable:String.hashable ();
   }
 
 let name jclass = jclass.name
@@ -24,7 +29,11 @@ let interfaces jclass = jclass.interfaces
 
 let fields jclass = jclass.fields
 
-let methods jclass = jclass.methods
+let static_methods jclass = jclass.static_methods
+
+let special_methods jclass = jclass.special_methods
+
+let virtual_methods jclass = jclass.virtual_methods
 
 let conspool jclass = jclass.conspool
 
@@ -33,6 +42,10 @@ let attributes jclass = jclass.attributes
 let loader jclass = jclass.loader
 
 let static_fields jclass = jclass.static_fields
+
+let vtable jclass = jclass.vtable
+
+let itables jclass = jclass.itables
 
 let is_initialized jclass =
   match jclass.initialize_state with

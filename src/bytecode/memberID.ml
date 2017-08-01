@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 
 module T = struct
   type t = { name: string; descriptor : string; } [@@deriving sexp, compare]

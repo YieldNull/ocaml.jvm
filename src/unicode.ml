@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open VMError
 
 let modified_utf8_to_codepoint str ~f =

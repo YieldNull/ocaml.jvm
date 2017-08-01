@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Accflag
 open Attribute
 
@@ -8,17 +8,25 @@ module rec InnClass : sig
     | Initialing
     | Initialized
 
+  type vmethod =
+    | AccessibleVMethod of InnMethod.t
+    | InaccessibleVMethod (* inaccessible *)
+
   type t =
     { name : string;
       access_flags  : int;
       super_class   : t option;
       interfaces    : t list;
-      fields        : (MemberID.t, InnField.t) Hashtbl.t;
-      methods       : (MemberID.t, InnMethod.t) Hashtbl.t;
       conspool      : InnPoolrt.t;
       attributes    : AttrClass.t list;
       loader        : InnLoader.t;
+      fields        : (MemberID.t, InnField.t) Hashtbl.t;
       static_fields : (MemberID.t, InnValue.t) Hashtbl.t;
+      static_methods  : (MemberID.t, InnMethod.t) Hashtbl.t;
+      virtual_methods : (MemberID.t, InnMethod.t) Hashtbl.t;
+      special_methods : (MemberID.t, InnMethod.t) Hashtbl.t;
+      vtable        : vmethod array;
+      itables       : (string, InnMethod.t array) Hashtbl.t;
       mutable initialize_state : state;
     }
 end = struct
@@ -27,17 +35,25 @@ end = struct
     | Initialing
     | Initialized
 
+  type vmethod =
+    | AccessibleVMethod of InnMethod.t
+    | InaccessibleVMethod (* inaccessible*)
+
   type t =
     { name : string;
-      access_flags : int;
-      super_class  : t option;
-      interfaces   : t list;
-      fields : (MemberID.t, InnField.t) Hashtbl.t;
-      methods : (MemberID.t, InnMethod.t) Hashtbl.t;
-      conspool : InnPoolrt.t;
-      attributes : AttrClass.t list;
-      loader  : InnLoader.t;
+      access_flags  : int;
+      super_class   : t option;
+      interfaces    : t list;
+      conspool      : InnPoolrt.t;
+      attributes    : AttrClass.t list;
+      loader        : InnLoader.t;
+      fields        : (MemberID.t, InnField.t) Hashtbl.t;
       static_fields : (MemberID.t, InnValue.t) Hashtbl.t;
+      static_methods  : (MemberID.t, InnMethod.t) Hashtbl.t;
+      virtual_methods : (MemberID.t, InnMethod.t) Hashtbl.t;
+      special_methods : (MemberID.t, InnMethod.t) Hashtbl.t;
+      vtable        : vmethod array;
+      itables       : (string, InnMethod.t array) Hashtbl.t;
       mutable initialize_state : state;
     }
 end
@@ -63,6 +79,7 @@ and InnMethod : sig
       mid           : MemberID.t;
       access_flags  : int;
       attrs         : AttrMethod.t list;
+      table_index   : int;
     }
 end = struct
   type t =
@@ -70,6 +87,7 @@ end = struct
       mid           : MemberID.t;
       access_flags  : int;
       attrs         : AttrMethod.t list;
+      table_index   : int;
     }
 end
 and InnLoader : sig

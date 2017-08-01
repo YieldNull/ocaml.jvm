@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Bytecode
 
 (* Given a directory which contains jar files,

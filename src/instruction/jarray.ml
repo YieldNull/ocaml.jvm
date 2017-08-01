@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open VMError
 open Accflag
 open Jvalue
@@ -45,7 +45,7 @@ let rec create_multiple jclass dimensions lens =
     in
     { jclass; values = Array.create ~len component }
   else
-    { jclass; values = Array.empty () }
+    { jclass; values = [||] }
 
 let length arr =
   Int32.of_int_exn (Array.length arr.values)

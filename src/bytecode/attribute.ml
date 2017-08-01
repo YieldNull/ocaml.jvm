@@ -1,5 +1,5 @@
 open VMError
-open Core.Std
+open Core
 open BatIO
 open BatIO.BigEndian
 

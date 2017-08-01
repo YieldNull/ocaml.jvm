@@ -17,11 +17,15 @@ val access_flags : t -> int
 
 val attrs : t -> AttrMethod.t list
 
+val table_index : t -> int
+
 val is_static : t -> bool
 
 val is_public : t -> bool
 
 val is_protected : t -> bool
+
+val is_default : t -> bool
 
 val is_private : t -> bool
 

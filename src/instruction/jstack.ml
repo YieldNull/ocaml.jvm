@@ -1,4 +1,4 @@
-open Core.Std
+open Core
 open Opcodes
 open Jvalue
 open VMError
@@ -35,7 +35,7 @@ let handle_invoke t frame =
 
 let rec initialize_class jclass =
   let init_final jclass =
-    Hashtbl.iter_vals (Jclass.fields jclass) ~f:(fun jfield ->
+    Hashtbl.iter (Jclass.fields jclass) ~f:(fun jfield ->
         if Jfield.is_final jfield && Jfield.is_static jfield then
           let i = Jfield.constant_value jfield in
           match i with
