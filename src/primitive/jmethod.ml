@@ -19,6 +19,8 @@ let attrs jmethod = jmethod.attrs
 
 let table_index jmethod = jmethod.table_index
 
+let set_table_index jmethod index = jmethod.table_index <- index
+
 let is_static jmethod = FlagMethod.is_set jmethod.access_flags FlagMethod.Static
 
 let is_public jmethod = FlagMethod.is_set jmethod.access_flags FlagMethod.Public

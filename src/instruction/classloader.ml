@@ -32,19 +32,26 @@ let create_static_fields bytecode =
   List.iter bytecode.static_fields ~f:(fun field ->
       let mid = field.Field.mid in
       let value = Jfield.default_value mid in
-      Hashtbl.add_exn statics ~key:mid ~data:value
+      Hashtbl.set statics ~key:mid ~data:value
     );
   statics
 
 let build_vtable jclass =
   let open! Jclass in
   match super_class jclass with
-  | None -> ()
-  | Some super -> let super_vmethods = virtual_methods super in
-    let vtable_copy = Array.copy @@ Jclass.vtable super in
+  | Some super ->
+    let super_vmethods, vtable_copy =
+      (* build vtables for interface, used in itables *)
+      if is_interface jclass then
+        match List.hd @@ interfaces jclass with
+        | None -> MemberID.hashtbl (), [||] (* root interface. donot include java.lang.Object methods *)
+        | Some inter -> virtual_methods inter, Array.copy @@ Jclass.vtable inter (* inherit from super interface *)
+      else
+        virtual_methods super, Array.copy @@ Jclass.vtable super
+    in
     let own = Hashtbl.fold (virtual_methods jclass)
         ~init:[]
-        ~f:(fun ~key ~data:m acc ->
+        ~f:(fun ~key:_ ~data:m acc ->
             if Option.is_some @@ Hashtbl.find super_vmethods (Jmethod.mid m) then
               if not (Jmethod.is_default m) then
                 acc (* override public or protected *)
@@ -52,26 +59,44 @@ let build_vtable jclass =
                 acc (* override package private *)
               else
                 (* new package private with the same signatrue of parent *)
-                (AccessibleVMethod m) :: acc
+                m :: acc
             else
-              (AccessibleVMethod m) :: acc (* totally new virtual method *)
+              m :: acc (* totally new virtual method *)
           )
     in
-    let vtable = Array.append vtable_copy (Array.of_list own) in
-    Array.iter vtable ~f:(function
-        | InaccessibleVMethod -> ()
-        | AccessibleVMethod m ->
-          if Jmethod.is_default m && not (package_rt_equal jclass super) then
-            (* package private methods of parent class may become inaccessible *)
-            vtable.(Jmethod.table_index m) <- InaccessibleVMethod
-          else (* update virtual_methods of current class
-                  including all accessible virtual methods
-               *)
-            Hashtbl.set (virtual_methods jclass) ~key:(Jmethod.mid m) ~data:m
-      )
+    let vtable = Array.append vtable_copy (List.to_array own) in
+    Array.iteri vtable ~f:(fun index m ->
+        (* update virtual_methods of current class
+                     including all accessible virtual methods *)
+        Jmethod.set_table_index m index;
+        Hashtbl.set (virtual_methods jclass) ~key:(Jmethod.mid m) ~data:m
+      );
+    set_vtable jclass vtable
+  | None -> (* for java.lang.Object *)
+    virtual_methods jclass
+    |> Hashtbl.data
+    |> List.to_array
+    |> set_vtable jclass
 
-
-let build_itable jclass = ()
+let build_itable jclass =
+  let open! Jclass in
+  match jclass.super_class with
+  | None -> () (* java.lang.Object has empty itables *)
+  | Some super ->
+    let inters = interfaces jclass in
+    let tables = itables super in
+    if List.is_empty inters then
+      set_itables jclass tables
+    else begin
+      let table_copy = Hashtbl.copy tables in
+      List.iter inters ~f:(fun inter ->
+          Hashtbl.set table_copy ~key:inter.name ~data:(vtable inter);
+          (* interface inheritance *)
+          Hashtbl.iteri (itables inter) ~f:(fun ~key ~data ->
+              Hashtbl.set table_copy ~key ~data
+            )
+        )
+    end
 
 (* load a none array class from file System *)
 let rec load_from_bytecode loader binary_name =
@@ -120,9 +145,8 @@ let rec load_from_bytecode loader binary_name =
       Jclass.loader = loader;
       Jclass.static_fields = static_fields;
       Jclass.fields =  MemberID.hashtbl ();
-      Jclass.static_methods = MemberID.hashtbl ();
+      Jclass.methods = MemberID.hashtbl ();
       Jclass.virtual_methods = MemberID.hashtbl ();
-      Jclass.special_methods = MemberID.hashtbl ();
       Jclass.initialize_state = Jclass.Uninitialized;
       Jclass.vtable = [||];
       Jclass.itables = Hashtbl.create ~hashable:String.hashable ();
@@ -130,20 +154,22 @@ let rec load_from_bytecode loader binary_name =
   in
   List.iter bytecode.fields ~f:(fun field ->
       let jfield = create_field jclass field in
-      Hashtbl.add_exn (Jclass.fields jclass) ~key:(Jfield.mid jfield) ~data:jfield
+      Hashtbl.set (Jclass.fields jclass) ~key:(Jfield.mid jfield) ~data:jfield
     );
-  List.iter bytecode.static_methods ~f:(fun mth ->
+  List.iter bytecode.methods ~f:(fun mth ->
       let jmethod = create_method jclass mth in
-      Hashtbl.add_exn (Jclass.static_methods jclass)
-        ~key:(Jmethod.mid jmethod) ~data:jmethod
-    );
-  List.iter bytecode.special_methods ~f:(fun mth ->
-      let jmethod = create_method jclass mth in
-      Hashtbl.add_exn (Jclass.special_methods jclass)
-        ~key:(Jmethod.mid jmethod) ~data:jmethod
+      Hashtbl.set (Jclass.methods jclass)
+        ~key:(Jmethod.mid jmethod) ~data:jmethod;
+      if not (FlagMethod.is_set mth.Method.access_flags FlagMethod.Static
+              || FlagMethod.is_set mth.Method.access_flags FlagMethod.Private
+              || MemberID.name mth.Method.mid = "<init>"
+              || MemberID.name mth.Method.mid = "<clinit>")
+      then
+        Hashtbl.set (Jclass.virtual_methods jclass)
+          ~key:(Jmethod.mid jmethod) ~data:jmethod
     );
   build_vtable jclass;
-  build_vtable jclass;
+  build_itable jclass;
   Jloader.add_class loader jclass; (* record as initiating loader*)
   resovle_pool jclass bytecode.Bytecode.constant_pool;
   jclass

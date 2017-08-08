@@ -57,26 +57,8 @@ type t =
     attributes    : Attribute.AttrClass.t list;
     fields        : Field.t list;
     static_fields : Field.t list;
-    static_methods  : Method.t list;
-    virtual_methods : Method.t list;
-    special_methods : Method.t list;
+    methods       : Method.t list;
   }
-
-let read_methods input pool =
-  let open Method in
-  List.fold (List.range 0 (read_ui16 input)) ~init: ([], [], [])
-    ~f:(fun acc _ ->
-        let statics, virtuals, specials = acc in
-        let m = parse input pool in
-        if FlagMethod.is_set m.access_flags FlagMethod.Static then
-          m :: statics, virtuals, specials
-        else if MemberID.name m.mid = "<init>"
-             || MemberID.name m.mid = "<clinit>"
-             || FlagMethod.is_set m.access_flags FlagMethod.Private then
-          statics, virtuals, m :: specials
-        else
-          statics, m :: virtuals, specials
-      )
 
 let read_fields input pool =
   let open Field in
@@ -111,14 +93,13 @@ let parse input =
   let super_class = read_ui16 input in
   let interfaces = List.init (read_ui16 input) ~f:(fun _ -> read_ui16 input) in
   let static_fields, fields = read_fields input pool in
-  let static_methods, virtual_methods, special_methods = read_methods input pool in
+  let methods = List.init (read_ui16 input) ~f:(fun _ -> Method.parse input pool) in
   let attributes = List.init (read_ui16 input) ~f:(fun _ ->
       Attribute.AttrClass.parse input pool) in
   check_end input;
   { minor_version; major_version; constant_pool = pool;
     access_flags; this_class; super_class;
-    interfaces; attributes; fields; static_fields; static_methods;
-    virtual_methods; special_methods;
+    interfaces; attributes; fields; static_fields; methods;
   }
 
 let loaded_bytecodes = Hashtbl.create ~hashable:String.hashable ()

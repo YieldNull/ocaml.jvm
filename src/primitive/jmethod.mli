@@ -19,6 +19,8 @@ val attrs : t -> AttrMethod.t list
 
 val table_index : t -> int
 
+val set_table_index : t -> int -> unit
+
 val is_static : t -> bool
 
 val is_public : t -> bool

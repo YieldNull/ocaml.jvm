@@ -25,9 +25,7 @@ type t =
     attributes    : Attribute.AttrClass.t list;
     fields        : Field.t list;
     static_fields : Field.t list;
-    static_methods  : Method.t list;
-    virtual_methods : Method.t list;
-    special_methods : Method.t list;
+    methods       : Method.t list;
   }
 
 val load : string -> t

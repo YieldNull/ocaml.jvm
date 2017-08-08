@@ -8,10 +8,6 @@ type state = InnClass.state =
   | Initialing
   | Initialized
 
-type vmethod = InnClass.vmethod =
-  | AccessibleVMethod of InnMethod.t
-  | InaccessibleVMethod (* inaccessible *)
-
 type t = InnClass.t =
   { name : string;
     access_flags  : int;
@@ -22,11 +18,10 @@ type t = InnClass.t =
     loader        : InnLoader.t;
     fields        : (MemberID.t, InnField.t) Hashtbl.t;
     static_fields : (MemberID.t, InnValue.t) Hashtbl.t;
-    static_methods  : (MemberID.t, InnMethod.t) Hashtbl.t;
+    methods         : (MemberID.t, InnMethod.t) Hashtbl.t;
     virtual_methods : (MemberID.t, InnMethod.t) Hashtbl.t;
-    special_methods : (MemberID.t, InnMethod.t) Hashtbl.t;
-    vtable        : vmethod array;
-    itables       : (string, InnMethod.t array) Hashtbl.t;
+    mutable vtable  : InnMethod.t array;
+    mutable itables : (string, InnMethod.t array) Hashtbl.t;
     mutable initialize_state : state;
   }
 
@@ -42,9 +37,7 @@ val interfaces : t -> t list
 
 val fields : t -> (MemberID.t, InnField.t) Hashtbl.t
 
-val static_methods : t -> (MemberID.t, InnMethod.t) Hashtbl.t
-
-val special_methods : t -> (MemberID.t, InnMethod.t) Hashtbl.t
+val methods : t -> (MemberID.t, InnMethod.t) Hashtbl.t
 
 val virtual_methods : t -> (MemberID.t, InnMethod.t) Hashtbl.t
 
@@ -56,9 +49,13 @@ val loader : t -> InnLoader.t
 
 val static_fields : t -> (MemberID.t, InnValue.t) Hashtbl.t
 
-val vtable : t -> vmethod array
+val vtable : t -> InnMethod.t array
+
+val set_vtable : t -> InnMethod.t array -> unit
 
 val itables : t -> (string, InnMethod.t array) Hashtbl.t
+
+val set_itables : t -> (string, InnMethod.t array) Hashtbl.t -> unit
 
 val is_initialized : t -> bool
 
