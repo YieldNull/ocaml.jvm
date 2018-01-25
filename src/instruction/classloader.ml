@@ -51,17 +51,19 @@ let build_vtable jclass =
     in
     let own = Hashtbl.fold (virtual_methods jclass)
         ~init:[]
-        ~f:(fun ~key:_ ~data:m acc ->
-            if Option.is_some @@ Hashtbl.find super_vmethods (Jmethod.mid m) then
-              if not (Jmethod.is_default m) then
-                acc (* override public or protected *)
-              else if package_rt_equal jclass super then
-                acc (* override package private *)
-              else
+        ~f:(fun ~key:_ ~data:mth acc ->
+            match Hashtbl.find super_vmethods (Jmethod.mid mth) with
+            | Some m ->
+              if not (Jmethod.is_default m) || (* override public or protected *)
+                 package_rt_equal jclass super  (* override package private *)
+              then begin
+                Array.set vtable_copy (Jmethod.table_index m) mth;
+                acc
+              end else
                 (* new package private with the same signatrue of parent *)
-                m :: acc
-            else
-              m :: acc (* totally new virtual method *)
+                mth :: acc
+            | _ ->
+              mth :: acc (* totally new virtual method *)
           )
     in
     let vtable = Array.append vtable_copy (List.to_array own) in
